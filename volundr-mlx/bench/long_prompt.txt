@@ -1,0 +1,977 @@
+Here is a CUDA source file:
+
+```cuda
+// M1: standalone Volundr forward (bf16, tp1, one request), assembled from the engine's bit-exact kernels and the M1
+// parity bridges (oracle tree: flashinfer attention templates, ATen far branch). Mirrors sglv23's VolundrModel.forward
+// op for op (fused mHC path, BCSA FlashInfer local branch, VOLUNDR_FUSED_BCSA far path, token mask, greedy).
+// Weights are registered by checkpoint tensor name (device or host-mapped pointers) from the Rust host.
+// Linears may be W4 (compressed-tensors int4 container, group 64/128, repacked to the k-tiled layout at load time):
+// m = 1 -> W4 GEMV, m <= 16 -> batched W4 GEMV (rows bit-identical to m = 1), larger m -> dequantize to a bf16 scratch
+// + cuBLAS (fp32 reduction). The bf16 path is unchanged (token-identical to sglv23).
+// Not the M2 design: one kernel per op, plain buffers, no batching. M2a adds sessions: one shared KV row pool, per-session
+// slot map (r2t) / KDA state slot / Engram prev pair / position; switching is a pointer swap, fork shares prefix rows.
+#include "agens_kernels.h"
+#include "agens_kv.h"
+#include "m1_kv.h"
+#include "m1_draft.h"
+#include "m1_mtp.h"
+#include "m1_dense8.h"
+#include <cuda_bf16.h>
+#include <cuda_profiler_api.h>
+#include <curand_kernel.h>
+#include <cuda_runtime.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <algorithm>
+#include <chrono>
+#include <deque>
+#include <map>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+extern "C" {
+// oracle tree (libagens_oracle_attn / libagens_oracle_prefill / libagens_oracle_bridge)
+int ak_oracle_bcsa_local(void* q, void* kc, void* vc, int pool, int* kv_indptr, int* kv_indices, int* last_page_len,
+                         const int* kv_indptr_host, const int* qo_indptr_host, int* qo_indptr_dev, int bs, int qo_heads,
+                         int kv_heads, float sm_scale, void* o, float* lse, int cuda_graph, void* stream);
+int ak_oracle_dense_prefill(void* q, void* kc, void* vc, int* qo_indptr_dev, int* kv_indptr, int* kv_indices,
+                            int* last_page_len, const int* qo_indptr_host, const int* kv_indptr_host, int bs, int qo_heads,
+                            int kv_heads, float sm_scale, void* o, void* stream);
+int ak_oracle_bcsa_prefill(void* q, void* kc, void* vc, int* qo_indptr_dev, int* kv_indptr, int* kv_indices,
+                           int* last_page_len, const int* qo_indptr_host, const int* kv_indptr_host, int bs, int qo_heads,
+                           int kv_heads, int window_left, float sm_scale, void* o, float* lse, void* stream);
+int ak_bridge_far_decode(void* qi, void* qh, void* o_loc, void* lse, void* pos, void* reqs, void* r2t, int R, int Wctx,
+                         void* kc, void* vc, int rows, void* blk, int bs, void* out, void* stream);
+int ak_bridge_block_keys_decode(void* pos, void* reqs, void* out_loc, void* r2t, int R, int Wctx, void* idx, void* blk,
+                                int rows, int bs, void* stream);
+int ak_attn_decode_plan(int slot, const int* kv_range, int qo_heads, int kv_heads, void* stream);
+int ak_attn_decode_multi_plan_mode(int mslot, int T, const int* rng, int stride, const int* indices, int max_len,
+                                   int qo_heads, int kv_heads, const int* disable_slots, int mode, void* stream);
+int ak_attn_decode_multi_plan(int mslot, int T, const int* rng, int stride, const int* indices, int max_len,
+                              int qo_heads, int kv_heads, const int* disable_slots, void* stream);
+int ak_attn_decode_multi(int mslot, void* q, void* kc, void* vc, int qo_heads, int kv_heads, float sm_scale, void* o,
+                         float* lse, void* stream);
+int ak_attn_decode_packed_plan(int mslot, int T, const int* rng, int stride, int qo_heads, int kv_heads,
+                               const int* disable_slots, void* stream);
+int ak_attn_decode_packed(int mslot, void* q, void* kc, void* vc, int* indices, int qo_heads, int kv_heads,
+                          float sm_scale, void* o, float* lse, void* stream);
+int ak_attn_decode(int slot, void* q, void* kc, void* vc, int* indices, int* kv_range, int qo_heads, int kv_heads,
+                   float sm_scale, void* o, float* lse, void* stream);
+long long ak_bridge_torch_reserved(int release);
+int ak_bridge_set_heads(int qh, int kvh);  // far bridge: this rank's q / kv heads (tensor parallel)
+int ak_bridge_far_extend(void* qi_all, void* qh, void* o_loc, void* lse, int seq_len, int T, int req, void* r2t, int R,
+                         int Wctx, void* kc, void* vc, void* idx, void* blk, int rows, void* out, void* stream);
+}
+
+namespace {
+using bf16 = __nv_bfloat16;
+constexpr int HID = 5120, NS = 4, VOCAB = 248320, VOCAB_VALID = 248077;
+constexpr int HD = 256, ROT = 64, WIN = 4096, KK = 128;
+// Head counts of this rank (tensor parallel, ak_m1_tp_config before ak_m1_init: each rank holds 1 / tp of the KDA,
+// attention and MLP heads / rows; tp1 = the whole model). Full model: QH 24, KVH 4, KH 16, KHV 48, INTER 17408.
+constexpr int QH_FULL = 24, KVH_FULL = 4, KH_FULL = 16, KHV_FULL = 48, INTER_FULL = 17408;
+int QH = QH_FULL, KVH = KVH_FULL, KH = KH_FULL, KHV = KHV_FULL, INTER = INTER_FULL;
+int KDIM = 2 * KH_FULL * KK + KHV_FULL * KK;
+int g_tp = 1, g_rank = 0;
+constexpr int IDXH = 4, IDXD = 128, ENG_DIM = 512, ENG_ROWS = 1 << 20, CHUNK = 4096;
+// Prefill chunk (sglv23's chunked_prefill_size 4096 = parity with the reference). AGENS_M1_PREFILL_CHUNK (64..4096)
+// trades prefill speed for the CHUNK-sized scratch (~1.7 GB activations at 4096): the 16 GB plan needs it smaller.
+// Chunk boundaries change prefill numerics (KDA chunking), so the default stays 4096.
+int g_chunk = CHUNK;
+constexpr float EPS = 1e-6f;
+// layer pattern ('k' KDA, 'b' BCSA, 'd' dense) and Engram layers come from the checkpoint config (ak_m1_init)
+int NL = 72;
+std::string kMixer = "kkkbkkkkbkkkbkkkkbkkkbkkkkbkkkbbkkkbkkkkbkkkbkkkkbkkkbkkkkbkkkbbkkkbkkkd";
+int kEngramLayer[2] = {2, 22};
+
+#define CK(x)                                                                         \
+  do {                                                                                \
+    int e_ = (int)(x);                                                                \
+    if (e_) {                                                                         \
+      fprintf(stderr, "m1: %s failed (%d) at %s:%d\n", #x, e_, __FILE__, __LINE__);   \
+      return e_;                                                                      \
+    }                                                                                 \
+  } while (0)
+
+std::map<std::string, void*> W;  // weight registry
+void* w(const std::string& n) {
+  auto it = W.find(n);
+  if (it == W.end()) {
+    fprintf(stderr, "m1: missing weight %s\n", n.c_str());
+    return nullptr;
+  }
+  return it->second;
+}
+// Quantized linears (k-tiled weights + scales), keyed like the bf16 registry (name of the bf16 weight). A linear is one
+// or two row parts (gate_up_proj merged from gate_proj and up_proj of different GSQ-RCO types); each part has its own
+// bit width (4: W4 KT, 3: W3 KT, 2: W2 KT -- ak_wq_*) and group size, and writes rows [r0, r0 + n) of the output.
+struct W4Part {
+  void *wt, *st;
+  int r0, n, group, bits;
+};
+struct W4Lin {
+  int n, k;
+  int np = 0;
+  W4Part p[2];
+};
+std::map<std::string, W4Lin> W4M;
+int g_w4_batch_max = 16;  // AGENS_M1_W4_BATCH_MAX (<= 128): largest m on the batched GEMV / GEMM; above: dequant + cuBLAS
+int g_w4_bf16w = 0;       // AGENS_M1_W4_NUMERICS=marlin: decode/verify GEMVs use bf16(q * scale) weights like Marlin
+// Batch-invariant decode (speculative decoding): bf16 linears, the mHC bmm and the Engram gate run the
+// tensor-core / per-token kernels for every m <= 16, so a T-token verify gives each token the bits of a one-token
+// step (W4 linears are batch-invariant on either path). AGENS_M1_BI=1 or ak_m1_spec_init turn it on.
+bool g_bi = getenv("AGENS_M1_BI") && getenv("AGENS_M1_BI")[0] == '1';
+constexpr int kSpecT = 8;                                  // verify block (DFlash2 block size)
+// speculative verify attention in one launch per layer (ak_attn_decode_multi; AGENS_SPEC_MULTI_ATTN=0: per query)
+constexpr int MSLOT_DENSE = 0, MSLOT_WIN = 1, MSLOT_PACKED = 2;
+// dense layer verify as one causal request of the T queries (ak_attn_decode_packed; AGENS_SPEC_DENSE_PACKED=0: the
+// T-request multi launch)
+bool dense_packed() {
+  static const int on = [] { const char* e = getenv("AGENS_SPEC_DENSE_PACKED"); return !(e && e[0] == '0'); }();
+  return on;
+}
+std::vector<cudaGraph_t>* g_seg_capture = nullptr;  // set while capturing a segmented verify graph
+int graph_segs() {
+  static const int n = [] { const char* e = getenv("AGENS_M1_GRAPH_SEGS"); return e ? std::max(1, atoi(e)) : 4; }();
+  return n;
+}
+bool g_multi_dense = false, g_multi_win = false;  // set per verify step (verify_body), read by attn_mixer
+bool g_multi_wdev = false;  // all-GPU pools (native mode): the T BCSA windows in one launch, as the dense layer
+bool multi_attn() {
+  static const int on = [] { const char* e = getenv("AGENS_SPEC_MULTI_ATTN"); return !(e && e[0] == '0'); }();
+  return on;
+}
+// AGENS_SPEC_MULTI_WIN=0: native-mode BCSA windows per query (default: one multi-request launch, bit-identical)
+// AGENS_SPEC_WIN_MODE2=0: the BCSA window multi launch in mode 0 (per-query launches as the fallback)
+bool win_mode2() {
+  static const int on = [] { const char* e = getenv("AGENS_SPEC_WIN_MODE2"); return !(e && e[0] == '0'); }();
+  return on;
+}
+bool g_win2 = false;  // this verify's BCSA windows run as one mode-2 multi launch
+bool multi_win_dev() {
+  static const int on = [] { const char* e = getenv("AGENS_SPEC_MULTI_WIN"); return !(e && e[0] == '0'); }();
+  return on;
+}
+constexpr int kCapLayers = 5;
+int g_cap_layer[kCapLayers] = {-1, -1, -1, -1, -1};        // target layers whose entry stream 0 feeds the drafter
+bool g_capture = false;
+float g_temp = 0.f;               // speculative verify: 0 = greedy accept, > 0 = sampled accept at this temperature
+int g_seed = 0, g_spec_step = 0;  // Philox key and per-request verify step counter (reset by ak_m1_spec_sampling)
+// Weight pointers per (name literal, layer): looked up in the registries once, then read from a pointer table (the
+// forward used to build ~1400 name strings + map lookups per decode step; a decode graph looks up nothing at all).
+// Keyed by the literal's address: call sites pass string literals. Cleared when weights are (re)registered.
+struct LinRef {
+  bool resolved = false;
+  void* bf16 = nullptr;
+  const W4Lin* w4 = nullptr;
+};
+std::unordered_map<const char*, std::vector<LinRef>> g_lin_ref;  // [layer + 1] (-1 = model-level, e.g. lm_head)
+std::unordered_map<const char*, std::vector<void*>> g_wl, g_wm;  // layer weights / mhc weights
+std::unordered_map<const char*, void*> g_wg;                     // model-level weights
+void clear_weight_tables() { g_lin_ref.clear(), g_wl.clear(), g_wm.clear(), g_wg.clear(); }
+// host-side step statistics (AGENS_M1_STEP_STATS): enqueue / wait ms of the last forward, linear calls (all / W4)
+double g_stat[4] = {};
+// Batched decode (server mode): g_B rows, row r = session g_brow[r]; attention runs per row, everything else on B rows.
+// g_binv (AGENS_M1_BATCH_INVARIANT=1): decode bf16 linears use the batch-invariant engine GEMV (also at bs = 1);
+// otherwise a batched decode issues them per row (cuBLAS m = 1), so either way a row is bit-identical to its bs = 1 run.
+constexpr int kMaxBatch = 16;
+int g_B = 0, g_binv = 0;
+bool g_bdev = false, g_bfar = false;
+int g_pad_row = 0;  // batched attention on device tables (attn_batch); far branch in this step
+bool g_dec = false;
+std::vector<int> g_brow;
+// batched speculative verify: g_BV sequences of kSpecT tokens (rows 8 * g_BV, sequence b's at 8 b); 0 = off
+constexpr int kMaxBV = 16, kBVRes = 16;
+int g_BV = 0;
+// batched verify length per sequence (2..kSpecT; rows j = g_TV b + t): verifying fewer drafts per sequence at large B
+// trades a little acceptance for a proportionally smaller verify forward (AGENS_SPEC_BATCH_TV: one value, or a list
+// "tv1,tv2,..." for B = 1, 2, ..; the last entry applies to larger B). Default (H200 conc_bench sweep, short prompts):
+// B x TV at or under 16 rows up to B = 4 (one 16-token GEMM tile), about 30 rows to B = 8, 2 drafts past B = 10
+int g_TV = kSpecT;
+int batch_tv(int B) {
+  static std::vector<int> tv;
+  static bool init = false;
+  if (!init) {
+    init = true;
+    const char* e = getenv("AGENS_SPEC_BATCH_TV");
+    for (const char* c = e; c && *c;) {
+      tv.push_back(std::max(2, std::min(kSpecT, atoi(c))));
+      while (*c && *c != ',') ++c;
+      if (*c == ',') ++c;
+    }
+    if (tv.empty()) tv = {8, 8, 5, 4, 6, 5, 4, 4, 3, 3, 2};
+  }
+  return tv[std::min((size_t)B, tv.size()) - 1];
+}
+std::vector<int> g_bv_sess;              // engine sessions of the current batched verify
+const long long* g_tag_ptr = nullptr;    // far-branch cache tag the verify reads (default S.step_d + 30)
+long g_lin = 0, g_lin_w4 = 0;
+std::string L(int i, const char* s) { return "model.language_model.layers." + std::to_string(i) + "." + s; }
+std::string M(int i, const char* s) { return "model.language_model.mhc." + std::to_string(i) + "." + s; }
+void* table_get(std::unordered_map<const char*, std::vector<void*>>& t, int i, const char* s, std::string (*name)(int, const char*)) {
+  std::vector<void*>& v = t[s];
+  if ((int)v.size() <= i) v.resize(std::max(NL, i + 1), nullptr);
+  if (!v[i]) v[i] = w(name(i, s));
+  return v[i];
+}
+void* WL(int i, const char* s) { return table_get(g_wl, i, s, L); }  // == w(L(i, s))
+void* WM(int i, const char* s) { return table_get(g_wm, i, s, M); }  // == w(M(i, s))
+void* WG(const char* s) {                                             // == w(s)
+  void*& p = g_wg[s];
+  if (!p) p = w(s);
+  return p;
+}
+
+// ---------------------------------------------------------------- small helper kernels (pure data movement)
+__global__ void split_q_gate(const bf16* qg, bf16* q, bf16* g, int T, int QH) {  // [T][QH][2*256] -> q, gate [T][QH*256]
+  const long n = (long)T * QH * HD;
+  for (long i = blockIdx.x * (long)blockDim.x + threadIdx.x; i < n; i += (long)gridDim.x * blockDim.x) {
+    const long t = i / (QH * HD), r = i % (QH * HD), h = r / HD, d = r % HD;
+    q[i] = qg[(t * QH + h) * 2 * HD + d];
+    g[i] = qg[(t * QH + h) * 2 * HD + HD + d];
+  }
+}
+__global__ void scale_f32(float* x, int n, float s) {  // lse.float() * _LN2 (torch: x * float(s))
+  const int i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < n) x[i] = x[i] * s;
+}
+__global__ void store_kv(const bf16* k, const bf16* v, bf16* kc, bf16* vc, const int* loc, int T, int KVH) {
+  const long n = (long)T * KVH * HD;
+  for (long i = blockIdx.x * (long)blockDim.x + threadIdx.x; i < n; i += (long)gridDim.x * blockDim.x) {
+    const long t = i / (KVH * HD), r = i % (KVH * HD);
+    kc[(long)loc[t] * KVH * HD + r] = k[i];
+    vc[(long)loc[t] * KVH * HD + r] = v[i];
+  }
+}
+__global__ void store_rows(const bf16* x, bf16* cache, const int* loc, int T, int d) {
+  const long n = (long)T * d;
+  for (long i = blockIdx.x * (long)blockDim.x + threadIdx.x; i < n; i += (long)gridDim.x * blockDim.x)
+    cache[(long)loc[i / d] * d + i % d] = x[i];
+}
+// Session State rows in position order <-> pool rows (map = the session's r2t). out/in may be device or pinned host (UVA).
+// shift 2: the cache is indexed by page (row / 4: block keys, one per 4-row group)
+__global__ void gather_rows(const uint4* cache, const int* map, int n, int d16, uint4* out, int shift = 0) {
+  const long m = (long)n * d16;
+  for (long i = blockIdx.x * (long)blockDim.x + threadIdx.x; i < m; i += (long)gridDim.x * blockDim.x)
+    out[i] = cache[(long)(map[i / d16] >> shift) * d16 + i % d16];
+}
+__global__ void scatter_rows(const uint4* in, const int* map, int n, int d16, uint4* cache, int shift = 0) {
+  const long m = (long)n * d16;
+  for (long i = blockIdx.x * (long)blockDim.x + threadIdx.x; i < m; i += (long)gridDim.x * blockDim.x)
+    cache[(long)(map[i / d16] >> shift) * d16 + i % d16] = in[i];
+}
+__global__ void broadcast_streams(const bf16* x, bf16* H, int T) {  // H[t][s][:] = x[t][:]
+  const long n = (long)T * NS * HID;
+  for (long i = blockIdx.x * (long)blockDim.x + threadIdx.x; i < n; i += (long)gridDim.x * blockDim.x)
+    H[i] = x[(i / (NS * HID)) * HID + i % HID];
+}
+// Engram rows for an extend chunk (sglv23 _engram_row_indices, extend branch, single request) + prev update.
+__device__ unsigned long long eg_fold(const long long* ids, int n) {
+  const unsigned long long P[5] = {1000003ull, 1000033ull, 1000037ull, 1000039ull, 1000081ull};
+  unsigned long long code = 0;
+  for (int j = 0; j < n; ++j) code = (code * P[j % 5] + (unsigned long long)(ids[j] + 1)) & 0x1FFFFFFFFFFFFFFFull;
+  return code;
+}
+__global__ void engram_rows_extend(const int* ids, const long long* pos, int T, int* prev, long long* r2, long long* r3) {
+  const int t = blockIdx.x * blockDim.x + threadIdx.x;
+  const long long s0 = prev[0], s1 = prev[1];
+  if (t < T) {
+    long long p1 = t >= 1 ? ids[t - 1] : s1;
+    long long p2 = t >= 2 ? ids[t - 2] : (t == 1 ? s1 : s0);
+    if (pos[t] < 1) p1 = -1;
+    if (pos[t] < 2) p2 = -1;
+    const long long g2[2] = {p1, ids[t]}, g3[3] = {p2, p1, ids[t]};
+    r2[t] = (long long)(eg_fold(g2, 2) % ENG_ROWS);
+    r3[t] = (long long)(eg_fold(g3, 3) % ENG_ROWS);
+  }
+}
+__global__ void engram_prev_update(const int* ids, const long long* pos, int T, int* prev) {
+  const long long last = T - 1;
+  const int old1 = prev[1];
+  const long long np2 = T >= 2 ? ids[last - 1] : (pos[last] >= 1 ? old1 : -1);
+  prev[0] = (int)np2;
+  prev[1] = ids[last];
+}
+__global__ void gather_engram(const long long* r2, const long long* r3, const uint4* t2, const uint4* t3, uint4* e,
+                              int T) {
+  const int t = blockIdx.x;
+  const int per = ENG_DIM * 2 / 16;
+  for (int i = threadIdx.x; i < 2 * per; i += blockDim.x)
+    e[(size_t)t * 2 * per + i] = i < per ? t2[r2[t] * per + i] : t3[r3[t] * per + (i - per)];
+}
+
+// Decode step inputs {token, position, pool row} (staged from pinned host memory, so a captured graph reads the new
+// values on every replay) -> the per-step device state the layers read; rng = decode attention KV ranges over the
+// session's slot map: [0, 2) BCSA window (last min(seq, W) tokens), [2, 4) dense (all tokens).
+__global__ void decode_step_prep(const int* in, int* ids, long long* pos, int* loc, long long* outloc, int* r2t,
+                                 int* rng) {
+  const int tok = in[0], p = in[1], l = in[2];
+  ids[0] = tok, pos[0] = p, loc[0] = l, outloc[0] = l;
+  r2t[p] = l;
+  rng[0] = p + 1 > WIN ? p + 1 - WIN : 0, rng[1] = p + 1;
+  rng[2] = 0, rng[3] = p + 1;
+}
+// Batched decode step (server mode): kBRec ints per row {token, position, pool row, KDA slot, r2t ptr lo/hi,
+// Engram prev ptr lo/hi} staged from pinned host memory -> per-row device state: ids/pos/loc/outloc/slots, the row's
+// decode ranges (rng4[r]), its r2t entry for this position, its Engram rows (r2/r3) + prev rotation, exactly the bs = 1
+// decode_step_prep + engram_rows_extend(T = 1) + engram_prev_update(T = 1) per row. Session pointers are read from the
+// staged table, so a captured graph serves any set of sessions.
+constexpr int kBRec = 8;
+__device__ __forceinline__ int* rec_ptr(const int* q) {
+  return reinterpret_cast<int*>(((unsigned long long)(unsigned)q[1] << 32) | (unsigned)q[0]);
+}
+__global__ void batch_step_prep(const int* in, int B, int* ids, long long* pos, int* loc, long long* outloc, int* slots,
+                                int* rng4, long long* r2, long long* r3) {
+  const int r = threadIdx.x;
+  if (r >= B) return;
+  const int* q = in + r * kBRec;
+  const int tok = q[0], p = q[1], l = q[2];
+  int* r2t = rec_ptr(q + 4);
+  int* prev = rec_ptr(q + 6);
+  ids[r] = tok, pos[r] = p, loc[r] = l, outloc[r] = l, slots[r] = q[3];
+  r2t[p] = l;
+  int* rng = rng4 + 4 * r;
+  rng[0] = p + 1 > WIN ? p + 1 - WIN : 0, rng[1] = p + 1;
+  rng[2] = 0, rng[3] = p + 1;
+  const long long s0 = prev[0], s1 = prev[1];
+  long long p1 = s1, p2 = s0;
+  if (p < 1) p1 = -1;
+  if (p < 2) p2 = -1;
+  const long long g2[2] = {p1, tok}, g3[3] = {p2, p1, tok};
+  r2[r] = (long long)(eg_fold(g2, 2) % ENG_ROWS);
+  r3[r] = (long long)(eg_fold(g3, 3) % ENG_ROWS);
+  const int old1 = prev[1];
+  prev[0] = p >= 1 ? old1 : -1;
+  prev[1] = tok;
+}
+__global__ void batch_r2t_stage(const int* in, int B, int W, int* r2t_b) {  // r2t_b[r][:] = row r's slot map
+  const long n = (long)B * W;
+  for (long i = blockIdx.x * (long)blockDim.x + threadIdx.x; i < n; i += (long)gridDim.x * blockDim.x)
+    r2t_b[i] = rec_ptr(in + (i / W) * kBRec + 4)[i % W];
+}
+__global__ void decode_ranges(const long long* pos, int* rng) {  // the eager forward's decode step (T = 1)
+  const int p = (int)pos[0];
+  rng[0] = p + 1 > WIN ? p + 1 - WIN : 0, rng[1] = p + 1;
+  rng[2] = 0, rng[3] = p + 1;
+}
+// sglv23 bcsa_block_keys_decode (VolundrAttention._write_block_keys, decode branch), one request: pool the C = 4
+// indexer keys of the block holding this position (serial fp32 sum, x 1/C, rounded: exact for 4 bf16 values) into
+// blk_cache at this step's row if the position closes the block, else into the trash row hi. 128 threads = idx_dim.
+__global__ void block_keys_decode(const long long* pos, const int* loc, const int* r2t, int r2t_w, const bf16* idx,
+                                  bf16* blk, int hi, int seq_rows = 0) {
+  constexpr int C = 4;
+  if (seq_rows) r2t += (size_t)(blockIdx.x / seq_rows) * r2t_w;  // batched verify: row's sequence map in r2t_b
+  pos += blockIdx.x, loc += blockIdx.x;  // one block per token (verify: T tokens; each token's write is independent)
+  const long long p = pos[0], base = (p / C) * C;
+  const int d = threadIdx.x;
+  float acc = 0.f;
+#pragma unroll
+  for (int c = 0; c < C; ++c) {
+    const long long cc = base + c < 0 ? 0 : base + c, col = cc > r2t_w - 1 ? r2t_w - 1 : cc;
+    const int sr = r2t[col], slot = sr < 0 ? 0 : (sr > hi ? hi : sr);
+    acc = __fadd_rn(acc, __bfloat162float(idx[(size_t)slot * IDXD + d]));
+  }
+  const long long dst = (p % C == C - 1 ? loc[0] : hi) / C;  // block keys are stored per 4-row page
+  blk[(size_t)dst * IDXD + d] = __float2bfloat16_rn(__fmul_rn(acc, 1.0f / C));
+}
+
+// Speculative verify step inputs, staged like decode_step_prep's: in = {T, P, tokens[8], rows[8]} -> ids/pos/loc/r2t
+// for T tokens at positions P..P+T-1 and, per query t, decode attention ranges rng[4t..4t+3] (window, dense).
+// hybrid drafting: the host's copy-from-context proposal (step[20] tokens at step[21..27]) replaces the drafter's
+// first step[20] drafts (step[3..]) after the drafter ran (graph-safe: the switch is data)
+__global__ void apply_hint(int* step) {
+  const int t = threadIdx.x, nh = step[20];
+  if (t < nh && t < kSpecT - 1) step[3 + t] = step[21 + t];
+}
+__global__ void verify_step_prep(const int* in, int* ids, long long* pos, int* loc, long long* outloc, int* r2t,
+                                 int* rng) {
+  const int t = threadIdx.x, T = in[0], P = in[1];
+  if (t >= T) return;
+  const int p = P + t, l = in[10 + t];
+  ids[t] = in[2 + t], pos[t] = p, loc[t] = l, outloc[t] = l;
+  r2t[p] = l;
+  rng[4 * t] = p + 1 > WIN ? p + 1 - WIN : 0, rng[4 * t + 1] = p + 1;
+  rng[4 * t + 2] = 0, rng[4 * t + 3] = p + 1;
+}
+// Greedy accept of a verified chain: ids = [bonus, d1..d(T-1)], tok = target argmax per position.
+// a = matching prefix of the drafts; commit n = a + 1 tokens (bonus, d1..da); emitted = d1..da, tok[a].
+// res = {n, emitted[0..n-1]}.
+__global__ void accept_greedy(const int* ids, const int* tok, int T, int* res) {
+  int a = 0;
+  while (a + 1 < T && ids[a + 1] == tok[a]) ++a;
+  res[0] = a + 1;
+  for (int j = 0; j < a; ++j) res[1 + j] = ids[1 + j];
+  res[1 + a] = tok[a];
+}
+// Sampled accept (temperature > 0), sglang's target-only rule for a chain from a deterministic drafter: position j's
+// target distribution q_j = softmax(logits_j / temp) over the valid vocab; draft x = ids[j + 1] is accepted with
+// probability q_j(x); on rejection the token is sampled from q_j without x (renormalised) and the chain stops; all
+// accepted -> the bonus is sampled from the last q. Philox(seed, step, position) -> reproducible. One block.
+__device__ float block_sum(float v, float* red) {
+  for (int o = 16; o > 0; o >>= 1) v += __shfl_xor_sync(0xFFFFFFFFu, v, o);
+  if ((threadIdx.x & 31) == 0) red[threadIdx.x >> 5] = v;
+  __syncthreads();
+  float t = 0.f;
+  for (int w = 0; w < (int)(blockDim.x >> 5); ++w) t += red[w];
+  __syncthreads();
+  return t;
+}
+__device__ float block_max(float v, float* red) {
+  for (int o = 16; o > 0; o >>= 1) v = fmaxf(v, __shfl_xor_sync(0xFFFFFFFFu, v, o));
+  if ((threadIdx.x & 31) == 0) red[threadIdx.x >> 5] = v;
+  __syncthreads();
+  float t = -INFINITY;
+  for (int w = 0; w < (int)(blockDim.x >> 5); ++w) t = fmaxf(t, red[w]);
+  __syncthreads();
+  return t;
+}
+// sample index from exp((l - mx) / temp) over [0, nv), excluding `skip` (-1 = none), at uniform u (total mass z)
+__device__ int block_sample(const bf16* l, int nv, float mx, float inv_t, int skip, float z, float u, float* red,
+                            int* found) {
+  const int per = (nv + blockDim.x - 1) / blockDim.x, lo = threadIdx.x * per, hi = min(nv, lo + per);
+  float part = 0.f;
+  for (int v = lo; v < hi; ++v)
+    if (v != skip) part += __expf((__bfloat162float(l[v]) - mx) * inv_t);
+  // exclusive scan of the per-thread parts (sequential over warps: small block)
+  __shared__ float parts[1024];
+  parts[threadIdx.x] = part;
+  if (threadIdx.x == 0) *found = nv - 1;
+  __syncthreads();
+  if (threadIdx.x == 0) {
+    float acc = 0.f, target = u * z;
+    for (int t = 0; t < (int)blockDim.x; ++t) {
+      if (acc + parts[t] > target) {
+        const int a = t * per, b = min(nv, a + per);
+        for (int v = a; v < b; ++v) {
+          if (v == skip) continue;
+          acc += __expf((__bfloat162float(l[v]) - mx) * inv_t);
+          if (acc > target) { *found = v; break; }
+        }
+        break;
+      }
+      acc += parts[t];
+    }
+  }
+  __syncthreads();
+  (void)red;
+  return *found;
+}
+__global__ void __launch_bounds__(1024) accept_sampled(const bf16* logits, int ld, int nv, const int* ids, int T,
+                                                       float temp, const int* step, int* res) {
+  __shared__ float red[32];
+  __shared__ int found, nacc, fin;
+  const unsigned long long seed = (unsigned)step[19], sidx = (unsigned)step[18];
+  const float inv_t = 1.0f / temp;
+  if (threadIdx.x == 0) nacc = 0, fin = -1;
+  __syncthreads();
+  for (int j = 0; j < T; ++j) {
+    const bf16* l = logits + (size_t)j * ld;
+    float mx = -INFINITY;
+    for (int v = threadIdx.x; v < nv; v += blockDim.x) mx = fmaxf(mx, __bfloat162float(l[v]));
+    mx = block_max(mx, red);
+    float sm = 0.f;
+    for (int v = threadIdx.x; v < nv; v += blockDim.x) sm += __expf((__bfloat162float(l[v]) - mx) * inv_t);
+    const float z = block_sum(sm, red);
+    curandStatePhilox4_32_10_t rng;
+    curand_init(seed, sidx * 64 + j, 0, &rng);
+    const float4 u4 = curand_uniform4(&rng);
+    if (j + 1 < T) {
+      const int x = ids[j + 1];
+      const float qx = __expf((__bfloat162float(l[x]) - mx) * inv_t) / z;
+      if (u4.x < qx) {  // accept the draft (uniform: identical in every thread)
+        if (threadIdx.x == 0) nacc = j + 1;
+        __syncthreads();
+        continue;
+      }
+      const int v = block_sample(l, nv, mx, inv_t, x, z - qx * z, u4.y, red, &found);
+      if (threadIdx.x == 0) fin = v;
+      __syncthreads();
+      break;
+    }
+    const int v = block_sample(l, nv, mx, inv_t, -1, z, u4.y, red, &found);
+    if (threadIdx.x == 0) fin = v;
+    __syncthreads();
+  }
+  if (threadIdx.x == 0) {
+    const int a = nacc;
+    res[0] = a + 1;
+    for (int j = 0; j < a; ++j) res[1 + j] = ids[1 + j];
+    res[1 + a] = fin;
+  }
+}
+// Engram prev pair after committing n of the verify tokens (engram_prev_update with T = n)
+__global__ void engram_prev_commit(const int* ids, const long long* pos, const int* res, int* prev) {
+  const int n = res[0];
+  const int old1 = prev[1];
+  const long long np2 = n >= 2 ? ids[n - 2] : (pos[n - 1] >= 1 ? old1 : -1);
+  prev[0] = (int)np2;
+  prev[1] = ids[n - 1];
+}
+
+// ---------------------------------------------------------------- batched speculative verify kernels
+// B sequences x kSpecT tokens; row j = 8 b + t. Records (m1draft::kRecInts ints per sequence, device): [1] P, [2] bonus,
+// [3..9] drafts, [10..17] pool rows, [18] KDA slot, [19] drafter ring, [20..21] r2t ptr, [22..23] Engram prev ptr,
+// [24..25] far-cache tag. Each sequence gets exactly what verify_step_prep / engram_rows_extend / accept_greedy /
+// engram_prev_commit give it in a single-sequence verify.
+constexpr int kRI = m1draft::kRecInts;
+__global__ void bv_prep(const int* rec, int Wctx, int* ids, long long* pos, int* loc, long long* outloc, int* rng,
+                        int* slots, int T) {
+  const int b = blockIdx.x, t = threadIdx.x;
+  if (t >= T) return;
+  const int* r = rec + b * kRI;
+  const int j = b * T + t, p = r[1] + t, l = r[10 + t];
+  ids[j] = r[2 + t], pos[j] = p, loc[j] = l, outloc[j] = l;
+  rec_ptr(r + 20)[p] = l;
+  const int off = b * Wctx;  // ranges index the B x Wctx staged slot maps (r2t_b)
+  rng[4 * j] = off + (p + 1 > WIN ? p + 1 - WIN : 0), rng[4 * j + 1] = off + p + 1;
+  rng[4 * j + 2] = off, rng[4 * j + 3] = off + p + 1;
+  if (t == 0) slots[b] = r[18];
+}
+__global__ void bv_apply_hint(int* rec) {  // sequence b's host proposal over its first rec[26] drafts
+  int* r = rec + blockIdx.x * kRI;
+  const int t = threadIdx.x;
+  if (t < r[26] && t < kSpecT - 1) r[3 + t] = r[27 + t];
+}
+__global__ void bv_engram(const int* rec, const int* ids, const long long* pos, long long* r2, long long* r3, int T) {
+  const int b = blockIdx.x, t = threadIdx.x;
+  if (t >= T) return;
+  const int* prev = rec_ptr(rec + b * kRI + 22);
+  const int* id = ids + b * T;
+  const long long* ps = pos + b * T;
+  const long long s0 = prev[0], s1 = prev[1];
+  long long p1 = t >= 1 ? id[t - 1] : s1;
+  long long p2 = t >= 2 ? id[t - 2] : (t == 1 ? s1 : s0);
+  if (ps[t] < 1) p1 = -1;
+  if (ps[t] < 2) p2 = -1;
+  const long long g2[2] = {p1, id[t]}, g3[3] = {p2, p1, id[t]};
+  r2[b * T + t] = (long long)(eg_fold(g2, 2) % ENG_ROWS);
+  r3[b * T + t] = (long long)(eg_fold(g3, 3) % ENG_ROWS);
+}
+__global__ void bv_r2t_stage(const int* rec, int B, int W, int* r2t_b) {  // r2t_b[b][:] = sequence b's slot map
+  const long n = (long)B * W;
+  for (long i = blockIdx.x * (long)blockDim.x + threadIdx.x; i < n; i += (long)gridDim.x * blockDim.x)
+    r2t_b[i] = rec_ptr(rec + (i / W) * kRI + 20)[i % W];
+}
+__global__ void bv_accept(const int* ids, const int* tok, int B, int* res, int T) {
+  const int b = threadIdx.x;
+  if (b >= B) return;
+  const int *id = ids + b * T, *tk = tok + b * T;
+  int* r = res + b * kBVRes;
+  int a = 0;
+  while (a + 1 < T && id[a + 1] == tk[a]) ++a;
+  r[0] = a + 1;
+  for (int j = 0; j < a; ++j) r[1 + j] = id[1 + j];
+  r[1 + a] = tk[a];
+}
+__global__ void bv_engram_commit(const int* rec, const int* ids, const long long* pos, const int* res, int B, int T) {
+  const int b = threadIdx.x;
+  if (b >= B) return;
+  int* prev = rec_ptr(rec + b * kRI + 22);
+  const int n = res[b * kBVRes];
+  const int old1 = prev[1];
+  const long long np2 = n >= 2 ? ids[b * T + n - 2] : (pos[b * T + n - 1] >= 1 ? old1 : -1);
+  prev[0] = (int)np2;
+  prev[1] = ids[b * T + n - 1];
+}
+// one sequence's verify ranges (the single-sequence layout of verify_step_prep) from its rows' positions
+__global__ void bv_seq_ranges(const long long* pos, int* rng, int T) {
+  const int t = threadIdx.x;
+  if (t >= T) return;
+  const int p = (int)pos[t];
+  rng[4 * t] = p + 1 > WIN ? p + 1 - WIN : 0, rng[4 * t + 1] = p + 1;
+  rng[4 * t + 2] = 0, rng[4 * t + 3] = p + 1;
+}
+
+// ---------------------------------------------------------------- state
+struct State {
+  int Wctx = 0, rows = 0;  // r2t width (sglv23 req_to_token width) and KV pool rows (+1 trash row = index rows)
+  cudaStream_t s = nullptr;
+  // per-layer caches
+  std::vector<bf16*> kc, vc, idx, blk;  // BCSA/dense: KV [rows+1][4][256]; idx/blk [rows+1][128]
+  std::vector<bf16*> conv;              // KDA: [nslots+1][3][KDIM] (slot 0 unused, as sglang's pool)
+  std::vector<float*> ssm;              // KDA: [nslots+1][48][128][128]
+  std::vector<float*> conv_w;           // fp32 conv weights [KDIM][4]
+  int* r2t = nullptr;                   // [1][Wctx] -- the ACTIVE session's (pool rows; unused entries = trash row)
+  int* prev = nullptr;                  // the active session's Engram prev pair
+  int* slot = nullptr;                  // the active session's KDA state slot (device int32)
+  bool* has_init = nullptr;
+  void* eng_t[2][2] = {};               // host-mapped tables: [layer idx 0/1][order]
+  int seq = 0;                          // tokens processed so far
+  // scratch, sized for CHUNK tokens
+  bf16 *H, *H2, *hmean, *hmean2, *nrm, *d, *xin, *post, *res, *y, *mixed, *t0, *t1, *t2, *t3, *gu, *act, *big0, *big1;
+  bf16 *q, *gate, *k, *v, *o, *qi, *ik, *e, *eg;
+  float *lse;
+  long long *pos, *reqs, *r2, *r3, *outloc;
+  int *loc, *ids, *qo_dev, *kv_indptr, *kv_idx, *last1, *tok;
+  void* rope = nullptr;                 // cos/sin cache of this device
+  int *step_d = nullptr, *step_h = nullptr, *tok_h = nullptr;  // decode inputs (device / pinned host), next token (pinned)
+  int* rng = nullptr;                   // decode attention KV ranges (decode_step_prep)
+  int* slots_b = nullptr;               // batched decode: KDA state slot of each row [kMaxBatch]
+  int *bstep_h = nullptr, *bstep_d = nullptr;  // batched decode inputs [kMaxBatch][kBRec] (pinned / device)
+  int *r2t_b = nullptr, *rng_b = nullptr;      // batched decode: per-row staged slot map [kMaxBatch][Wctx], ranges [.][4]
+  int* dummy_r2t = nullptr;             // padding rows of a batch bucket: all trash row
+  int* dummy_prev = nullptr;
+  void* far_ws = nullptr;               // engine far branch intermediates (ak_far_decode)
+  void* far_wsm = nullptr;              // speculative verify: multi-query far branch (ak_far_decode_multi_src)
+  // speculative verify (allocated by ak_m1_spec_init): per KDA layer the verify inputs the commit replays
+  // [kSpecT][KDIM] pre-conv qkv, [kSpecT][KDIM] conv output, [kSpecT][KHV*KK] gate, [kSpecT][KHV] beta
+  std::vector<bf16*> kst;
+  int* vres = nullptr;                  // accept result {n, emitted[..]} (device), mirrored to pinned vres_h
+  int* vres_h = nullptr;
+  bf16* cap = nullptr;                  // drafter context features: [tokens][kCapLayers][HID] (stream 0 at layer entry)
+  int cap_rows = 0;
+  bf16* wdq = nullptr;                  // W4 prefill: dequantized weight of the current linear (largest W4 n*k)
+  // batched speculative verify (server mode, ak_m1_spec_batch): records [kMaxBV][kRecInts] (pinned / device), per-row
+  // ranges (window, dense: both in the B x Wctx space of r2t_b), KDA slots, accept results [kMaxBV][16], KDA verify
+  // stash for bv_max * 8 rows
+  int *bv_h = nullptr, *bv_d = nullptr, *bv_rng = nullptr, *bv_slot = nullptr, *bv_res = nullptr, *bv_res_h = nullptr;
+  std::vector<bf16*> kstb;
+  int bv_max = 0;
+  int dev = 0;
+};
+// Layer-split (pipeline) over up to 2 devices: SD[k] holds device k's caches + scratch; layers [0, split) on SD[0],
+// [split, NL) on SD[1]. Numerics are those of tp1 (no reductions cross devices; the residual streams are copied).
+State SD[2];
+State* SP = &SD[0];
+#define S (*SP)
+int g_ndev = 1, g_split = 1 << 30;
+int dev_of(int layer) { return layer < g_split ? 0 : 1; }
+void use(int k) {
+  SP = &SD[k];
+  cudaSetDevice(SD[k].dev);
+}
+
+// Sessions. KV rows are one pool per device with identical row numbers on every device (each device holds its own
+// layers' rows), allocated from one host free list; a row is shared by forks of the session that wrote it (refcount)
+// and is never rewritten while referenced, so sharing is exact.
+struct Session {
+  bool live = false;
+  int seq = 0, kslot = 0;
+  std::vector<int> rows;                       // host mirror of r2t[0, seq)
+  int *r2t[2] = {}, *prev[2] = {}, *slot[2] = {};
+  long long cache_epoch = 0;  // owner tag of the far-branch union caches (globally unique, see g_cache_epoch)
+  int cache_seq = 0;          // position at the last verify step (a step back = a new epoch)
+};
+std::vector<Session> g_sess;
+long long g_cache_epoch = 0;  // tags handed out: a session's history may have changed -> a new tag
+int g_cur = 0, g_nslots = 1;
+// KV rows come in aligned groups of 4 ("pages"): positions 4b..4b+3 of a session (its block b) live in rows
+// 4P..4P+3 of one page P, so per-block data (BCSA block keys `blk`, the tiered block-mean pool) is stored once per page,
+// indexed row / 4. Pages are refcounted (forks share them); a fork inside a block copies the partial block to a page
+// of its own.
+std::vector<int> g_free, g_ref;                 // free page stack (top = lowest page), per-page refcount
+std::vector<char> g_slot_used;
+#define g_seq (g_sess[g_cur].seq)
+void bind_session() {  // point every device's State at the active session's per-device buffers
+  for (int d = 0; d < g_ndev; ++d) {
+    SD[d].r2t = g_sess[g_cur].r2t[d], SD[d].prev = g_sess[g_cur].prev[d], SD[d].slot = g_sess[g_cur].slot[d];
+  }
+}
+void release_rows(Session& ss) {
+  for (int k = ((int)ss.rows.size() - 1) & ~3; k >= 0; k -= 4)
+    if (--g_ref[ss.rows[k] >> 2] == 0) g_free.push_back(ss.rows[k] >> 2);
+  ss.rows.clear();
+}
+int pages_needed(const Session& ss, int T) {  // new pages for T more positions
+  const int have = (int)ss.rows.size() % 4 ? 4 - (int)ss.rows.size() % 4 : 0;
+  return T > have ? (T - have + 3) / 4 : 0;
+}
+int alloc_row(Session& ss) {  // the row of position ss.rows.size(); call pages_needed first
+  const int p = (int)ss.rows.size();
+  int row;
+  if (p % 4 == 0) {
+    const int pg = g_free.back();
+    g_free.pop_back();
+    g_ref[pg] = 1;
+    row = 4 * pg;
+  } else {
+    row = ss.rows[p - 1] + 1;
+  }
+  ss.rows.push_back(row);
+  return row;
+}
+
+template <typename T>
+T* dalloc(size_t n) {
+  void* p = nullptr;
+  cudaMalloc(&p, n * sizeof(T) > 0 ? n * sizeof(T) : 16);
+  cudaMemset(p, 0, n * sizeof(T));
+  return (T*)p;
+}
+int grid(long n) { return (int)std::min<long>(4096, (n + 255) / 256); }
+size_t kda_conv_slot() { return (size_t)3 * KDIM; }        // elements per KDA slot
+size_t kda_ssm_slot() { return (size_t)KHV * KK * KK; }
+int reset_session_buffers(Session& ss) {  // r2t -> trash row, prev -> (-1,-1), KDA slot -> 0, on every device
+  int neg[2] = {-1, -1};
+  for (int d = 0; d < g_ndev; ++d) {
+    use(d);
+    std::vector<int> trash(S.Wctx, S.rows);
+    CK(cudaMemcpy(ss.r2t[d], trash.data(), (size_t)S.Wctx * 4, cudaMemcpyHostToDevice));
+    CK(cudaMemcpy(ss.prev[d], neg, 8, cudaMemcpyHostToDevice));
+    for (int i = 0; i < NL; ++i)
+      if (kMixer[i] == 'k' && dev_of(i) == d) {
+        CK(cudaMemset(S.conv[i] + ss.kslot * kda_conv_slot(), 0, kda_conv_slot() * 2));
+        CK(cudaMemset(S.ssm[i] + ss.kslot * kda_ssm_slot(), 0, kda_ssm_slot() * 4));
+      }
+  }
+  ss.seq = 0;
+  use(0);
+  CK(m1mtp::reset_ring(ss.kslot, S.s));  // MTP context: no pending row
+  return 0;
+}
+void drop_graphs(int id);  // a session's decode graphs captured its KDA slot / ring slot: drop them when those change
+int new_session() {  // -> id, or -1 when every KDA slot is taken
+  int k = 1;
+  while (k <= g_nslots && g_slot_used[k]) ++k;
+  if (k > g_nslots) return -1;
+  int id = 0;
+  while (id < (int)g_sess.size() && g_sess[id].live) ++id;
+  if (id == (int)g_sess.size()) g_sess.emplace_back();
+  Session& ss = g_sess[id];
+  Session keep = ss;  // a reused id keeps its device buffers
+  ss = Session{};
+  for (int d = 0; d < 2; ++d) ss.r2t[d] = keep.r2t[d], ss.prev[d] = keep.prev[d], ss.slot[d] = keep.slot[d];
+  ss.live = true, ss.kslot = k;
+  ss.cache_epoch = ++g_cache_epoch;
+  g_slot_used[k] = 1;
+  drop_graphs(id);  // a reused id may get another slot
+  for (int d = 0; d < g_ndev; ++d) {
+    use(d);
+    if (!ss.r2t[d]) ss.r2t[d] = dalloc<int>(S.Wctx), ss.prev[d] = dalloc<int>(2), ss.slot[d] = dalloc<int>(1);
+    cudaMemcpy(ss.slot[d], &k, 4, cudaMemcpyHostToDevice);
+  }
+  if (reset_session_buffers(ss)) return -1;
+  return id;
+}
+// sglv23 plans its decode attention in CUDA-graph mode (decode graphs on, the default); an eager oracle
+// (--disable-cuda-graph, e.g. with --cpu-offload-gb) plans without it. AGENS_M1_DECODE_GRAPH=0 matches the latter.
+int decode_graph_mode() {
+  const char* e = getenv("AGENS_M1_DECODE_GRAPH");
+  return e && e[0] == '0' ? 0 : 1;
+}
+// Decode attention planned on device (ak_attn_decode, bit-identical to the graph-mode oracle, graph-capturable);
+// AGENS_M1_ORACLE_ATTN=1 keeps the host-planned oracle (also the eager-plan mode above).
+bool dev_attn() {
+  static const int on = decode_graph_mode() && !(getenv("AGENS_M1_ORACLE_ATTN") && getenv("AGENS_M1_ORACLE_ATTN")[0] == '1');
+  return on;
+}
+// Far branch on engine kernels (ak_far_decode, bit-identical to the ATen bridge, capturable); AGENS_M1_FAR_BRIDGE=1
+// keeps the bridge (then far-regime decode steps stay eager).
+bool far_engine() {
+  static const bool on = !(getenv("AGENS_M1_FAR_BRIDGE") && getenv("AGENS_M1_FAR_BRIDGE")[0] == '1');
+  return on;
+}
+enum { SLOT_BCSA = 0, SLOT_DENSE = 1 };  // ak_attn_decode plan slots (ranges rng[0..1], rng[2..3])
+int plan_decode_attention() {
+  CK(ak_attn_decode_plan(SLOT_BCSA, S.rng, QH, KVH, S.s));
+  return ak_attn_decode_plan(SLOT_DENSE, S.rng + 2, QH, KVH, S.s);
+}
+
+// Tiled W4 prefill: output rows per dequantized tile (AGENS_M1_W4_TILE_MB, default 64 MB of bf16 scratch; 0 = the
+// whole weight at once, the A1 path). Rounded down to 256 rows.
+size_t g_w4_tile_bytes = 64ull << 20;
+int w4_tile_rows(int k, int n) {
+  if (!g_w4_tile_bytes) return n;
+  const long r = (long)(g_w4_tile_bytes / ((size_t)k * 2)) & ~255L;
+  return (int)std::max(256L, std::min<long>(r, n));
+}
+
+// ---------------------------------------------------------------- layer pieces
+// bf16 linear: prefill / parity decode = cuBLAS as torch issues it; decode rows in a batch see the same bits as bs = 1
+int bf16_lin(const bf16* x, const void* wp, bf16* y, int m, int n, int k) {
+  if (g_dec && g_binv && m <= kMaxBatch) return ak_bf16_gemv_rows(x, wp, y, m, n, k, S.s);
+  if (g_dec && m > 1) {
+    for (int r = 0; r < m; ++r) CK(ak_bf16_linear(x + (size_t)r * k, wp, y + (size_t)r * n, 1, n, k, S.s));
+    return 0;
+  }
+  return ak_bf16_linear(x, wp, y, m, n, k, S.s);
+}
+
+const LinRef& lin_ref(int layer, const char* wname) {  // layer -1: a model-level linear (lm_head)
+  std::vector<LinRef>& v = g_lin_ref[wname];
+  if ((int)v.size() < NL + 1) v.resize(NL + 1);
+  LinRef& r = v[layer + 1];
+  if (!r.resolved) {
+    const std::string name = layer >= 0 ? L(layer, wname) : std::string(wname);
+    auto q = W4M.find(name);
+    if (q != W4M.end()) r.w4 = &q->second;
+    else r.bf16 = w(name);
+    r.resolved = true;
+  }
+  return r;
+}
+
+int linear(const bf16* x, const char* wname, int layer, bf16* y, int m, int n, int k) {
+  const LinRef& r = lin_ref(layer, wname);
+  ++g_lin;
+  if (r.w4) {
+    const W4Lin& t = *r.w4;
+    if (t.n != n || t.k != k) {
+      fprintf(stderr, "m1: W4 %s (layer %d) is [%d, %d], called as [%d, %d]\n", wname, layer, t.n, t.k, n, k);
+      return (int)cudaErrorInvalidValue;
+    }
+    ++g_lin_w4;
+    if (m <= g_w4_batch_max || (g_dec && m <= 128)) {  // decode / verify (batched verify: up to 16 x 8 rows)
+      for (int j = 0; j < t.np; ++j) {
+        const W4Part& q = t.p[j];
+        void* yp = y + q.r0;
+        CK(ak_wq_gemv_kt_multi(q.bits, x, m, 1, &q.wt, &q.st, &yp, &q.n, &n, k, q.group, g_w4_bf16w, S.s));
+      }
+      return 0;
+    }
+    // prefill: dequantize a tile of output rows at a time into the bounded scratch S.wdq and GEMM that column tile
+    // (tiles by output row whatever the parts: the same bf16 matrix and GEMM shapes as a one-part linear)
+    const int tn = w4_tile_rows(k, n);
+    for (int n0 = 0; n0 < n; n0 += tn) {
+      const int nt = std::min(tn, n - n0);
+      for (int j = 0; j < t.np; ++j) {
+        const W4Part& q = t.p[j];
+        const int a0 = std::max(n0, q.r0), a1 = std::min(n0 + nt, q.r0 + q.n);
+        if (a0 < a1)
+          CK(ak_wq_dequant_kt_rows(q.bits, q.wt, q.st, S.wdq + (size_t)(a0 - n0) * k, q.n, k, q.group, a0 - q.r0, a1 - a0,
+                                   S.s));
+      }
+      if (tn >= n) return ak_bf16_linear_f32reduce(x, S.wdq, y, m, n, k, S.s);
+      CK(ak_bf16_linear_f32reduce_ld(x, S.wdq, y + n0, m, nt, k, n, S.s));
+    }
+    return 0;
+  }
+  if (!r.bf16) return 1;
+  if (g_bi && (m <= 16 || (g_dec && m <= 128))) return ak_bf16_gemv_bi(x, r.bf16, nullptr, y, m, n, k, S.s);  // speculative decoding
+  return bf16_lin(x, r.bf16, y, m, n, k);
+}
+
+// Linears sharing the input x (same k). Decode with all of them W4 of one group size: one launch
+// (ak_w4_gemv_kt_multi, outputs bit-identical to separate GEMVs); otherwise one linear() each.
+int linear_shared(const bf16* x, int nl, const char* const* wnames, int layer, bf16* const* ys, const int* ns, int m,
+                  int k) {
+  if (m == 1 && nl <= 4) {
+    const W4Lin* q[4];
+    bool ok = true;
+    for (int j = 0; j < nl && ok; ++j) {
+      q[j] = lin_ref(layer, wnames[j]).w4;
+      ok = q[j] && q[j]->np == 1 && q[j]->n == ns[j] && q[j]->k == k;
+    }
+    if (ok) {  // one launch per (bits, group) class of the linears (mixed precision: up to 3)
+      bool done[4] = {false, false, false, false};
+      for (int j = 0; j < nl; ++j) {
+        if (done[j]) continue;
+        const W4Part& pj = q[j]->p[0];
+        const void *wt[4], *st[4];
+        void* y[4];
+        int nn[4], c = 0;
+        for (int i = j; i < nl; ++i) {
+          const W4Part& pi = q[i]->p[0];
+          if (done[i] || pi.bits != pj.bits || pi.group != pj.group) continue;
+          wt[c] = pi.wt, st[c] = pi.st, y[c] = ys[i], nn[c] = ns[i], ++c, done[i] = true;
+        }
+        CK(ak_wq_gemv_kt_multi(pj.bits, x, 1, c, wt, st, y, nn, nullptr, k, pj.group, g_w4_bf16w, S.s));
+      }
+      g_lin += nl, g_lin_w4 += nl;
+      return 0;
+    }
+  }
+  for (int j = 0; j < nl; ++j) CK(linear(x, wnames[j], layer, ys[j], m, ns[j], k));
+  return 0;
+}
+
+int kda_mixer(int i, const bf16* h, bf16* out, int T, bool prefill) {
+  // core [T][48][128] lives in S.o (T*6144); the gated norm writes in place like sglv23 (y = x)
+  bf16 *qkv = S.big0, *ag = S.t1, *b = S.t2, *fd = S.t3, *z = S.big1, *core = S.o, *nz = S.o;
+  // speculative verify (T tokens of one sequence; batched decode is g_B rows): the projections write straight into
+  // the layer's stash, which the commit replays
+  const bool verify = !prefill && T > 1 && !g_B;
+  bf16* sc = nullptr;
+  if (verify && g_BV) {  // batched verify: g_BV sequences of kSpecT rows, stash sized for bv_max sequences
+    if (S.kstb.empty() || !S.kstb[i] || T != g_BV * g_TV || g_BV > S.bv_max) return (int)cudaErrorInvalidValue;
+    const size_t MR = (size_t)S.bv_max * kSpecT;
+    qkv = S.kstb[i], sc = qkv + MR * KDIM, ag = sc + MR * KDIM, b = ag + MR * KHV * KK;
+  } else if (verify) {
+    if (S.kst.empty() || !S.kst[i] || T > kSpecT) return (int)cudaErrorInvalidValue;
+    qkv = S.kst[i], sc = qkv + (size_t)kSpecT * KDIM, ag = sc + (size_t)kSpecT * KDIM, b = ag + (size_t)kSpecT * KHV * KK;
+  }
+  {  // in_proj_qkv, in_proj_z, f_down share h (in_proj_b is bf16 in the INT4 recipe: fake-quantized)
+    const char* nm[3] = {"linear_attn.in_proj_qkv.weight", "linear_attn.in_proj_z.weight", "linear_attn.f_down.weight"};
+    bf16* ys[3] = {qkv, z, fd};
+    const int ns[3] = {KDIM, KHV * KK, 128};
+    CK(linear_shared(h, 3, nm, i, ys, ns, T, HID));
+  }
+  CK(linear(h, "linear_attn.in_proj_b.weight", i, b, T, KHV, HID));
+  CK(linear(fd, "linear_attn.f_up.weight", i, ag, T, KHV * KK, 128));
+  float* A_log = (float*)WL(i, "linear_attn.A_log.f32");
+  float* dt = (float*)WL(i, "linear_attn.dt_bias.f32");
+  if (getenv("AGENS_M1_TRACE")) fprintf(stderr, "kda layer %d dev %d T %d seq %d\n", i, S.dev, T, g_seq);
+  if (prefill) {
+    CK(ak_kda_prefill(qkv, ag, b, S.conv_w[i], A_log, dt, S.conv[i], S.ssm[i], S.slot, S.has_init, T, core, S.s));
+  } else if (verify && g_BV) {  // each sequence exactly as its own verify (slots S.bv_slot)
+    CK(ak_kda_conv_multi_b(qkv, KDIM, S.conv[i], S.conv_w[i], S.bv_slot, sc, KDIM, g_TV, g_BV, nullptr, 0, 0, S.s));
+    CK(ak_kda_decode_multi_b(sc, KDIM, ag, KHV * KK, b, KHV, A_log, dt, S.ssm[i], S.bv_slot, core, 1.0f / sqrtf(128.0f), KH,
+                             KHV, KK, KK, g_TV, g_BV, nullptr, 0, 0, S.s));
+  } else if (verify) {  // T tokens, state untouched (write_state 0); inputs stashed for the commit replay
+    CK(ak_kda_conv_multi(qkv, KDIM, S.conv[i], S.conv_w[i], S.slot, sc, KDIM, T, nullptr, 0, S.s));
+    CK(ak_kda_decode_multi(sc, KDIM, ag, KHV * KK, b, KHV, A_log, dt, S.ssm[i], S.slot, core, 1.0f / sqrtf(128.0f), KH,
+                           KHV, KK, KK, T, nullptr, 0, S.s));
+  } else {
+    bf16* qkvc = S.t3;  // conv output
+    CK(ak_kda_conv_update(qkv, KDIM, S.conv[i], S.conv_w[i], S.slot, qkvc, T, KDIM, S.s));  // T = decode rows
+    CK(ak_kda_decode(qkvc, KDIM, ag, KHV * KK, b, KHV, A_log, dt, S.ssm[i], S.slot, core, 1.0f / sqrtf(128.0f), T, KH,
+                     KHV, KK, KK, S.s));
+  }
+  CK(ak_kda_gated_rmsnorm(core, z, WL(i, "linear_attn.norm.weight"), nz, T * KHV, KK, EPS, S.s));
+  return linear(nz, "linear_attn.out_proj.weight", i, out, T, HID, KHV * KK);
+}
+
+// RoPE on S.q / S.k: from the registered cos|sin table, or (no table registered: the default) computed in the kernel,
+// bit-identical (AGENS_ROPE_CACHE=1 keeps the table: 64 fp32 per position)
+int rope(int T) {
+  if (S.rope)
+    return ak_rope_neox(S.q, S.k, (const float*)S.rope, (const int64_t*)S.pos, T, QH, KVH, HD, ROT, QH * HD, KVH * HD, S.s);
+  return ak_rope_neox_fly(S.q, S.k, (const int64_t*)S.pos, T, QH, KVH, HD, ROT, QH * HD, KVH * HD, 10000000.0f, S.s);
+}
+
+// AGENS_KV_INT8_DENSE=fake (quality gate input, no memory saved): the dense layer's new K/V rows quantized to INT8 per
+// (token, head) and dequantized in place with the INT8 KV kernels (ak_kv_quant_store / ak_kv_dequant_rows) before
+// they are stored, so every read sees exactly what an INT8 dense KV would hold
+bool dense_int8_fake() {
+  static const int on = [] { const char* e = getenv("AGENS_KV_INT8_DENSE"); return e && !strcmp(e, "fake"); }();
+  return on;
+}
+int fake_int8_rows(bf16* x, int T) {
+  static int8_t* q = nullptr;
+  static float* sc = nullptr;
+  if (!q) q = dalloc<int8_t>((size_t)CHUNK * KVH * HD), sc = dalloc<float>((size_t)CHUNK * KVH);
+  CK(ak_kv_quant_store(x, T, KVH, HD, nullptr, q, sc, S.s));
+  return ak_kv_dequant_rows(q, sc, nullptr, T, KVH, HD, x, S.s);
+}
+
+int attn_mixer(int i, const bf16* h, bf16* out, int T, bool prefill, bool bcsa) {
+  bf16* qg = S.big0;
+  {
+    const char* nm[3] = {"self_attn.q_proj.weight", "self_attn.k_proj.weight", "self_attn.v_proj.weight"};
+    bf16* ys[3] = {qg, S.k, S.v};
+    const int ns[3] = {QH * 2 * HD, KVH * HD, KVH * HD};
+    CK(linear_shared(h, 3, nm, i, ys, ns, T, HID));
+  }
+  split_q_gate<<<grid((long)T * QH * HD), 256, 0, S.s>>>(qg, S.q, S.gate, T, QH);
+  auto dbg_here = [&]() {
+    const char* dd = getenv("AGENS_M1_DBG_DIR");
+    const char* dl = getenv("AGENS_M1_DBG_LAYER");
+    const char* dp = getenv("AGENS_M1_DBG_POS");
+    return dd && dl && dp && atoi(dl) == i && atoi(dp) == g_seq && T == 1 ? dd : (const char*)nullptr;
+  };
+  auto dsave = [&](const char* dd, const char* nm, const void* p, size_t n) {
+    cudaStreamSynchronize(S.s);
+    std::vector<uint16_t> b(n);
+    cudaMemcpy(b.data(), p, n * 2, cudaMemcpyDeviceToHost);
+    FILE* f = fopen((std::string(dd) + "/" + nm + ".bin").c_str(), "wb");
+    if (f) { fwrite(b.data(), 2, n, f); fclose(f); }
+  };
+  if (const char* dd = dbg_here()) { dsave(dd, "qg", qg, QH * 2 * HD); dsave(dd, "q_pre", S.q, QH * HD); dsave(dd, "h", h, HID); }
+  CK(ak_rmsnorm(S.q, WL(i, "self_attn.q_norm.weight"), S.q, T * QH, HD, HD, HD, EPS, 1, S.s));
+  if (const char* dd = dbg_here()) dsave(
+```
+
+Summarize in five bullet points what this file does.

@@ -1,0 +1,28 @@
+source /Users/ingemarrask/.cache/huggingface/hub/models--Blockway--Agens-Volundr-32B-v1-INT4/snapshots/7ea4dfef053aabe403593973f218e7eb11f13e4f
+default linear type w4g128, 0 per-linear types from None
+  dequant check w4g128: model.language_model.layers.0.linear_attn.f_down ok
+  wrote model-00000.safetensors (5.00 GiB, 620 tensors)
+  wrote model-00001.safetensors (5.00 GiB, 615 tensors)
+  wrote model-00002.safetensors (5.95 GiB, 440 tensors)
+  wrote model-00003.safetensors (5.40 GiB, 116 tensors)
+  wrote model-00004.safetensors (1.14 GiB, 759 tensors)
+done: 2550 tensors, linears {'w4g128': 558} -> models/volundr-int4-mlx
+       40.52 real         0.41 user        23.29 sys
+         12440698880  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             2705520  page reclaims
+                 453  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                6164  voluntary context switches
+              497420  involuntary context switches
+         71744007667  instructions retired
+         91984302791  cycles elapsed
+         23952000400  peak memory footprint
+exit 0

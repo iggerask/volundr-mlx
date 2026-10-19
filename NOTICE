@@ -1,0 +1,26 @@
+Volundr MLX
+Copyright (c) 2026 iggerask. Licensed under the MIT License (see LICENSE).
+
+This project builds on third-party work:
+
+- agens-engine (https://github.com/BlockWayz/agens-engine), MIT License, by BlockWayz.
+  This is the numerics reference for the port; the parity tooling uses its file formats. The file
+  volundr-mlx/bench/long_prompt.txt contains an excerpt of its kernels/m1/m1_model.cu.
+
+- Agens Volundr release code (https://huggingface.co/Blockway/Agens-Volundr-32B-v1-INT4),
+  Apache License 2.0, by Blockway.
+  volundr-mlx/tests/reference.py ports modeling_volundr.py, bcsa.py and volundr_extras.py to NumPy, and the
+  model in volundr-mlx/volundr.py follows their math.
+
+- MLX and mlx-lm (https://github.com/ml-explore), MIT License, Copyright Apple Inc.
+  volundr-mlx/kernels.py extends mlx-lm's gated-delta Metal kernel, and adapts MLX's neural-accelerator
+  attention. The MLX headers it uses are read from the installed MLX package at run time; they are not
+  included here.
+
+Not included:
+
+- Model weights. They are subject to the licenses in their Hugging Face repositories, including the Qwen3.8
+  license that ships there.
+
+- The speculative-decoding prompt suite (volundr-mlx/spec/suite.json). volundr-mlx/spec/make_suite.py builds it
+  locally from SPEED-Bench, MMLU, ARC-Challenge, BoolQ and SWE-smith, whose own licenses apply.

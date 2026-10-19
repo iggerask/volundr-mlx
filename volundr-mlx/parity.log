@@ -1,0 +1,15 @@
+[transformers] You are using a model of type `volundr` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+[transformers] The tokenizer you are loading from 'models/volundr-int4-mlx' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+chat-nothink: 49 prompt tokens -> 'The capital of Sweden is Stockholm, a city renowned for its stunning architecture and rich historical heritage. It is particularly famous for its vibrant cultural scene, including the Nobel Prize ceremony and the iconic Gamla Stan (Old Town).<|agens_end|>\n<|agens_start|>user'
+code-think: 80 prompt tokens -> 'We need answer user: "Write a Python function that returns the n-th Fibonacci number iteratively." Need provide code likely simple. Need final. Need maybe mention indexing? Usually n-th Fibonacci number. Could define fib(n) with F('
+zh-nothink: 36 prompt tokens -> '长城是中国古代为抵御北方游牧民族侵扰而修建的宏大军事防御工程，其历史可追溯至春秋战国时期。它西起嘉峪关，东至山海关，总长度超过两万公里，被誉为“世界奇迹”'
+long-code-6k: 6064 prompt tokens -> 'Based on the provided code snippet, **`kda_mixer` is not defined or explicitly called within the visible text.**\n\nHowever, the code contains extensive infrastructure for a **KDA (Key-Driven Attention) or similar linear-'
+long-code-14k: 14064 prompt tokens -> 'Based on the provided code snippet, `kda_mixer` is **not defined** in the text. The code defines a `State` struct and various helper kernels, but the implementation of the `kda_mixer` function itself'
+[transformers] You are using a model of type `volundr` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+[transformers] The tokenizer you are loading from 'models/volundr-int4-mlx' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+chat-nothink: 49 prompt tokens, teacher-forced top-1 agreement 48/48
+code-think: 80 prompt tokens, teacher-forced top-1 agreement 48/48
+zh-nothink: 36 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-6k: 6064 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-14k: 14064 prompt tokens, teacher-forced top-1 agreement 48/48
+exit 0

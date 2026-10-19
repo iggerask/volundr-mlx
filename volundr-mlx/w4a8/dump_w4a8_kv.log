@@ -1,0 +1,15 @@
+canary 27.0 TFLOP/s
+[transformers] You are using a model of type `volundr` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+[transformers] The tokenizer you are loading from 'models/volundr-int4-mlx' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+chat-nothink: 49 prompt tokens, teacher-forced top-1 agreement 47/48
+code-think: 80 prompt tokens, teacher-forced top-1 agreement 47/48
+zh-nothink: 36 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-6k: 6064 prompt tokens, teacher-forced top-1 agreement 46/48
+long-code-14k: 14064 prompt tokens, teacher-forced top-1 agreement 48/48
+canary 26.1 TFLOP/s
+w4a8-kv vs reference over 240 positions: top-1 agreement 238/240 (99.17%), KL mean 9.193e-04 nats, p50 2.53e-07, p99 1.11e-02, max 5.811e-02
+chat-nothink         49 prompt tokens: top-1 48/48, KL mean 0.00e+00 p50 0.00e+00 max 0.00e+00; first row (prefill) 0.00e+00
+code-think           80 prompt tokens: top-1 47/48, KL mean 6.31e-04 p50 1.59e-04 max 6.03e-03; first row (prefill) 1.86e-04
+zh-nothink           36 prompt tokens: top-1 48/48, KL mean 0.00e+00 p50 0.00e+00 max 0.00e+00; first row (prefill) 0.00e+00
+long-code-6k       6064 prompt tokens: top-1 47/48, KL mean 2.46e-03 p50 4.98e-04 max 5.81e-02; first row (prefill) 1.67e-03
+long-code-14k     14064 prompt tokens: top-1 48/48, KL mean 1.51e-03 p50 3.50e-04 max 1.15e-02; first row (prefill) 2.34e-03

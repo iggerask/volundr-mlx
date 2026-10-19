@@ -1,0 +1,10 @@
+canary 27.6 TFLOP/s
+[transformers] You are using a model of type `volundr` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+[transformers] The tokenizer you are loading from 'models/volundr-int4-mlx' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+chat-nothink: 49 prompt tokens, teacher-forced top-1 agreement 47/48
+code-think: 80 prompt tokens, teacher-forced top-1 agreement 47/48
+zh-nothink: 36 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-6k: 6064 prompt tokens, teacher-forced top-1 agreement 46/48
+long-code-14k: 14064 prompt tokens, teacher-forced top-1 agreement 48/48
+canary 23.5 TFLOP/s
+w4a8 vs reference over 240 positions: top-1 agreement 238/240 (99.17%), KL mean 1.114e-03 nats, p50 4.55e-07, p99 1.40e-02, max 4.823e-02

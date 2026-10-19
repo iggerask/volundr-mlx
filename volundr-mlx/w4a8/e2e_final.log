@@ -1,0 +1,54 @@
+canary 23.4 TFLOP/s
+== bf16 (stock) run 1
+  chunk at      0:   6.06 s     338 tok/s
+  chunk at   2048:   6.01 s     341 tok/s
+  chunk at   4096:   6.19 s     331 tok/s
+  chunk at   6144:   6.15 s     333 tok/s
+  chunk at   8192:   6.03 s     340 tok/s
+  chunk at  10240:   6.39 s     321 tok/s
+  chunk at  12288:   6.31 s     325 tok/s
+  chunk at  14336:   6.43 s     318 tok/s
+  chunk at  16384:   6.42 s     319 tok/s
+  chunk at  18432:   6.41 s     319 tok/s
+prefill 20480 tokens: 62.4 s, 328 tok/s, peak 28.51 GB
+decode at 20480: 12.35 tok/s (81.0 ms), peak 28.51 GB
+== W4A8 run 1
+  chunk at      0:   4.50 s     455 tok/s
+  chunk at   2048:   4.61 s     444 tok/s
+  chunk at   4096:   4.71 s     435 tok/s
+  chunk at   6144:   4.68 s     437 tok/s
+  chunk at   8192:   4.68 s     438 tok/s
+  chunk at  10240:   4.76 s     430 tok/s
+  chunk at  12288:   4.65 s     440 tok/s
+  chunk at  14336:   4.62 s     443 tok/s
+  chunk at  16384:   4.61 s     444 tok/s
+  chunk at  18432:   4.66 s     439 tok/s
+prefill 20480 tokens: 46.5 s, 440 tok/s, peak 28.47 GB
+decode at 20480: 13.29 tok/s (75.2 ms), peak 28.47 GB
+== bf16 (stock) run 2
+  chunk at      0:   5.71 s     359 tok/s
+  chunk at   2048:   5.93 s     345 tok/s
+  chunk at   4096:   6.07 s     338 tok/s
+  chunk at   6144:   6.06 s     338 tok/s
+  chunk at   8192:   6.08 s     337 tok/s
+  chunk at  10240:   6.18 s     332 tok/s
+  chunk at  12288:   6.10 s     336 tok/s
+  chunk at  14336:   6.26 s     327 tok/s
+  chunk at  16384:   6.18 s     331 tok/s
+  chunk at  18432:   6.20 s     331 tok/s
+prefill 20480 tokens: 60.8 s, 337 tok/s, peak 28.51 GB
+decode at 20480: 11.88 tok/s (84.1 ms), peak 28.51 GB
+== W4A8 run 2
+  chunk at      0:   4.15 s     493 tok/s
+  chunk at   2048:   4.46 s     459 tok/s
+  chunk at   4096:   4.53 s     453 tok/s
+  chunk at   6144:   4.64 s     441 tok/s
+  chunk at   8192:   4.63 s     442 tok/s
+  chunk at  10240:   4.69 s     437 tok/s
+  chunk at  12288:   4.73 s     433 tok/s
+  chunk at  14336:   4.74 s     433 tok/s
+  chunk at  16384:   4.77 s     430 tok/s
+  chunk at  18432:   4.80 s     427 tok/s
+prefill 20480 tokens: 46.1 s, 444 tok/s, peak 28.47 GB
+decode at 20480: 12.78 tok/s (78.3 ms), peak 28.47 GB
+canary 23.1 TFLOP/s

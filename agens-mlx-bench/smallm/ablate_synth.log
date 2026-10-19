@@ -1,0 +1,93 @@
+[stock] T=1 ctx=short mode=tuned   stock:   66.2 ms/step  ( 15.1 positions/s)  graph build   2.0 ms/step
+[stock-nomm] T=1 ctx=short mode=tuned   stock:   11.8 ms/step  ( 84.9 positions/s)  graph build   2.4 ms/step
+[stock-nomm] T=1 ctx=short mode=linears stock:    4.2 ms/step  (236.8 positions/s)  graph build   0.8 ms/step
+[stock] T=8 ctx=short mode=tuned   stock:  143.6 ms/step  ( 55.7 positions/s)  graph build   2.3 ms/step
+[nax8] T=8 ctx=short mode=tuned   nax8 :   82.8 ms/step  ( 96.6 positions/s)  graph build   4.7 ms/step
+[nax8 small-N stock] T=8 ctx=short mode=tuned   nax8 :   83.2 ms/step  ( 96.2 positions/s)  graph build   4.3 ms/step
+[stock-nomm] T=8 ctx=short mode=tuned   stock:   16.9 ms/step  (472.4 positions/s)  graph build   3.1 ms/step
+[nax8-nomm] T=8 ctx=short mode=tuned   nax8 :   18.5 ms/step  (433.6 positions/s)  graph build   3.6 ms/step
+[stock] T=8 ctx=short mode=linears stock:  131.7 ms/step  ( 60.8 positions/s)  graph build   0.4 ms/step
+[nax8] T=8 ctx=short mode=linears nax8 :   71.3 ms/step  (112.3 positions/s)  graph build   2.8 ms/step
+[nax8 small-N stock] T=8 ctx=short mode=linears nax8 :   81.1 ms/step  ( 98.6 positions/s)  graph build   5.0 ms/step
+[stock-nomm] T=8 ctx=short mode=linears stock:    8.2 ms/step  (970.8 positions/s)  graph build   1.5 ms/step
+[nax8-nomm] T=8 ctx=short mode=linears nax8 :    9.6 ms/step  (830.4 positions/s)  graph build   2.0 ms/step
+[stock] T=16 ctx=short mode=tuned   stock:  208.0 ms/step  ( 76.9 positions/s)  graph build   3.5 ms/step
+[nax8] T=16 ctx=short mode=tuned   nax8 :   95.2 ms/step  (168.2 positions/s)  graph build   7.0 ms/step
+[nax8 small-N stock] T=16 ctx=short mode=tuned   nax8 :   97.8 ms/step  (163.6 positions/s)  graph build   7.4 ms/step
+[stock-nomm] T=16 ctx=short mode=tuned   stock:   30.9 ms/step  (517.6 positions/s)  graph build   5.8 ms/step
+[nax8-nomm] T=16 ctx=short mode=tuned   nax8 :   30.0 ms/step  (532.8 positions/s)  graph build   5.9 ms/step
+[stock] T=16 ctx=short mode=linears stock:  197.1 ms/step  ( 81.2 positions/s)  graph build   0.7 ms/step
+[nax8] T=16 ctx=short mode=linears nax8 :   73.7 ms/step  (217.0 positions/s)  graph build   3.1 ms/step
+[nax8 small-N stock] T=16 ctx=short mode=linears nax8 :   78.9 ms/step  (202.9 positions/s)  graph build   2.7 ms/step
+[stock-nomm] T=16 ctx=short mode=linears stock:    5.4 ms/step  (2961.0 positions/s)  graph build   0.9 ms/step
+[nax8-nomm] T=16 ctx=short mode=linears nax8 :   11.1 ms/step  (1442.6 positions/s)  graph build   2.3 ms/step
+[stock] T=1 ctx=short mode=tuned   stock:   73.3 ms/step  ( 13.6 positions/s)  graph build   2.9 ms/step
+[stock-nomm] T=1 ctx=short mode=tuned   stock:   18.0 ms/step  ( 55.5 positions/s)  graph build   3.4 ms/step
+[stock-nomm] T=1 ctx=short mode=linears stock:    5.0 ms/step  (200.3 positions/s)  graph build   0.9 ms/step
+[stock] T=8 ctx=short mode=tuned   stock:  147.7 ms/step  ( 54.2 positions/s)  graph build   3.6 ms/step
+[nax8] T=8 ctx=short mode=tuned   nax8 :   87.9 ms/step  ( 91.0 positions/s)  graph build   6.0 ms/step
+[nax8 small-N stock] T=8 ctx=short mode=tuned   nax8 :   89.3 ms/step  ( 89.5 positions/s)  graph build   5.4 ms/step
+[stock-nomm] T=8 ctx=short mode=tuned   stock:   17.3 ms/step  (461.6 positions/s)  graph build   3.5 ms/step
+[nax8-nomm] T=8 ctx=short mode=tuned   nax8 :   18.9 ms/step  (424.3 positions/s)  graph build   4.1 ms/step
+[stock] T=8 ctx=short mode=linears stock:  138.0 ms/step  ( 58.0 positions/s)  graph build   0.5 ms/step
+[nax8] T=8 ctx=short mode=linears nax8 :   76.4 ms/step  (104.8 positions/s)  graph build   3.5 ms/step
+[nax8 small-N stock] T=8 ctx=short mode=linears nax8 :   75.4 ms/step  (106.1 positions/s)  graph build   3.3 ms/step
+[stock-nomm] T=8 ctx=short mode=linears stock:    5.9 ms/step  (1352.8 positions/s)  graph build   1.1 ms/step
+[nax8-nomm] T=8 ctx=short mode=linears nax8 :    8.0 ms/step  (996.9 positions/s)  graph build   1.8 ms/step
+[stock] T=16 ctx=short mode=tuned   stock:  211.1 ms/step  ( 75.8 positions/s)  graph build   3.5 ms/step
+[nax8] T=16 ctx=short mode=tuned   nax8 :   95.2 ms/step  (168.2 positions/s)  graph build   6.1 ms/step
+[nax8 small-N stock] T=16 ctx=short mode=tuned   nax8 :   98.6 ms/step  (162.2 positions/s)  graph build   6.1 ms/step
+[stock-nomm] T=16 ctx=short mode=tuned   stock:   24.9 ms/step  (642.2 positions/s)  graph build   4.2 ms/step
+[nax8-nomm] T=16 ctx=short mode=tuned   nax8 :   24.5 ms/step  (653.7 positions/s)  graph build   4.6 ms/step
+[stock] T=16 ctx=short mode=linears stock:  191.4 ms/step  ( 83.6 positions/s)  graph build   0.6 ms/step
+[nax8] T=16 ctx=short mode=linears nax8 :   73.8 ms/step  (216.8 positions/s)  graph build   2.8 ms/step
+[nax8 small-N stock] T=16 ctx=short mode=linears nax8 :   77.1 ms/step  (207.6 positions/s)  graph build   2.5 ms/step
+[stock-nomm] T=16 ctx=short mode=linears stock:    6.7 ms/step  (2372.0 positions/s)  graph build   1.2 ms/step
+[nax8-nomm] T=16 ctx=short mode=linears nax8 :    8.0 ms/step  (1988.4 positions/s)  graph build   1.8 ms/step
+[stock] T=1 ctx=short mode=tuned   stock:   72.7 ms/step  ( 13.8 positions/s)  graph build   3.3 ms/step
+[stock-nomm] T=1 ctx=short mode=tuned   stock:   14.3 ms/step  ( 69.7 positions/s)  graph build   2.9 ms/step
+[stock-nomm] T=1 ctx=short mode=linears stock:    5.0 ms/step  (199.3 positions/s)  graph build   0.9 ms/step
+[stock] T=8 ctx=short mode=tuned   stock:  148.1 ms/step  ( 54.0 positions/s)  graph build   3.9 ms/step
+[nax8] T=8 ctx=short mode=tuned   nax8 :   86.8 ms/step  ( 92.2 positions/s)  graph build   6.2 ms/step
+[nax8 small-N stock] T=8 ctx=short mode=tuned   nax8 :   89.0 ms/step  ( 89.9 positions/s)  graph build   5.2 ms/step
+[stock-nomm] T=8 ctx=short mode=tuned   stock:   16.5 ms/step  (486.2 positions/s)  graph build   3.1 ms/step
+[nax8-nomm] T=8 ctx=short mode=tuned   nax8 :   18.2 ms/step  (440.2 positions/s)  graph build   3.8 ms/step
+[stock] T=8 ctx=short mode=linears stock:  134.1 ms/step  ( 59.7 positions/s)  graph build   0.4 ms/step
+[nax8] T=8 ctx=short mode=linears nax8 :   72.8 ms/step  (109.9 positions/s)  graph build   2.7 ms/step
+[nax8 small-N stock] T=8 ctx=short mode=linears nax8 :   74.9 ms/step  (106.8 positions/s)  graph build   2.6 ms/step
+[stock-nomm] T=8 ctx=short mode=linears stock:    4.6 ms/step  (1737.7 positions/s)  graph build   0.8 ms/step
+[nax8-nomm] T=8 ctx=short mode=linears nax8 :    6.8 ms/step  (1170.1 positions/s)  graph build   1.6 ms/step
+[stock] T=16 ctx=short mode=tuned   stock:  206.9 ms/step  ( 77.3 positions/s)  graph build   2.6 ms/step
+[nax8] T=16 ctx=short mode=tuned   nax8 :   93.3 ms/step  (171.5 positions/s)  graph build   4.8 ms/step
+[nax8 small-N stock] T=16 ctx=short mode=tuned   nax8 :   93.8 ms/step  (170.6 positions/s)  graph build   4.5 ms/step
+[stock-nomm] T=16 ctx=short mode=tuned   stock:   21.6 ms/step  (739.7 positions/s)  graph build   3.2 ms/step
+[nax8-nomm] T=16 ctx=short mode=tuned   nax8 :   23.8 ms/step  (672.5 positions/s)  graph build   4.1 ms/step
+[stock] T=16 ctx=short mode=linears stock:  192.3 ms/step  ( 83.2 positions/s)  graph build   0.5 ms/step
+[nax8] T=16 ctx=short mode=linears nax8 :   73.7 ms/step  (217.0 positions/s)  graph build   2.8 ms/step
+[nax8 small-N stock] T=16 ctx=short mode=linears nax8 :   75.2 ms/step  (212.8 positions/s)  graph build   2.4 ms/step
+[stock-nomm] T=16 ctx=short mode=linears stock:    5.4 ms/step  (2973.3 positions/s)  graph build   0.9 ms/step
+[nax8-nomm] T=16 ctx=short mode=linears nax8 :    6.9 ms/step  (2302.9 positions/s)  graph build   1.6 ms/step
+best of reps (ms/step):
+  T= 1 tuned   stock                  66.2
+  T= 1 tuned   stock-nomm             11.8
+  T= 1 linears stock-nomm              4.2
+  T= 8 tuned   stock                 143.6
+  T= 8 tuned   nax8                   82.8
+  T= 8 tuned   nax8 small-N stock     83.2
+  T= 8 tuned   stock-nomm             16.5
+  T= 8 tuned   nax8-nomm              18.2
+  T= 8 linears stock                 131.7
+  T= 8 linears nax8                   71.3
+  T= 8 linears nax8 small-N stock     74.9
+  T= 8 linears stock-nomm              4.6
+  T= 8 linears nax8-nomm               6.8
+  T=16 tuned   stock                 206.9
+  T=16 tuned   nax8                   93.3
+  T=16 tuned   nax8 small-N stock     93.8
+  T=16 tuned   stock-nomm             21.6
+  T=16 tuned   nax8-nomm              23.8
+  T=16 linears stock                 191.4
+  T=16 linears nax8                   73.7
+  T=16 linears nax8 small-N stock     75.2
+  T=16 linears stock-nomm              5.4
+  T=16 linears nax8-nomm               6.9

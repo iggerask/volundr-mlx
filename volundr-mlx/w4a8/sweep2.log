@@ -1,0 +1,38 @@
+canary 26.4 TFLOP/s
+  32x32x8x1: failed: [metal::Device] Unable to build metal library from source
+gate N=17408 K=5120 M=2048:
+  stock         12.927 ms   28.2 TFLOP/s  1.00x
+  32x32x2x2d    13.809 ms   26.4 TFLOP/s  0.94x
+  32x32x2x2     18.141 ms   20.1 TFLOP/s  0.71x
+  32x32x4x2     14.359 ms   25.4 TFLOP/s  0.90x
+  32x32x2x4     21.619 ms   16.9 TFLOP/s  0.60x
+  32x32x4x4     17.017 ms   21.5 TFLOP/s  0.76x
+  64x32x2x2d    18.568 ms   19.7 TFLOP/s  0.70x
+  64x32x2x2     23.274 ms   15.7 TFLOP/s  0.56x
+  64x32x4x2     20.072 ms   18.2 TFLOP/s  0.64x
+  64x32x2x4     25.114 ms   14.5 TFLOP/s  0.51x
+  32x64x2x2     34.221 ms   10.7 TFLOP/s  0.38x
+  32x64x4x2     25.712 ms   14.2 TFLOP/s  0.50x
+  32x64x4x1     26.312 ms   13.9 TFLOP/s  0.49x
+  64x32x4x1     19.672 ms   18.6 TFLOP/s  0.66x
+  32x32x4x2n    14.911 ms   24.5 TFLOP/s  0.87x
+  act_quant      0.220 ms  
+  32x32x8x1: failed: [metal::Device] Unable to build metal library from source
+down N=5120 K=17408 M=2048:
+  stock         14.927 ms   24.5 TFLOP/s  1.00x
+  32x32x2x2d    14.862 ms   24.6 TFLOP/s  1.00x
+  32x32x2x2     19.761 ms   18.5 TFLOP/s  0.76x
+  32x32x4x2     15.190 ms   24.0 TFLOP/s  0.98x
+  32x32x2x4     22.870 ms   16.0 TFLOP/s  0.65x
+  32x32x4x4     18.062 ms   20.2 TFLOP/s  0.83x
+  64x32x2x2d    19.945 ms   18.3 TFLOP/s  0.75x
+  64x32x2x2     24.810 ms   14.7 TFLOP/s  0.60x
+  64x32x4x2     21.774 ms   16.8 TFLOP/s  0.69x
+  64x32x2x4     26.598 ms   13.7 TFLOP/s  0.56x
+  32x64x2x2     35.677 ms   10.2 TFLOP/s  0.42x
+  32x64x4x2     26.999 ms   13.5 TFLOP/s  0.55x
+  32x64x4x1     28.115 ms   13.0 TFLOP/s  0.53x
+  64x32x4x1     21.012 ms   17.4 TFLOP/s  0.71x
+  32x32x4x2n    16.771 ms   21.8 TFLOP/s  0.89x
+  act_quant      0.578 ms  
+canary 27.9 TFLOP/s

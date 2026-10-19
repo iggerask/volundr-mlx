@@ -1,0 +1,21 @@
+canary 24.7 TFLOP/s
+  stock                                         13.494 ms   27.1 TFLOP/s
+  32x32x2x2V full                                8.952 ms   40.8 TFLOP/s
+  32x32x2x2V NO_EPI                              8.434 ms   43.3 TFLOP/s
+  32x32x2x2V B_HOT                               9.497 ms   38.4 TFLOP/s
+  32x32x2x2V NO_EPI+B_HOT                        9.273 ms   39.4 TFLOP/s
+  32x32x2x2V NO_EPI+NO_BLOAD                     5.796 ms   63.0 TFLOP/s
+  32x32x2x2V NO_EPI+NO_ALOAD+NO_BLOAD            5.616 ms   65.0 TFLOP/s
+  32x32x2x2V2 full                              10.427 ms   35.0 TFLOP/s
+  32x32x2x2V2 NO_EPI                             9.212 ms   39.6 TFLOP/s
+  32x32x2x2V2 B_HOT                             10.448 ms   34.9 TFLOP/s
+  32x32x2x2V2 NO_EPI+B_HOT                       8.941 ms   40.8 TFLOP/s
+  32x32x2x2V2 NO_EPI+NO_BLOAD                    5.760 ms   63.4 TFLOP/s
+  32x32x2x2V2 NO_EPI+NO_ALOAD+NO_BLOAD           5.608 ms   65.1 TFLOP/s
+  32x32x2x2V4 full                              15.262 ms   23.9 TFLOP/s
+  32x32x2x2V4 NO_EPI                            14.379 ms   25.4 TFLOP/s
+  32x32x2x2V4 B_HOT                             14.732 ms   24.8 TFLOP/s
+  32x32x2x2V4 NO_EPI+B_HOT                      13.664 ms   26.7 TFLOP/s
+  32x32x2x2V4 NO_EPI+NO_BLOAD                    5.713 ms   63.9 TFLOP/s
+  32x32x2x2V4 NO_EPI+NO_ALOAD+NO_BLOAD           5.585 ms   65.4 TFLOP/s
+canary 24.3 TFLOP/s

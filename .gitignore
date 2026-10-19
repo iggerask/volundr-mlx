@@ -1,0 +1,26 @@
+# This folder also holds unrelated local projects; only the Volundr MLX work is tracked.
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/NOTICE
+!/requirements.txt
+!/volundr-mlx/
+!/agens-mlx-bench/
+
+__pycache__/
+*.pyc
+.DS_Store
+
+# Large or third-party, recreated locally
+/volundr-mlx/models/
+/volundr-mlx/ref/
+/volundr-mlx/parity/*.bin
+
+# Benchmark prompt suite and its per-prompt outputs: built from third-party datasets
+# (regenerate with volundr-mlx/spec/make_suite.py)
+/volundr-mlx/spec/suite.json
+/volundr-mlx/spec/runs/
+
+# Local agent session notes
+.claude/

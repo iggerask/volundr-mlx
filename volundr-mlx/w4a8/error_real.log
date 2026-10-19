@@ -1,0 +1,50 @@
+[transformers] You are using a model of type `volundr` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+[transformers] The tokenizer you are loading from '../models/volundr-int4-mlx' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+linear                                  N      K     stock      w4a8  ratio  w4a8 vs stock
+L0.kda.linear_attn.in_proj_qkv      10240   5120  1.75e-03  4.99e-03   2.85       5.20e-03
+L0.kda.linear_attn.in_proj_z         6144   5120  1.81e-03  6.52e-03   3.61       6.75e-03
+L0.kda.linear_attn.f_down             128   5120  1.70e-03  6.08e-03   3.57       6.31e-03
+L0.kda.linear_attn.f_up              6144    128  1.90e-03  5.64e-03   2.97       5.93e-03
+L0.kda.linear_attn.out_proj          5120   6144  1.92e-03  5.64e-03   2.94       5.71e-03
+L0.kda.mlp.gate_proj                17408   5120  1.94e-03  9.12e-03   4.70       9.31e-03
+L0.kda.mlp.up_proj                  17408   5120  1.95e-03  9.43e-03   4.84       9.62e-03
+L0.kda.mlp.down_proj                 5120  17408  1.79e-03  1.04e-02   5.83       1.04e-02
+L4.kda.linear_attn.in_proj_qkv      10240   5120  2.00e-03  2.46e-02  12.31       2.47e-02
+L4.kda.linear_attn.in_proj_z         6144   5120  1.93e-03  2.21e-02  11.44       2.21e-02
+L4.kda.linear_attn.f_down             128   5120  2.07e-03  1.57e-02   7.62       1.59e-02
+L4.kda.linear_attn.f_up              6144    128  1.90e-03  5.15e-03   2.71       5.48e-03
+L4.kda.linear_attn.out_proj          5120   6144  1.94e-03  1.09e-02   5.64       1.11e-02
+L4.kda.mlp.gate_proj                17408   5120  1.98e-03  6.80e-03   3.44       7.07e-03
+L4.kda.mlp.up_proj                  17408   5120  2.04e-03  7.59e-03   3.72       7.85e-03
+L4.kda.mlp.down_proj                 5120  17408  2.01e-03  1.43e-02   7.14       1.45e-02
+L35.bcsa.self_attn.q_proj           12288   5120  1.93e-03  1.59e-02   8.21       1.60e-02
+L35.bcsa.self_attn.k_proj            1024   5120  1.92e-03  1.70e-02   8.84       1.71e-02
+L35.bcsa.self_attn.v_proj            1024   5120  1.86e-03  2.29e-02  12.35       2.30e-02
+L35.bcsa.self_attn.o_proj            5120   6144  2.41e-03  1.23e-02   5.12       1.25e-02
+L35.bcsa.mlp.gate_proj              17408   5120  1.92e-03  1.30e-02   6.75       1.31e-02
+L35.bcsa.mlp.up_proj                17408   5120  1.99e-03  1.75e-02   8.79       1.76e-02
+L35.bcsa.mlp.down_proj               5120  17408  2.03e-03  1.28e-02   6.30       1.30e-02
+L40.bcsa.self_attn.q_proj           12288   5120  1.96e-03  1.55e-02   7.92       1.56e-02
+L40.bcsa.self_attn.k_proj            1024   5120  1.95e-03  1.56e-02   7.97       1.57e-02
+L40.bcsa.self_attn.v_proj            1024   5120  1.95e-03  2.28e-02  11.72       2.29e-02
+L40.bcsa.self_attn.o_proj            5120   6144  2.30e-03  1.07e-02   4.66       1.10e-02
+L40.bcsa.mlp.gate_proj              17408   5120  1.87e-03  1.04e-02   5.55       1.05e-02
+L40.bcsa.mlp.up_proj                17408   5120  2.04e-03  1.81e-02   8.88       1.82e-02
+L40.bcsa.mlp.down_proj               5120  17408  2.06e-03  1.36e-02   6.60       1.37e-02
+L70.kda.linear_attn.in_proj_qkv     10240   5120  1.82e-03  7.71e-03   4.23       7.91e-03
+L70.kda.linear_attn.in_proj_z        6144   5120  1.79e-03  6.39e-03   3.58       6.63e-03
+L70.kda.linear_attn.f_down            128   5120  1.78e-03  6.91e-03   3.89       7.11e-03
+L70.kda.linear_attn.f_up             6144    128  1.88e-03  5.15e-03   2.73       5.48e-03
+L70.kda.linear_attn.out_proj         5120   6144  2.05e-03  1.77e-02   8.64       1.79e-02
+L70.kda.mlp.gate_proj               17408   5120  1.78e-03  5.92e-03   3.33       6.18e-03
+L70.kda.mlp.up_proj                 17408   5120  1.81e-03  7.60e-03   4.20       7.80e-03
+L70.kda.mlp.down_proj                5120  17408  1.99e-03  1.80e-02   9.06       1.81e-02
+L71.attn.self_attn.q_proj           12288   5120  1.79e-03  6.09e-03   3.40       6.33e-03
+L71.attn.self_attn.k_proj            1024   5120  2.00e-03  8.42e-03   4.21       8.66e-03
+L71.attn.self_attn.v_proj            1024   5120  1.74e-03  5.07e-03   2.91       5.32e-03
+L71.attn.self_attn.o_proj            5120   6144  1.88e-03  1.02e-02   5.39       1.03e-02
+L71.attn.mlp.gate_proj              17408   5120  1.77e-03  5.80e-03   3.29       6.04e-03
+L71.attn.mlp.up_proj                17408   5120  1.74e-03  6.24e-03   3.59       6.46e-03
+L71.attn.mlp.down_proj               5120  17408  1.83e-03  1.55e-02   8.51       1.56e-02
+mean rel RMS error vs fp32, stock: 1.92e-03 over 45 linears
+mean rel RMS error vs fp32, w4a8: 1.15e-02 over 45 linears

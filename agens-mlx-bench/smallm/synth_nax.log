@@ -1,0 +1,61 @@
+w4g128: quantized linears 14.59 GB + lm_head 1.35 GB, built in 3 s
+canary 14.1 TFLOP/s
+T=1 ctx=short mode=linears stock:   59.4 ms/step  ( 16.8 positions/s)  graph build   0.4 ms/step
+T=1 ctx=short mode=tuned   stock:   69.8 ms/step  ( 14.3 positions/s)  graph build   2.3 ms/step
+T=8 ctx=short mode=linears stock:  132.7 ms/step  ( 60.3 positions/s)  graph build   0.4 ms/step
+T=8 ctx=short mode=linears nax  :   71.2 ms/step  (112.3 positions/s)  graph build   2.3 ms/step
+T=8 ctx=short mode=linears nax8 :   69.7 ms/step  (114.8 positions/s)  graph build   2.5 ms/step
+T=8 ctx=short mode=tuned   stock:  144.7 ms/step  ( 55.3 positions/s)  graph build   2.4 ms/step
+T=8 ctx=short mode=tuned   nax  :   85.1 ms/step  ( 94.0 positions/s)  graph build   4.6 ms/step
+T=8 ctx=short mode=tuned   nax8 :   83.3 ms/step  ( 96.1 positions/s)  graph build   4.7 ms/step
+T=16 ctx=short mode=linears stock:  189.6 ms/step  ( 84.4 positions/s)  graph build   0.5 ms/step
+T=16 ctx=short mode=linears nax  :   72.5 ms/step  (220.6 positions/s)  graph build   2.5 ms/step
+T=16 ctx=short mode=linears nax8 :   71.0 ms/step  (225.3 positions/s)  graph build   2.6 ms/step
+T=16 ctx=short mode=tuned   stock:  204.0 ms/step  ( 78.4 positions/s)  graph build   2.6 ms/step
+T=16 ctx=short mode=tuned   nax  :   91.6 ms/step  (174.7 positions/s)  graph build   4.9 ms/step
+T=16 ctx=short mode=tuned   nax8 :   91.6 ms/step  (174.6 positions/s)  graph build   6.4 ms/step
+T=1 ctx=short mode=linears stock:   60.0 ms/step  ( 16.7 positions/s)  graph build   0.5 ms/step
+T=1 ctx=short mode=tuned   stock:   66.9 ms/step  ( 15.0 positions/s)  graph build   2.2 ms/step
+T=8 ctx=short mode=linears stock:  132.8 ms/step  ( 60.2 positions/s)  graph build   0.5 ms/step
+T=8 ctx=short mode=linears nax  :   72.0 ms/step  (111.1 positions/s)  graph build   2.5 ms/step
+T=8 ctx=short mode=linears nax8 :   70.9 ms/step  (112.8 positions/s)  graph build   2.6 ms/step
+T=8 ctx=short mode=tuned   stock:  144.5 ms/step  ( 55.4 positions/s)  graph build   2.5 ms/step
+T=8 ctx=short mode=tuned   nax  :   85.3 ms/step  ( 93.7 positions/s)  graph build   4.9 ms/step
+T=8 ctx=short mode=tuned   nax8 :   83.4 ms/step  ( 96.0 positions/s)  graph build   4.8 ms/step
+T=16 ctx=short mode=linears stock:  189.6 ms/step  ( 84.4 positions/s)  graph build   0.4 ms/step
+T=16 ctx=short mode=linears nax  :   72.8 ms/step  (219.7 positions/s)  graph build   2.6 ms/step
+T=16 ctx=short mode=linears nax8 :   70.8 ms/step  (226.0 positions/s)  graph build   2.4 ms/step
+T=16 ctx=short mode=tuned   stock:  203.4 ms/step  ( 78.7 positions/s)  graph build   2.5 ms/step
+T=16 ctx=short mode=tuned   nax  :   92.4 ms/step  (173.2 positions/s)  graph build   4.9 ms/step
+T=16 ctx=short mode=tuned   nax8 :   89.6 ms/step  (178.5 positions/s)  graph build   4.7 ms/step
+T=1 ctx=short mode=linears stock:   58.7 ms/step  ( 17.0 positions/s)  graph build   0.4 ms/step
+T=1 ctx=short mode=tuned   stock:   66.9 ms/step  ( 14.9 positions/s)  graph build   2.1 ms/step
+T=8 ctx=short mode=linears stock:  132.2 ms/step  ( 60.5 positions/s)  graph build   0.4 ms/step
+T=8 ctx=short mode=linears nax  :   72.2 ms/step  (110.8 positions/s)  graph build   2.5 ms/step
+T=8 ctx=short mode=linears nax8 :   70.1 ms/step  (114.1 positions/s)  graph build   2.6 ms/step
+T=8 ctx=short mode=tuned   stock:  144.7 ms/step  ( 55.3 positions/s)  graph build   2.5 ms/step
+T=8 ctx=short mode=tuned   nax  :   86.5 ms/step  ( 92.5 positions/s)  graph build   7.0 ms/step
+T=8 ctx=short mode=tuned   nax8 :   84.7 ms/step  ( 94.5 positions/s)  graph build   4.9 ms/step
+T=16 ctx=short mode=linears stock:  189.7 ms/step  ( 84.3 positions/s)  graph build   0.5 ms/step
+T=16 ctx=short mode=linears nax  :   72.9 ms/step  (219.5 positions/s)  graph build   2.5 ms/step
+T=16 ctx=short mode=linears nax8 :   70.7 ms/step  (226.3 positions/s)  graph build   2.4 ms/step
+T=16 ctx=short mode=tuned   stock:  204.1 ms/step  ( 78.4 positions/s)  graph build   2.5 ms/step
+T=16 ctx=short mode=tuned   nax  :   90.8 ms/step  (176.1 positions/s)  graph build   4.6 ms/step
+T=16 ctx=short mode=tuned   nax8 :   89.3 ms/step  (179.1 positions/s)  graph build   4.5 ms/step
+canary 23.3 TFLOP/s
+best of reps:
+  1:short:linears            58.7 ms/step
+  1:short:tuned              66.9 ms/step
+  8:short:linears           132.2 ms/step
+  8:short:linears:nax        71.2 ms/step
+  8:short:linears:nax8       69.7 ms/step
+  8:short:tuned             144.5 ms/step
+  8:short:tuned:nax          85.1 ms/step
+  8:short:tuned:nax8         83.3 ms/step
+  16:short:linears          189.6 ms/step
+  16:short:linears:nax       72.5 ms/step
+  16:short:linears:nax8      70.7 ms/step
+  16:short:tuned            203.4 ms/step
+  16:short:tuned:nax         90.8 ms/step
+  16:short:tuned:nax8        89.3 ms/step
+peak memory 17.6 GB

@@ -1,0 +1,51 @@
+canary 25.3 TFLOP/s
+gate_up N=34816 K=5120 M=2048:
+  stock         26.516 ms   27.5 TFLOP/s  1.00x
+  32x32x2x2RV   18.957 ms   38.5 TFLOP/s  1.40x
+  32x32x2x2s    18.581 ms   39.3 TFLOP/s  1.43x
+  32x32x4x1RV   18.880 ms   38.7 TFLOP/s  1.40x
+  act_quant      0.204 ms  
+  sb_transpose   0.117 ms  
+gate N=17408 K=5120 M=2048:
+  stock         13.496 ms   27.0 TFLOP/s  1.00x
+  32x32x2x2RV    9.267 ms   39.4 TFLOP/s  1.46x
+  32x32x2x2s     9.424 ms   38.7 TFLOP/s  1.43x
+  32x32x4x1RV    9.268 ms   39.4 TFLOP/s  1.46x
+  act_quant      0.159 ms  
+  sb_transpose   0.080 ms  
+down N=5120 K=17408 M=2048:
+  stock         14.368 ms   25.4 TFLOP/s  1.00x
+  32x32x2x2RV   10.176 ms   35.9 TFLOP/s  1.41x
+  32x32x2x2s    10.446 ms   34.9 TFLOP/s  1.38x
+  32x32x4x1RV   10.603 ms   34.4 TFLOP/s  1.36x
+  act_quant      0.451 ms  
+  sb_transpose   0.078 ms  
+q_proj N=12288 K=5120 M=2048:
+  stock          9.148 ms   28.2 TFLOP/s  1.00x
+  32x32x2x2RV    6.490 ms   39.7 TFLOP/s  1.41x
+  32x32x2x2s     6.320 ms   40.8 TFLOP/s  1.45x
+  32x32x4x1RV    6.275 ms   41.1 TFLOP/s  1.46x
+  act_quant      0.167 ms  
+  sb_transpose   0.064 ms  
+kda_qkv N=10240 K=5120 M=2048:
+  stock          7.478 ms   28.7 TFLOP/s  1.00x
+  32x32x2x2RV    5.363 ms   40.0 TFLOP/s  1.39x
+  32x32x2x2s     5.248 ms   40.9 TFLOP/s  1.42x
+  32x32x4x1RV    5.359 ms   40.1 TFLOP/s  1.40x
+  act_quant      0.158 ms  
+  sb_transpose   0.065 ms  
+z N=6144 K=5120 M=2048:
+  stock          4.491 ms   28.7 TFLOP/s  1.00x
+  32x32x2x2RV    3.211 ms   40.1 TFLOP/s  1.40x
+  32x32x2x2s     3.126 ms   41.2 TFLOP/s  1.44x
+  32x32x4x1RV    3.153 ms   40.9 TFLOP/s  1.42x
+  act_quant      0.179 ms  
+  sb_transpose   0.057 ms  
+out N=5120 K=6144 M=2048:
+  stock          4.536 ms   28.4 TFLOP/s  1.00x
+  32x32x2x2RV    3.201 ms   40.3 TFLOP/s  1.42x
+  32x32x2x2s     3.161 ms   40.8 TFLOP/s  1.44x
+  32x32x4x1RV    3.183 ms   40.5 TFLOP/s  1.42x
+  act_quant      0.196 ms  
+  sb_transpose   0.054 ms  
+canary 28.3 TFLOP/s

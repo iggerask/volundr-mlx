@@ -1,0 +1,28 @@
+2-bit gate_up (34816x5120, 50.1 MB), best of 7 interleaved:
+  stock M=1                        0.224 ms   224 GB/s   1.00x stock M=1
+  stock M=16                       0.500 ms   100 GB/s   2.23x stock M=1
+  nax bf16 nt=32 ks=1 M=16         0.315 ms   159 GB/s   1.41x stock M=1
+  nax bf16 nt=32 ks=8 M=16         0.478 ms   105 GB/s   2.13x stock M=1
+  nax i8 nt=32 ks=1 M=16           0.278 ms   180 GB/s   1.24x stock M=1
+  nax i8 nt=32 ks=8 M=16           0.332 ms   151 GB/s   1.48x stock M=1
+2-bit down (5120x17408, 25.1 MB), best of 7 interleaved:
+  stock M=1                        0.112 ms   224 GB/s   1.00x stock M=1
+  stock M=16                       0.861 ms    29 GB/s   7.70x stock M=1
+  nax bf16 nt=32 ks=1 M=16         0.206 ms   122 GB/s   1.84x stock M=1
+  nax bf16 nt=32 ks=8 M=16         0.139 ms   181 GB/s   1.24x stock M=1
+  nax i8 nt=32 ks=1 M=16           0.145 ms   173 GB/s   1.30x stock M=1
+  nax i8 nt=32 ks=8 M=16           0.120 ms   210 GB/s   1.07x stock M=1
+2-bit kda_qkv (10240x5120, 14.7 MB), best of 7 interleaved:
+  stock M=1                        0.064 ms   232 GB/s   1.00x stock M=1
+  stock M=16                       0.150 ms    98 GB/s   2.36x stock M=1
+  nax bf16 nt=32 ks=1 M=16         0.099 ms   149 GB/s   1.55x stock M=1
+  nax bf16 nt=32 ks=8 M=16         0.156 ms    95 GB/s   2.45x stock M=1
+  nax i8 nt=32 ks=1 M=16           0.080 ms   185 GB/s   1.25x stock M=1
+  nax i8 nt=32 ks=8 M=16           0.104 ms   142 GB/s   1.63x stock M=1
+2-bit out (5120x6144, 8.8 MB), best of 7 interleaved:
+  stock M=1                        0.037 ms   242 GB/s   1.00x stock M=1
+  stock M=16                       0.307 ms    29 GB/s   8.38x stock M=1
+  nax bf16 nt=32 ks=1 M=16         0.059 ms   149 GB/s   1.62x stock M=1
+  nax bf16 nt=32 ks=8 M=16         0.080 ms   110 GB/s   2.19x stock M=1
+  nax i8 nt=32 ks=1 M=16           0.050 ms   178 GB/s   1.36x stock M=1
+  nax i8 nt=32 ks=8 M=16           0.062 ms   143 GB/s   1.69x stock M=1
