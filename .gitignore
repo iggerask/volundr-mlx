@@ -13,14 +13,14 @@ __pycache__/
 .DS_Store
 
 # Large or third-party, recreated locally
-/volundr-mlx/models/
-/volundr-mlx/ref/
+/volundr-mlx/models
+/volundr-mlx/ref
 /volundr-mlx/parity/*.bin
 
 # Benchmark prompt suite and its per-prompt outputs: built from third-party datasets
 # (regenerate with volundr-mlx/spec/make_suite.py)
 /volundr-mlx/spec/suite.json
-/volundr-mlx/spec/runs/
+/volundr-mlx/spec/runs
 
 # Local agent session notes
 .claude/
