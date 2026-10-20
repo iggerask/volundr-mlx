@@ -1,7 +1,8 @@
 # Volundr MLX
 
-An MLX port of **Agens Volundr 32B** (Blockway) for Apple silicon: text model, INT4 weights, plain greedy
-decoding. It reproduces the CUDA engine ([agens-engine](https://github.com/BlockWayz/agens-engine) at b0e9a95)
+An MLX port of **Agens Volundr 32B** (Blockway) for Apple silicon: text model, INT4 weights. On top of the model it
+has DFlash2 speculative decoding, a session cache and continuous batching, served through agens-server; setup,
+serving and current performance figures are in the [top-level README](../README.md). It reproduces the CUDA engine ([agens-engine](https://github.com/BlockWayz/agens-engine) at b0e9a95)
 and the release's torch reference: `modeling_volundr.py`, `bcsa.py` and `volundr_extras.py`, shipped in the
 HF repo.
 
@@ -28,7 +29,8 @@ hf download Blockway/Agens-Volundr-32B-v1-INT4 --exclude "assets/*"
 ../.venv/bin/python tests/test_volundr.py
 ```
 
-The conversion takes about 40 s and writes 23 GB.
+The conversion takes about 40 s and writes 23 GB. To serve the model (`../serve.sh`), see the
+[top-level README](../README.md#use).
 
 ## Conversion
 
@@ -116,7 +118,8 @@ All are `mx.fast.metal_kernel`s, used on the GPU in bf16. Each is tested against
 
 ## Measured on this M5 Pro (64 GB)
 
-MLX 0.32.4. Warm runs; greedy; bf16 `lm_head` as shipped. Canary 26–27 TFLOP/s before each run (idle).
+These are the kernel-phase figures, before the decode fusion and speculative decoding; the current ones are in the
+[top-level README](../README.md#performance). MLX 0.32.4. Warm runs; greedy; bf16 `lm_head` as shipped. Canary 26–27 TFLOP/s before each run (idle).
 
 | Run | Prefill | Decode | Peak memory |
 |---|---|---|---|
@@ -160,8 +163,8 @@ Measured accelerator rates at prefill tile sizes, operands in cache:
 | int8 × int4 | ~31 |
 | int8 × int8 | ~50 |
 
-A W4A8 prefill path is the remaining large lever: int8 activations, with int4 weights unpacked to int8 in
-registers. It changes numerics, so it would be an opt-in mode.
+A W4A8 prefill path uses that: int8 activations, with int4 weights unpacked to int8 in registers. It changes
+numerics, so it is opt-in (`VOLUNDR_W4A8=1`, [w4a8/NOTES.md](w4a8/NOTES.md)): 490–509 tok/s at 20K, +25–32%.
 
 Projected 262K-token cache, from the cache layout: dense KV 1.07 GB, BCSA pooled blocks 4.9 GB, window
 0.29 GB, KDA state 0.17 GB. That gives about 35 GB peak with a 2048-token prefill chunk. Not measured; a full
@@ -173,8 +176,6 @@ Projected 262K-token cache, from the cache layout: dense KV 1.07 GB, BCSA pooled
 - A session cache that spills to SSD.
 - Batching (see [NOTES_BATCHED_SERVE.md](NOTES_BATCHED_SERVE.md)): batched speculation past 4 requests (a batched
   drafter), per-row (paged) cache buffers, batch-invariant kernels.
-- Prefill:
-  - a W4A8 matmul path (above);
-  - a chunked (tensor-core) KDA recurrence with per-channel decay, which is the engine's form too.
-- Decode: the NAX small-M matmul from the spike, and fusing the remaining small ops.
+- Prefill: a chunked (tensor-core) KDA recurrence with per-channel decay, which is the engine's form too.
+- Decode: fusing the remaining small ops.
 - The CUDA-side parity run ([PARITY.md](PARITY.md)).
