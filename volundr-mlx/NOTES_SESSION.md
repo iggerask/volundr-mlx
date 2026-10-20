@@ -196,7 +196,8 @@ There's one request per Unix-socket connection. The default socket is `$TMPDIR/v
 - `{"type": "error", "message": ...}`.
 
 **Ordering and cancellation.**
-- Requests run one at a time in arrival order (bs = 1).
+- Requests run one at a time in arrival order (bs = 1). Since branch batched-serve the worker batches concurrent
+  requests instead, and prefill stops between layers rather than chunks ([NOTES_BATCHED_SERVE.md](NOTES_BATCHED_SERVE.md)).
 - Closing the connection cancels a request: it's dropped if still queued, stopped between prefill chunks (at most
   ~5.5 s at 2048 tokens), or stopped after the current decode step. The interval snapshots taken so far, and the
   reply snapshot after a decode, are kept.

@@ -86,9 +86,10 @@ class BatchEngine:
         self.spec, self.max_gb, self.pipeline, self.bspec = spec, max_gb, pipeline, bspec
         # batched speculation for 2..bspec_max greedy rows, each drafting T = bspec_rows // B tokens (2 <= T <= self.T)
         self.bspec_max, self.bspec_rows = bspec_max, bspec_rows
-        # prefill chunks shorter than clear_min keep MLX's buffer cache (session.prefill_iter). 0: clear after every
-        # chunk; keeping it (1024) let the buffers of every batch size seen pile up (each join / leave changes the
-        # KDA state shapes): join steps of 0.7-1.7 s instead of ~0.2 s with swap nearly full (gate_prof)
+        # prefill chunks shorter than clear_min keep MLX's buffer cache (session.prefill_iter). 0 (default): clear
+        # after every chunk, as at bs = 1. Keeping it (1024) was tried: buffers of every batch size seen stay cached
+        # (each join / leave changes the KDA state shapes); join steps then took 0.7-1.7 s, but a rerun with the
+        # default had 0.5-1.0 s ones too while swap had grown to 27 GB (gate_prof), so it is not settled
         self.clear_min = clear_min
         self.bc = BT.BatchCache(model)
         self.waiting = deque()

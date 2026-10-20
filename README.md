@@ -24,6 +24,7 @@ Unofficial; not affiliated with Blockway.
 | Prefill, exact | 374 tok/s on a 19K-token prompt |
 | Prefill, opt-in W4A8 (`VOLUNDR_W4A8=1`) | 490–509 tok/s at 20K, +25–32% |
 | Peak memory | ~25 GB short context, ~29 GB at 19K; speculative ~28 GB on a 12.5K-token prompt (was ~56 GB) |
+| Serving through agens-server, 19 prompts x 256 tokens | 24.0 / 38.0 / 56.1 / 64.2 / 86.2 tok/s aggregate at 1 / 2 / 4 / 8 / 16 concurrent requests; TTFT p50 0.24 s at 1-4, 2.5 s at 16 |
 | Follow-up turn with the session cache, through agens-server | time to first token 9.1 s against 52.7 s at 21.7K context (3.5K new tokens), 3.1 s against 43.6 s at 18K (1.2K new) |
 
 The speculative gains come from two same-session A/Bs multiplied together; their shared baseline matched within 0.1%.
@@ -53,6 +54,8 @@ Model weights aren't included. They're covered by their Hugging Face repos' lice
 Experimental:
 - Serving goes through the upstream agens-server (OpenAI API) with an MLX worker behind it: `./serve.sh`. The
   worker keeps a session / prefix cache, so a follow-up turn prefills only its new tokens
-  ([`NOTES_SESSION.md`](volundr-mlx/NOTES_SESSION.md)). One request at a time.
+  ([`NOTES_SESSION.md`](volundr-mlx/NOTES_SESSION.md)). It batches concurrent requests (continuous batching, up to
+  16; batched speculation for 2-4 greedy requests), see
+  [`NOTES_BATCHED_SERVE.md`](volundr-mlx/NOTES_BATCHED_SERVE.md).
 - Speculative decoding is greedy-only; sampled requests decode plainly.
 - The CUDA-side parity run (PARITY.md section 3) hasn't been done yet.

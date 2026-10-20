@@ -193,7 +193,8 @@ class Worker:
                                "bspec_max": args.bspec_max},
                      "load_s": round(self.load_s, 1)}
 
-    # -- warm-up (Metal JIT for the prefill, verify and decode kernels, batched decode at 2-4 rows, far blocks)
+    # -- warm-up (Metal JIT for the prefill, verify and decode kernels, batched speculation and plain batched decode
+    #    at 2-4 rows, far blocks)
     def _local(self, ids, sp: dict, session=None):
         job = Job(LocalConn(), {"type": "generate", "prompt_ids": list(ids), "session_id": session, "sampling": sp})
         job.context_length = self.info["context_length"]
@@ -215,8 +216,13 @@ class Worker:
             self._drain()
             self._local(w, {"temperature": 0.7, "top_k": 20, "top_p": 0.95, "max_new_tokens": 8, "seed": 1})
             self._drain()  # sampled, alone (a batch of one)
-            for k in range(4):  # batched, 2-4 rows at different lengths, joining and leaving
+            for k in range(4):  # batched speculation, 2-4 greedy rows at different lengths, joining and leaving
                 self._local(w[: len(w) - 3 * k], {"top_k": 1, "max_new_tokens": 12 + 4 * k})
+            self._drain()
+            for k in range(4):  # batched plain decode, 2-4 rows (one sampled row keeps the batch plain)
+                sp = {"top_k": 1, "max_new_tokens": 12 + 4 * k} if k else \
+                    {"temperature": 0.7, "top_k": 20, "top_p": 0.95, "max_new_tokens": 28, "seed": 2}
+                self._local(w[: len(w) - 3 * k], sp)
             self._drain()
             if not self.args.short_warmup:  # far blocks (> 4096 positions) in prefill, verify and batched decode
                 text = (HERE / "README.md").read_text()

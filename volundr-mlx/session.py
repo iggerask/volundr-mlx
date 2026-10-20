@@ -479,7 +479,8 @@ class Sampling:
 
 
 class Engine:
-    """Runs requests one at a time on the model with the session cache (None or budget 0: no cache)."""
+    """Runs requests one at a time on the model with the session cache (None or budget 0: no cache). The bs = 1
+    engine, used by the session gates; worker.py runs scheduler.BatchEngine."""
 
     def __init__(self, model, drafter, cache: Optional[SessionCache], T=8, chunk=2048, lookup=True, loop="",
                  think_ids=(None, None)):

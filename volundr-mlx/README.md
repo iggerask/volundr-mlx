@@ -15,6 +15,7 @@ HF repo.
 | `dump_logits.py`, `make_prompts.py` | teacher-forced logit dumps in the engine's format; see [PARITY.md](PARITY.md) |
 | `tests/` | op-level and tiny-model tests against a NumPy fp64 port of the torch reference and `reference.rs` |
 | `session.py`, `worker.py`, `sampler.py` | session / prefix cache, the MLX worker behind agens-server (`../server/`, `../serve.sh`); see [NOTES_SESSION.md](NOTES_SESSION.md) |
+| `scheduler.py`, `batch.py`, `batch_spec.py` | the worker's continuous batching: the engine loop, the decode batch's caches (per-row positions), batched speculation; see [NOTES_BATCHED_SERVE.md](NOTES_BATCHED_SERVE.md) |
 | `bench.sh`, `with_gpu_lock.sh` | runs under the shared GPU lock, with the canary before and after |
 | `ref/` | `agens-engine` at b0e9a95 and the HF repos' code and config files (read-only reference) |
 
@@ -169,7 +170,9 @@ Projected 262K-token cache, from the cache layout: dense KV 1.07 GB, BCSA pooled
 ## Not done yet (later phases)
 
 - Speculative decoding for sampled requests: the worker decodes them plainly.
-- A session cache that spills to SSD, and continuous batching (the worker serves one request at a time).
+- A session cache that spills to SSD.
+- Batching (see [NOTES_BATCHED_SERVE.md](NOTES_BATCHED_SERVE.md)): batched speculation past 4 requests (a batched
+  drafter), per-row (paged) cache buffers, batch-invariant kernels.
 - Prefill:
   - a W4A8 matmul path (above);
   - a chunked (tensor-core) KDA recurrence with per-channel decay, which is the engine's form too.
