@@ -1,0 +1,81 @@
+### 2026-10-20 04:34:30 session_cache/e2e.sh session_cache/e2e
+load: 3.59 3.93 3.89; swap: total = 12288.00M  used = 11566.31M  free = 721.69M  (encrypted)
+canary 28.6 TFLOP/s
+### serve.sh 04:34:31
+worker: model loaded in 13.6 s; cache budget 12.0 GB, interval 4096
+worker: warm-up 13.6 s
+### run (cache on) 04:35:00
+{"prompt_tokens": 664, "completion_tokens": 110, "ttft_client_s": 1.690882290713489, "decode_tok_s_client": 37.36499270896734, "finish": "tool_calls", "tool_calls": ["read_file"], "turn": 0}
+{"prompt_tokens": 4493, "completion_tokens": 206, "ttft_client_s": 8.98723370814696, "decode_tok_s_client": 18.730404100422945, "finish": "tool_calls", "tool_calls": ["grep"], "w_cached_tokens": 0, "w_prefilled_tokens": 664, "w_ttft_s": 1.6865282920189202, "w_decode_tok_s": 37.30406010379481, "w_tokens_per_step": 3.6666666666666665, "w_cache_bytes": 511122820, "w_cache_snapshots": 2, "w_peak_gb": 27.515263765, "w_active_gb": 27.215334954, "w_prefill_s": 1.6861724997870624, "w_restore_s": 9.537534788250923e-05, "w_snapshot_s": 0.006224916782230139, "w_queue_s": 2.49580480158329e-05, "w_mode": "spec", "w_generated": 110, "w_interval_snapshots": 0, "w_snapshot": null, "turn": 1}
+{"prompt_tokens": 8894, "completion_tokens": 384, "ttft_client_s": 11.087996415793896, "decode_tok_s_client": 34.13526523458163, "finish": "length", "tool_calls": [], "w_cached_tokens": 773, "w_prefilled_tokens": 3720, "w_ttft_s": 8.966829541139305, "w_decode_tok_s": 18.7222793949824, "w_tokens_per_step": 1.9439252336448598, "w_cache_bytes": 2680935736, "w_cache_snapshots": 5, "w_peak_gb": 29.285741758, "w_active_gb": 28.908279618, "w_prefill_s": 8.965967959258705, "w_restore_s": 0.0005931658670306206, "w_snapshot_s": 0.002446957863867283, "w_queue_s": 0.014354291837662458, "w_mode": "spec", "w_generated": 206, "w_interval_snapshots": 1, "w_snapshot": {"id": 2, "kind": "reply", "session": "agent-1", "same_session": true}, "turn": 2}
+{"prompt_tokens": 12931, "completion_tokens": 250, "ttft_client_s": 9.806211833842099, "decode_tok_s_client": 21.174986538789142, "finish": "tool_calls", "tool_calls": ["grep"], "w_cached_tokens": 4698, "w_prefilled_tokens": 4196, "w_ttft_s": 11.07086845766753, "w_decode_tok_s": 34.11762295423234, "w_tokens_per_step": 3.616822429906542, "w_cache_bytes": 5131561276, "w_cache_snapshots": 8, "w_peak_gb": 31.75166165, "w_active_gb": 31.36137709, "w_prefill_s": 11.070107083301991, "w_restore_s": 0.0004737917333841324, "w_snapshot_s": 0.002903291955590248, "w_queue_s": 0.00016733305528759956, "w_mode": "spec", "w_generated": 384, "w_interval_snapshots": 1, "w_snapshot": {"id": 5, "kind": "reply", "session": "agent-1", "same_session": true}, "turn": 3}
+{"prompt_tokens": 16748, "completion_tokens": 97, "ttft_client_s": 9.334042917005718, "decode_tok_s_client": 18.6672093771131, "finish": "tool_calls", "tool_calls": ["list_dir"], "w_cached_tokens": 9277, "w_prefilled_tokens": 3654, "w_ttft_s": 9.785179582890123, "w_decode_tok_s": 21.16386406531946, "w_tokens_per_step": 2.25, "w_cache_bytes": 7859480912, "w_cache_snapshots": 11, "w_peak_gb": 34.514689602, "w_active_gb": 34.09698569, "w_prefill_s": 9.78406670782715, "w_restore_s": 0.00073245819658041, "w_snapshot_s": 0.003751167096197605, "w_queue_s": 0.0001649167388677597, "w_mode": "spec", "w_generated": 250, "w_interval_snapshots": 1, "w_snapshot": {"id": 8, "kind": "reply", "session": "agent-1", "same_session": true}, "turn": 4}
+{"prompt_tokens": 18040, "completion_tokens": 195, "ttft_client_s": 3.3863601670600474, "decode_tok_s_client": 18.034152361880952, "finish": "tool_calls", "tool_calls": ["read_file"], "w_cached_tokens": 13180, "w_prefilled_tokens": 3568, "w_ttft_s": 9.30657154135406, "w_decode_tok_s": 18.657423770091338, "w_tokens_per_step": 2.0, "w_cache_bytes": 10862714440, "w_cache_snapshots": 14, "w_peak_gb": 37.472851066, "w_active_gb": 37.10879425, "w_prefill_s": 9.305197916924953, "w_restore_s": 0.0009745834395289421, "w_snapshot_s": 0.0030012503266334534, "w_queue_s": 8.866703137755394e-05, "w_mode": "spec", "w_generated": 97, "w_interval_snapshots": 1, "w_snapshot": {"id": 11, "kind": "reply", "session": "agent-1", "same_session": true}, "turn": 5}
+{"prompt_tokens": 21717, "completion_tokens": 184, "ttft_client_s": 9.060662833973765, "decode_tok_s_client": 17.079727151554486, "finish": "tool_calls", "tool_calls": ["list_dir"], "w_cached_tokens": 16844, "w_prefilled_tokens": 1196, "w_ttft_s": 3.3541897917166352, "w_decode_tok_s": 18.025194181601062, "w_tokens_per_step": 2.0309278350515463, "w_cache_bytes": 11744710548, "w_cache_snapshots": 13, "w_peak_gb": 39.58112369, "w_active_gb": 37.985615746, "w_prefill_s": 3.3529193750582635, "w_restore_s": 0.0009401249699294567, "w_snapshot_s": 0.0035389172844588757, "w_queue_s": 0.00011133309453725815, "w_mode": "spec", "w_generated": 195, "w_interval_snapshots": 0, "w_snapshot": {"id": 14, "kind": "reply", "session": "agent-1", "same_session": true}, "turn": 6}
+### replay (cache off) 04:36:57
+{'type': 'budget', 'budget_bytes': 0, 'bytes': 0}
+{"prompt_tokens": 664, "completion_tokens": 110, "ttft_client_s": 1.6615190003067255, "decode_tok_s_client": 36.949329987994794, "finish": "tool_calls", "tool_calls": ["read_file"], "w_cached_tokens": 18234, "w_prefilled_tokens": 3483, "w_ttft_s": 9.033259875141084, "w_decode_tok_s": 17.070354974995436, "w_tokens_per_step": 1.878787878787879, "w_cache_bytes": 11926566524, "w_cache_snapshots": 12, "w_peak_gb": 40.563793754, "w_active_gb": 38.171507554, "w_prefill_s": 9.031682833097875, "w_restore_s": 0.0012070420198142529, "w_snapshot_s": 0.003359041642397642, "w_queue_s": 0.0003308746963739395, "w_mode": "spec", "w_generated": 184, "w_interval_snapshots": 1, "w_snapshot": {"id": 16, "kind": "reply", "session": "agent-1", "same_session": true}, "turn": 0, "same_reply": true}
+{"prompt_tokens": 4493, "completion_tokens": 371, "ttft_client_s": 10.712997750379145, "decode_tok_s_client": 18.777298925820507, "finish": "tool_calls", "tool_calls": ["list_dir"], "w_cached_tokens": 0, "w_prefilled_tokens": 664, "w_ttft_s": 1.657479708082974, "w_decode_tok_s": 36.88882315844054, "w_tokens_per_step": 3.6666666666666665, "w_cache_bytes": 0, "w_cache_snapshots": 0, "w_peak_gb": 27.265637909, "w_active_gb": 26.705904414, "w_prefill_s": 1.6570827919058502, "w_restore_s": 8.579110726714134e-05, "w_snapshot_s": 4.9666035920381546e-05, "w_queue_s": 1.3666227459907532e-05, "w_mode": "spec", "w_generated": 110, "w_interval_snapshots": 0, "w_snapshot": null, "turn": 1, "same_reply": false, "first_diff_char": 497, "diff_context": ["it, drafter context, session snapshots. Need read verify.py, dflash.py, session.", "it, drafter context, session snapshots. We need read related files: verify.py, d"]}
+{"prompt_tokens": 8894, "completion_tokens": 384, "ttft_client_s": 21.134758458007127, "decode_tok_s_client": 34.964237103068456, "finish": "length", "tool_calls": [], "w_cached_tokens": 0, "w_prefilled_tokens": 4493, "w_ttft_s": 10.693635750096291, "w_decode_tok_s": 18.77284031499668, "w_tokens_per_step": 1.9278350515463918, "w_cache_bytes": 0, "w_cache_snapshots": 0, "w_peak_gb": 28.577219386, "w_active_gb": 26.796507934, "w_prefill_s": 10.693110042251647, "w_restore_s": 0.00020862510427832603, "w_snapshot_s": 6.033293902873993e-05, "w_queue_s": 6.629107519984245e-05, "w_mode": "spec", "w_generated": 371, "w_interval_snapshots": 0, "w_snapshot": null, "turn": 2, "same_reply": true}
+{"prompt_tokens": 12931, "completion_tokens": 384, "ttft_client_s": 31.111597875133157, "decode_tok_s_client": 29.627511209277618, "finish": "length", "tool_calls": [], "w_cached_tokens": 0, "w_prefilled_tokens": 8894, "w_ttft_s": 21.116656582802534, "w_decode_tok_s": 34.94487113834127, "w_tokens_per_step": 3.616822429906542, "w_cache_bytes": 0, "w_cache_snapshots": 0, "w_peak_gb": 28.754724218, "w_active_gb": 26.88758659, "w_prefill_s": 21.116050207987428, "w_restore_s": 0.00032737478613853455, "w_snapshot_s": 5.3833238780498505e-05, "w_queue_s": 3.600027412176132e-05, "w_mode": "spec", "w_generated": 384, "w_interval_snapshots": 0, "w_snapshot": null, "turn": 3, "same_reply": false, "first_diff_char": 240, "diff_context": ["e. Need inspect spec loop, verify/commit, drafter context, session snapshots. We", "e. Need inspect spec loop, verify/commit step, drafter context and session snaps"]}
+{"prompt_tokens": 16748, "completion_tokens": 272, "ttft_client_s": 40.4020997909829, "decode_tok_s_client": 19.390844432989102, "finish": "tool_calls", "tool_calls": ["grep"], "w_cached_tokens": 0, "w_prefilled_tokens": 12931, "w_ttft_s": 31.089164707809687, "w_decode_tok_s": 29.615176873115683, "w_tokens_per_step": 3.0555555555555554, "w_cache_bytes": 0, "w_cache_snapshots": 0, "w_peak_gb": 28.856698234, "w_active_gb": 26.982599174, "w_prefill_s": 31.087884000036865, "w_restore_s": 0.000632499810308218, "w_snapshot_s": 0.00031745806336402893, "w_queue_s": 0.0016846666112542152, "w_mode": "spec", "w_generated": 384, "w_interval_snapshots": 0, "w_snapshot": null, "turn": 4, "same_reply": false, "first_diff_char": 0, "diff_context": ["Interesting: grep path session.py return", "The grep returned dflash.py, not session"]}
+{"prompt_tokens": 18040, "completion_tokens": 375, "ttft_client_s": 43.54191879183054, "decode_tok_s_client": 19.993140366116922, "finish": "tool_calls", "tool_calls": ["grep"], "w_cached_tokens": 0, "w_prefilled_tokens": 16748, "w_ttft_s": 40.37836650013924, "w_decode_tok_s": 19.383907128460017, "w_tokens_per_step": 2.0296296296296297, "w_cache_bytes": 0, "w_cache_snapshots": 0, "w_peak_gb": 28.958705018, "w_active_gb": 27.073250078, "w_prefill_s": 40.37714962521568, "w_restore_s": 0.0005614170804619789, "w_snapshot_s": 0.00013429205864667892, "w_queue_s": 8.725002408027649e-05, "w_mode": "spec", "w_generated": 272, "w_interval_snapshots": 0, "w_snapshot": null, "turn": 5, "same_reply": false, "first_diff_char": 408, "diff_context": ["ectory listing. Maybe tool malfunction? Could be because path \".\" is a file? No.", "ectory listing. Maybe tool malfunction? We need not rely. We can use grep to fin"]}
+{"prompt_tokens": 21717, "completion_tokens": 184, "ttft_client_s": 52.69556362507865, "decode_tok_s_client": 16.97745642791704, "finish": "tool_calls", "tool_calls": ["list_dir"], "w_cached_tokens": 0, "w_prefilled_tokens": 18040, "w_ttft_s": 43.51900387508795, "w_decode_tok_s": 19.98791172224819, "w_tokens_per_step": 2.0714285714285716, "w_cache_bytes": 0, "w_cache_snapshots": 0, "w_peak_gb": 28.958721402, "w_active_gb": 27.078492958, "w_prefill_s": 43.51802174979821, "w_restore_s": 0.0006101671606302261, "w_snapshot_s": 6.608385592699051e-05, "w_queue_s": 0.001570665743201971, "w_mode": "spec", "w_generated": 375, "w_interval_snapshots": 0, "w_snapshot": null, "turn": 6, "same_reply": true}
+### checks 04:41:48
+interleaved: {"sequential": [{"session": "A", "turn": 0, "prompt": 1920, "cached": 0, "snapshot": null, "ttft_s": 4.459155458025634}, {"session": "B", "turn": 0, "prompt": 723, "cached": 0, "snapshot": null, "ttft_s": 1.7951513342559338}, {"session": "A", "turn": 1, "prompt": 1988, "cached": 0, "snapshot": null, "ttft_s": 4.7338272500783205}, {"session": "B", "turn": 1, "prompt": 792, "cached": 0, "snapshot": null, "ttft_s": 1.9444350842386484}], "concurrent": [{"session": "A", "prompt": 2057, "cached": 0, "snapshot": null, "queue_s": 1.950003206729889e-05, "ttft_s": 5.747942249756306}, {"session": "B", "prompt": 861, "cached": 0, "snapshot": null, "queue_s": 6.125416665803641, "ttft_s": 2.101060832850635}], "pass": false}
+{'type': 'budget', 'budget_bytes': 2000000000, 'bytes': 0}
+eviction: {"budget_gb": 2.0, "steps": [{"session": "C", "prompt": 4198, "cache_bytes": 747813280, "snapshots": 1, "evicted": 19, "kept": [["C", "prompt", 4198]]}, {"session": "D", "prompt": 3570, "cache_bytes": 1416718796, "snapshots": 2, "evicted": 20, "kept": [["C", "reply", 4221], ["D", "prompt", 3570]]}, {"session": "E", "prompt": 4471, "cache_bytes": 1419867628, "snapshots": 2, "evicted": 23, "kept": [["E", "interval", 4096], ["E", "prompt", 4471]]}], "C_again": {"cached": 0, "prompt": 4241, "snapshot": null}, "E_again": {"cached": 4494, "prompt": 4514, "snapshot": {"id": 26, "kind": "reply", "session": "E", "same_session": true}}, "pass": true}
+{'type': 'budget', 'budget_bytes': 12000000000, 'bytes': 1495626996}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/http/client.py", line 546, in _read_next_chunk_size
+    return int(line, 16)
+           ^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 16: b''
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_e2e.py", line 499, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_e2e.py", line 495, in main
+    {"run": cmd_run, "replay": cmd_replay, "checks": cmd_checks, "report": cmd_report}[a.cmd](a)
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_e2e.py", line 388, in cmd_checks
+    r = chat.stream(_body(msgs, 64), session="H", close_after_s=6.0)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_e2e.py", line 115, in stream
+    for raw in resp:
+               ^^^^
+  File "/Users/ingemarrask/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/http/client.py", line 686, in readline
+    return super().readline(limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/http/client.py", line 678, in peek
+    return self._peek_chunked(n)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/http/client.py", line 716, in _peek_chunked
+    chunk_left = self._get_chunk_left()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/http/client.py", line 579, in _get_chunk_left
+    chunk_left = self._read_next_chunk_size()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/http/client.py", line 550, in _read_next_chunk_size
+    self._close_conn()
+  File "/Users/ingemarrask/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/http/client.py", line 428, in _close_conn
+    fp.close()
+    ^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'close'
+### report 04:43:21
+| turn | prompt tokens | cached / prefilled (snapshot) | TTFT cached | TTFT no cache | speed-up | decode tok/s cached / no cache | tokens/step | cache GB (snapshots) | peak GB | same reply |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 664 | None / None | 1.69 s | 1.66 s | 1.0x | 37.4 / 36.9 | - | 0.00 (None) | - | True |
+| 1 | 4493 | 0 / 664 | 8.99 s | 10.71 s | 1.2x | 18.7 / 18.8 | 3.67 | 0.51 (2) | 27.5 | False |
+| 2 | 8894 | 773 / 3720 (reply) | 11.09 s | 21.13 s | 1.9x | 34.1 / 35.0 | 1.94 | 2.68 (5) | 29.3 | True |
+| 3 | 12931 | 4698 / 4196 (reply) | 9.81 s | 31.11 s | 3.2x | 21.2 / 29.6 | 3.62 | 5.13 (8) | 31.8 | False |
+| 4 | 16748 | 9277 / 3654 (reply) | 9.33 s | 40.40 s | 4.3x | 18.7 / 19.4 | 2.25 | 7.86 (11) | 34.5 | False |
+| 5 | 18040 | 13180 / 3568 (reply) | 3.39 s | 43.54 s | 12.9x | 18.0 / 20.0 | 2.00 | 10.86 (14) | 37.5 | False |
+| 6 | 21717 | 16844 / 1196 (reply) | 9.06 s | 52.70 s | 5.8x | 17.1 / 17.0 | 2.03 | 11.74 (13) | 39.6 | True |
+worker process RSS (KB): 378320
+27
+exit 0
+canary 27.3 TFLOP/s
+load: 3.72 3.77 3.81; swap: total = 14336.00M  used = 13347.19M  free = 988.81M  (encrypted)
+### done 2026-10-20 04:43:27

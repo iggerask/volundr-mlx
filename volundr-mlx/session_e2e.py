@@ -77,8 +77,16 @@ def wq(msg, sock_path=None):
     return json.loads(buf)
 
 
-def last_record():
-    return (wq({"type": "stats"}).get("last") or [None])[-1]
+def wait_record(t_wall, session=None, timeout=30.0):
+    """The worker's record of the request sent at t_wall (time.time()). The server answers the client as soon as it
+    sees the stop token, a few ms before the worker finishes its end-of-reply snapshot and writes the record."""
+    end = time.time() + timeout
+    while True:
+        recs = [r for r in wq({"type": "stats"}).get("last") or [] if r.get("t", 0) >= t_wall
+                and (session is None or r.get("session_id") == session)]
+        if recs or time.time() > end:
+            return recs[-1] if recs else None
+        time.sleep(0.05)
 
 
 class Chat:
@@ -141,7 +149,7 @@ class Chat:
                 if stop_after is not None and r["n_deltas"] >= stop_after:
                     r["closed_early"] = True
                     break
-        except (OSError, http.client.HTTPException) as e:
+        except Exception as e:  # noqa: BLE001 (a socket closed under the reader: OSError, HTTPException, ...)
             r["closed_early"] = True
             r["error"] = repr(e)
         finally:
@@ -212,10 +220,11 @@ def cmd_run(a):
     for t in range(a.max_turns):
         body = {"model": "volundr", "messages": msgs, "tools": TOOLS, "max_tokens": a.max_tokens, "temperature": 0,
                 "stream": True, "stream_options": {"include_usage": True}, "reasoning_effort": "low"}
+        t_wall = time.time()
         r = chat.stream(body, session=sid)
         if r.get("error"):
             raise SystemExit(f"turn {t}: {r['error']}")
-        w = last_record()
+        w = wait_record(t_wall, sid)
         st = turn_stats(r, w)
         st["turn"] = t
         turns.append({"body": json.loads(json.dumps(body)), "reply": {k: r[k] for k in ("content", "reasoning",
@@ -251,8 +260,9 @@ def cmd_replay(a):
         print(wq({"type": "budget", "gb": 0}), flush=True)
     turns = []
     for t, rec in enumerate(src["turns"]):
+        t_wall = time.time()
         r = chat.stream(rec["body"], session=src["session"] + "-replay")
-        w = last_record()
+        w = wait_record(t_wall, src["session"] + "-replay")
         st = turn_stats(r, w)
         st["turn"] = t
         ref = rec["reply"]
@@ -282,13 +292,20 @@ def _body(msgs, max_tokens, think=False):
     return b
 
 
-def _records_since(t):
-    return [r for r in wq({"type": "stats"})["last"] if r.get("t", 0) >= t]
+def _records_since(t, n=1, timeout=60.0):
+    """Worker records written since t (time.time()), waiting until there are at least n."""
+    end = time.time() + timeout
+    while True:
+        recs = [r for r in wq({"type": "stats"})["last"] if r.get("t", 0) >= t]
+        if len(recs) >= n or time.time() > end:
+            return recs
+        time.sleep(0.05)
 
 
 def cmd_checks(a):
     chat = Chat(a.port)
     res = {}
+    print(wq({"type": "budget", "gb": a.budget}), wq({"type": "clear"}), flush=True)  # (replay leaves it at 0)
     # 1. two sessions interleaved, then concurrent
     convs = {"A": _conv("You review Python code. Be brief.", file_text("sampler.py")[:7000], "What does Budget do?"),
              "B": _conv("You explain build scripts. Be brief.", (HERE.parent / "serve.sh").read_text(),
@@ -315,7 +332,7 @@ def cmd_checks(a):
     for x in th:
         x.join()
     conc = [{"session": r.get("session_id"), "prompt": r["prompt_tokens"], "cached": r["cached_tokens"],
-             "snapshot": r["snapshot"], "queue_s": r["queue_s"], "ttft_s": r["ttft_s"]} for r in _records_since(t)]
+             "snapshot": r["snapshot"], "queue_s": r["queue_s"], "ttft_s": r["ttft_s"]} for r in _records_since(t, 2)]
     ok_inter = all(x["snapshot"] and x["snapshot"]["session"] == x["session"] for x in seq if x["turn"] == 1)
     ok_conc = len(conc) == 2 and all(x["snapshot"] and x["snapshot"]["session"] == x["session"] for x in conc) and \
         max(x["queue_s"] for x in conc) > 0.5
@@ -360,7 +377,7 @@ def cmd_checks(a):
     t = time.time()
     r = chat.stream(_body(msgs, 1500), session="F", stop_after=30)
     r2 = chat.stream(_body(_conv("Be brief.", "Hello.", "Say hi."), 8), session="G")
-    recs = _records_since(t)
+    recs = _records_since(t, 2)
     f = next(x for x in recs if x.get("session_id") == "F")
     g = next(x for x in recs if x.get("session_id") == "G")
     canc["mid_stream"] = {"deltas_read": r["n_deltas"], "F_finish": f["finish"], "F_generated": f["generated"],
@@ -372,7 +389,7 @@ def cmd_checks(a):
     r = chat.stream(_body(msgs, 64), session="H", close_after_s=6.0)
     t_close = time.perf_counter()
     r2 = chat.stream(_body(_conv("Be brief.", "Hello again.", "Say hi."), 8), session="I")
-    recs = _records_since(t)
+    recs = _records_since(t, 2)
     h = next(x for x in recs if x.get("session_id") == "H")
     i = next(x for x in recs if x.get("session_id") == "I")
     canc["mid_prefill"] = {"H_prompt": h["prompt_tokens"], "H_finish": h["finish"], "H_cancelled": h.get("cancelled"),
@@ -390,7 +407,7 @@ def cmd_checks(a):
     time.sleep(1.5)
     rk = chat.stream(_body(_conv("Be brief.", "Queued.", "Say hi."), 8), session="K", close_after_s=1.5)
     tj.join()
-    recs = _records_since(t)
+    recs = _records_since(t, 2)
     j = next(x for x in recs if x.get("session_id") == "J")
     k = next(x for x in recs if x.get("session_id") == "K")
     canc["while_queued"] = {"J_finish": j["finish"], "J_prompt": j["prompt_tokens"], "K_finish": k["finish"],
@@ -406,9 +423,44 @@ def cmd_checks(a):
     print("checks pass:", res["pass"], flush=True)
 
 
+def _rejoin(turns, log, session):
+    """Re-attach the worker's per-request records (worker.py --log) to the turns by (session, prompt tokens): the first
+    e2e run read them from the stats call before the worker had written them, one turn late."""
+    recs = [json.loads(x) for x in Path(log).read_text().splitlines() if x.strip()]
+    for t in turns:
+        s = t["stats"]
+        w = next((r for r in recs if r.get("session_id") == session and r.get("prompt_tokens") == s["prompt_tokens"]),
+                 None)
+        for k in [k for k in s if k.startswith("w_")]:
+            del s[k]
+        s.update(turn_stats({"t_first": None, "t_last": None, "usage": None, "ttft_s": None, "finish": None,
+                             "tool_calls": []}, w) if w else {})
+        s["prompt_tokens"] = w["prompt_tokens"] if w else s["prompt_tokens"]
+        for k in ("prompt_tokens", "completion_tokens", "ttft_client_s", "decode_tok_s_client", "finish",
+                  "tool_calls"):
+            t["stats"].setdefault(k, None)
+
+
 def cmd_report(a):
-    c = json.loads(Path(a.files[0]).read_text())["turns"]
+    cj = json.loads(Path(a.files[0]).read_text())
+    c = cj["turns"]
     n = json.loads(Path(a.files[1]).read_text())["turns"] if len(a.files) > 1 else [None] * len(c)
+    if a.worker_log:
+        keep = [{k: x["stats"][k] for k in ("turn", "prompt_tokens", "completion_tokens", "ttft_client_s",
+                                             "decode_tok_s_client", "finish", "tool_calls")} for x in c]
+        _rejoin(c, a.worker_log, cj["session"])
+        for x, k in zip(c, keep):
+            x["stats"].update(k)
+        if n[0] is not None:
+            keep = [{k: x["stats"].get(k) for k in ("turn", "prompt_tokens", "completion_tokens", "ttft_client_s",
+                                                     "decode_tok_s_client", "finish", "tool_calls", "same_reply",
+                                                     "first_diff_char", "diff_context")} for x in n]
+            _rejoin(n, a.worker_log, cj["session"] + "-replay")
+            for x, k in zip(n, keep):
+                x["stats"].update({kk: v for kk, v in k.items() if v is not None or kk == "same_reply"})
+        if a.out:
+            Path(a.out).write_text(json.dumps({"cached": [x["stats"] for x in c],
+                                               "nocache": [x["stats"] for x in n if x]}, indent=1))
     print("| turn | prompt tokens | cached / prefilled (snapshot) | TTFT cached | TTFT no cache | speed-up | decode tok/s "
           "cached / no cache | tokens/step | cache GB (snapshots) | peak GB | same reply |")
     print("|---|---|---|---|---|---|---|---|---|---|---|")
@@ -437,6 +489,7 @@ def main():
     ap.add_argument("--max-tokens", type=int, default=384)
     ap.add_argument("--target", type=int, default=20000, help="stop after the first turn with this many prompt tokens")
     ap.add_argument("--keep-cache", action="store_true")
+    ap.add_argument("--worker-log", default=None, help="report: re-attach the worker's records from its --log")
     ap.add_argument("--small-budget", type=float, default=2.0)
     ap.add_argument("--budget", type=float, default=12.0, help="restored after the eviction check")
     a = ap.parse_args()
