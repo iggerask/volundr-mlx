@@ -664,6 +664,8 @@ class Attention(nn.Module):
         return mx.fast.rope(x, self.rope_dims, traditional=False, base=self.rope_theta, scale=1.0, offset=offset)
 
     def __call__(self, x, cache):
+        if getattr(cache, "batched", False):  # a decode batch with per-row positions (batch.py)
+            return self._batched(x, cache)
         B, L, _ = x.shape
         D = self.head_dim
         qg = self.q_proj(x).reshape(B, L, self.n_heads, 2 * D)
@@ -730,6 +732,63 @@ class Attention(nn.Module):
         cache.v[..., W : W + nf, :] = fv
         return mx.fast.scaled_dot_product_attention(
             q, cache.k[..., : W + nf, :], cache.v[..., : W + nf, :], scale=self.scale)
+
+    # -- batched decode: B rows, each at its own position (batch.py's slot caches; the B = 1 paths above are separate)
+    def _batched(self, x, cache):
+        B, L, _ = x.shape
+        assert L == 1, "batched caches take decode steps"
+        D = self.head_dim
+        qg = self.q_proj(x).reshape(B, L, self.n_heads, 2 * D)
+        q, gate = qg[..., :D], qg[..., D:].reshape(B, L, self.n_heads * D)
+        q = self.q_norm(q).transpose(0, 2, 1, 3)
+        k = self.k_norm(self.k_proj(x).reshape(B, L, self.n_kv, D)).transpose(0, 2, 1, 3)
+        v = self.v_proj(x).reshape(B, L, self.n_kv, D).transpose(0, 2, 1, 3)
+        off = cache.rows.arr()  # [B] positions: the same values as per-row scalar offsets
+        q, k = self._rope(q, off), self._rope(k, off)
+        if not self.bcsa:
+            o = cache.attend(q, k, v, self.scale)
+        else:
+            o = self._bcsa_batched(x, q, k, v, cache)
+        o = o.transpose(0, 2, 1, 3).reshape(B, L, self.n_heads * D)
+        return self.o_proj(_sigmoid_gate(o, gate))
+
+    def _select_row(self, qi, cache, b, P, nv):
+        """Row b's top-k far blocks ([1, topk] int32) among its nv valid ones: _select at B = 1 on that row."""
+        if self.ID == 128 and qi.dtype == BF16:
+            s = kernels.bcsa_scores(qi[b : b + 1].squeeze(0), cache.bk[b : b + 1].squeeze(0), nv, self.ID**-0.5)
+        else:
+            s = _block_scores(qi[b : b + 1], cache.bk[b : b + 1, :nv], self.ID**-0.5)[0]
+        return kernels.bcsa_topk(s, P, self.W, self.C, self.topk)
+
+    def _bcsa_batched(self, x, q, k, v, cache):
+        """_bcsa_decode for B rows at their own positions: each row attends to its window and its far blocks (all
+        valid blocks up to top-k, else its own top-k selection), gathered behind its ring; one SDPA over the longest
+        row's keys, the others masked to their own prefix."""
+        B = x.shape[0]
+        W = self.W
+        st = cache.rows.bcsa(W, self.C, self.topk, cache.F)
+        ik = self.idx_norm(self.idx_k(x))
+        cache.write_ring(k, v, ik, st)
+        far = [b for b in range(B) if st.nf[b]]
+        if far:
+            qi = self._index_q(x) if any(st.nv[b] > self.topk for b in far) else None
+            for b in far:
+                nv = st.nv[b]
+                if nv > self.topk:
+                    if use_kernels():
+                        sel = self._select_row(qi, cache, b, st.pos[b], nv)
+                    else:
+                        sel = _topk_blocks(_block_scores(qi[b : b + 1], cache.bk[b : b + 1, :nv],
+                                                         self.ID**-0.5)[:, 0], self.topk)
+                    fk = _gather_blocks(cache.pk[b : b + 1], sel)
+                    fv = _gather_blocks(cache.pv[b : b + 1], sel)
+                else:
+                    fk, fv = cache.pk[b : b + 1, :, :nv], cache.pv[b : b + 1, :, :nv]
+                cache.put_far(b, fk, fv)
+        cache.close_blocks(ik, st)
+        N = st.N
+        return mx.fast.scaled_dot_product_attention(q, cache.k[:B, :, :N], cache.v[:B, :, :N], scale=self.scale,
+                                                    mask=st.mask)
 
     def _bcsa_prefill(self, x, q, k, v, cache: BCSACache):
         B, H, L, D = q.shape

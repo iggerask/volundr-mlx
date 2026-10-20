@@ -17,6 +17,24 @@ import prep_nax  # noqa: E402
 import qmm_nax  # noqa: E402
 
 _memo = {"x": None, "p": None}
+# Calls with fewer rows take the stock path. 2 by default; the batched decode sets it per step (stock MLX is faster
+# than the 16-row NAX tile for 2-3 decode rows, NOTES_BATCHED.md), see min_rows().
+MIN_ROWS = 2
+
+
+class min_rows:
+    """with min_rows(n): calls with fewer than n rows (n >= 2) take the stock path while the graph is built."""
+
+    def __init__(self, n):
+        self.n = max(2, int(n))
+
+    def __enter__(self):
+        global MIN_ROWS
+        self.prev, MIN_ROWS = MIN_ROWS, self.n
+
+    def __exit__(self, *exc):
+        global MIN_ROWS
+        MIN_ROWS = self.prev
 
 
 class NaxLinear(nn.QuantizedLinear):
@@ -24,7 +42,7 @@ class NaxLinear(nn.QuantizedLinear):
         K = x.shape[-1]
         rows = x.size // K
         N = self.weight.shape[0]
-        if not 2 <= rows <= qmm_nax.MT or x.dtype != mx.bfloat16 or mx.default_device() != mx.gpu:
+        if not MIN_ROWS <= rows <= qmm_nax.MT or x.dtype != mx.bfloat16 or mx.default_device() != mx.gpu:
             return super().__call__(x)
         if _memo["x"] is not x:
             _memo["x"], _memo["p"] = x, prep_nax.prep(x.reshape(rows, K))
