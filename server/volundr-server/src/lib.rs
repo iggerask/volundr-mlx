@@ -124,6 +124,12 @@ impl MlxBackend {
     }
 }
 
+/// While no token has arrived (queued or prefilling, up to a minute at 20K tokens), an empty step goes to the server
+/// this often. agens-server's engine treats an empty step as "no new tokens" but still forwards an (empty) output,
+/// and that send is where it notices a client that went away and drops the stream; without it a disconnect during
+/// the prefill would only be seen at the first token.
+pub const HEARTBEAT: Duration = Duration::from_millis(1000);
+
 /// Drive one request: send it, forward each `tokens` frame, stop when the worker is done or the server drops the
 /// stream (dropping the connection is the cancellation).
 async fn run(
@@ -133,11 +139,19 @@ async fn run(
 ) -> Result<(), String> {
     let mut s = UnixStream::connect(&socket).await.map_err(|e| format!("connect {}: {e}", socket.display()))?;
     write_frame(&mut s, &frame).await.map_err(|e| format!("send request: {e}"))?;
+    let mut tokens_seen = false;
+    let mut beat = tokio::time::interval_at(tokio::time::Instant::now() + HEARTBEAT, HEARTBEAT);
     loop {
         let msg = tokio::select! {
             biased;
             _ = tx.closed() => return Ok(()),
             m = read_frame(&mut s) => m.map_err(|e| format!("worker stream: {e}"))?,
+            _ = beat.tick(), if !tokens_seen => {
+                if tx.send(Ok(Vec::new())).await.is_err() {
+                    return Ok(());
+                }
+                continue;
+            }
         };
         let Some(v) = msg else { return Err("worker closed the connection".into()) };
         match v["type"].as_str() {
@@ -146,8 +160,11 @@ async fn run(
                     .as_array()
                     .map(|a| a.iter().filter_map(|x| x.as_u64().map(|t| t as u32)).collect())
                     .unwrap_or_default();
-                if !ids.is_empty() && tx.send(Ok(ids)).await.is_err() {
-                    return Ok(());
+                if !ids.is_empty() {
+                    tokens_seen = true;
+                    if tx.send(Ok(ids)).await.is_err() {
+                        return Ok(());
+                    }
                 }
             }
             Some("done") => return Ok(()),
@@ -187,6 +204,93 @@ mod tests {
         drop(a);
         assert_eq!(read_frame(&mut b).await.unwrap(), Some(v));
         assert_eq!(read_frame(&mut b).await.unwrap(), None);
+    }
+
+    fn params(max_new_tokens: usize) -> SamplingParams {
+        SamplingParams {
+            temperature: 1.0,
+            top_p: 1.0,
+            top_k: Some(1),
+            min_p: 0.0,
+            presence_penalty: 0.0,
+            frequency_penalty: 0.0,
+            repetition_penalty: 1.0,
+            min_new_tokens: 0,
+            max_new_tokens,
+            seed: None,
+            logit_bias: vec![],
+            suppress_tokens: vec![],
+            stop_token_ids: vec![9],
+            ignore_eos: false,
+            reasoning_budget: None,
+            reasoning_budget_soft_bias: 0.0,
+        }
+    }
+
+    /// A fake worker: answers `info`, then streams `steps` for one generate and reports whether the client closed
+    /// the connection before it was done.
+    async fn fake_worker(path: PathBuf, steps: Vec<Vec<u32>>, delay: Duration) -> tokio::task::JoinHandle<bool> {
+        let l = tokio::net::UnixListener::bind(&path).unwrap();
+        tokio::spawn(async move {
+            loop {
+                let (mut s, _) = l.accept().await.unwrap();
+                let m = read_frame(&mut s).await.unwrap().unwrap();
+                if m["type"] == "info" {
+                    write_frame(&mut s, &json!({"type": "info", "protocol": PROTOCOL, "context_length": 4096}))
+                        .await
+                        .unwrap();
+                    continue;
+                }
+                assert_eq!(m["prompt_ids"], json!([1, 2, 3]));
+                tokio::time::sleep(delay).await; // "prefill"
+                for st in &steps {
+                    if write_frame(&mut s, &json!({"type": "tokens", "ids": st})).await.is_err() {
+                        return true;
+                    }
+                    tokio::time::sleep(Duration::from_millis(20)).await;
+                }
+                let _ = write_frame(&mut s, &json!({"type": "done", "finish": "stop", "stats": {}})).await;
+                // closed by the client? (a read sees EOF)
+                return matches!(read_frame(&mut s).await, Ok(None) | Err(_));
+            }
+        })
+    }
+
+    #[tokio::test]
+    async fn backend_streams_steps_and_cancels_on_drop() {
+        let dir = std::env::temp_dir().join(format!("vs-test-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("w.sock");
+        let _ = std::fs::remove_file(&path);
+        let worker = fake_worker(path.clone(), vec![vec![5], vec![6, 7], vec![9]], Duration::from_millis(1500)).await;
+        let (b, info) = MlxBackend::connect(&path, Duration::from_secs(5)).await.unwrap();
+        assert_eq!(info["context_length"], 4096);
+        assert_eq!(b.context_length(), 4096);
+        let mut rx = b.generate(vec![1, 2, 3], params(16), None);
+        let mut got = Vec::new();
+        let mut beats = 0;
+        while let Some(step) = rx.recv().await {
+            let step = step.unwrap();
+            if step.is_empty() {
+                beats += 1; // heartbeat while the fake worker "prefills"
+            }
+            got.extend(step);
+        }
+        assert_eq!(got, vec![5, 6, 7, 9]);
+        assert!(beats >= 1, "no heartbeat during a 1.5 s prefill");
+        assert!(worker.await.unwrap());
+
+        // dropping the stream closes the connection: the worker's next write fails
+        let _ = std::fs::remove_file(&path);
+        let worker = fake_worker(path.clone(), (0..200).map(|i| vec![100 + i]).collect(), Duration::ZERO).await;
+        let mut rx = b.generate(vec![1, 2, 3], params(1000), None);
+        let first = rx.recv().await.unwrap().unwrap();
+        assert_eq!(first, vec![100]);
+        drop(rx);
+        let t = Instant::now();
+        assert!(tokio::time::timeout(Duration::from_secs(5), worker).await.unwrap().unwrap());
+        assert!(t.elapsed() < Duration::from_secs(2));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

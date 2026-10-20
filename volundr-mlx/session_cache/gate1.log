@@ -1,0 +1,30 @@
+### 2026-10-20 04:05:10 /Users/ingemarrask/personal-dev/llms/.venv/bin/python session_gate.py --only exact,engine --json session_cache/gate1.json
+load: 3.06 3.45 3.66; swap: total = 13312.00M  used = 11768.62M  free = 1543.38M  (encrypted)
+canary 28.7 TFLOP/s
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_gate.py", line 282, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_gate.py", line 275, in main
+    {"exact": gate_exact, "resume": gate_resume, "engine": gate_engine}[g](model, drafter, tok, res)
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_gate.py", line 140, in gate_exact
+    a = run(cache, dcache)
+        ^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_gate.py", line 129, in run
+    lg, cap, rec = VF.forward(model, mx.array([blk], dtype=mx.int32), cache, capture=drafter.capture_layers,
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Invalid type int64 received in array initialization.
+exit 1
+canary 27.8 TFLOP/s
+load: 3.75 3.57 3.69; swap: total = 13312.00M  used = 12080.50M  free = 1231.50M  (encrypted)
+### done 2026-10-20 04:05:49
+### 2026-10-20 04:06:13 /Users/ingemarrask/personal-dev/llms/.venv/bin/python session_gate.py --only exact,engine --json session_cache/gate1.json
+load: 3.95 3.62 3.71; swap: total = 13312.00M  used = 12080.50M  free = 1231.50M  (encrypted)
+canary 28.4 TFLOP/s
+exact: {"restore0_logits_identical": true, "restore0_drafts_identical": true, "restore0_final_cache_identical": true, "restore1_logits_identical": true, "restore1_drafts_identical": true, "restore1_final_cache_identical": true, "snapshot_unchanged": true, "snapshot_gb": 0.756185096, "snapshot_pos": 6151, "rows_compared": 69, "pass": true}
+[exact: 35 s, peak 30.6 GB]
+engine: {"turns": [{"prompt": 1937, "cached_tokens": 0, "prefilled_tokens": 1937, "snapshot": null, "ttft_cached_s": 4.74755929177627, "ttft_plain_s": 4.6582431248389184, "first_div": null, "generated": 96, "cache_gb": 1.325215252}, {"prompt": 2060, "cached_tokens": 2032, "prefilled_tokens": 28, "snapshot": {"id": 2, "kind": "reply", "session": "gate", "same_session": true}, "ttft_cached_s": 0.2341242078691721, "ttft_plain_s": 5.098493167199194, "first_div": null, "generated": 64, "cache_gb": 2.65239744}], "pass": true}
+[engine: 31 s, peak 31.1 GB]
+exit 0
+canary 28.2 TFLOP/s
+load: 4.53 3.92 3.81; swap: total = 13312.00M  used = 12064.50M  free = 1247.50M  (encrypted)
+### done 2026-10-20 04:07:37

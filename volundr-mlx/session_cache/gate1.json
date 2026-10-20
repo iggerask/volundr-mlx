@@ -1,0 +1,47 @@
+{
+ "exact": {
+  "restore0_logits_identical": true,
+  "restore0_drafts_identical": true,
+  "restore0_final_cache_identical": true,
+  "restore1_logits_identical": true,
+  "restore1_drafts_identical": true,
+  "restore1_final_cache_identical": true,
+  "snapshot_unchanged": true,
+  "snapshot_gb": 0.756185096,
+  "snapshot_pos": 6151,
+  "rows_compared": 69,
+  "pass": true
+ },
+ "engine": {
+  "turns": [
+   {
+    "prompt": 1937,
+    "cached_tokens": 0,
+    "prefilled_tokens": 1937,
+    "snapshot": null,
+    "ttft_cached_s": 4.74755929177627,
+    "ttft_plain_s": 4.6582431248389184,
+    "first_div": null,
+    "generated": 96,
+    "cache_gb": 1.325215252
+   },
+   {
+    "prompt": 2060,
+    "cached_tokens": 2032,
+    "prefilled_tokens": 28,
+    "snapshot": {
+     "id": 2,
+     "kind": "reply",
+     "session": "gate",
+     "same_session": true
+    },
+    "ttft_cached_s": 0.2341242078691721,
+    "ttft_plain_s": 5.098493167199194,
+    "first_div": null,
+    "generated": 64,
+    "cache_gb": 2.65239744
+   }
+  ],
+  "pass": true
+ }
+}

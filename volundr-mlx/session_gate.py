@@ -110,7 +110,7 @@ def gate_exact(model, drafter, tok, res):
     st = SS.capture(cache, dcache, last)
     before = [np.array(a.astype(mx.float32)) if a.dtype != mx.int32 else np.array(a) for a in st.arrays()]
     cont = ids[split:]
-    blocks = [list(np.random.default_rng(s).integers(0, vv, 8)) for s in range(6)]
+    blocks = [[int(t) for t in np.random.default_rng(s).integers(0, vv, 8)] for s in range(6)]
     commits = [rng.randint(1, 8) for _ in blocks]
 
     def run(cache, dcache):

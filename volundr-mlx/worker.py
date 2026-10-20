@@ -14,6 +14,8 @@ object with a "type"). One request per connection.
     {"type": "info"}    -> {"type": "info", "protocol": 1, "model", "context_length", "vocab_valid", ...}
     {"type": "stats"}   -> {"type": "stats", "cache": {...}, "queue": n, "last": [recent request records]}
     {"type": "clear"}   -> {"type": "cleared"} (drops every snapshot; runs between requests)
+    {"type": "budget", "gb": float} -> {"type": "budget", "budget_bytes": n} (sets the cache budget, evicting down to
+                           it; 0 disables the cache; runs between requests)
     {"type": "cancel"}  (optional, on a generate connection; closing the connection does the same)
 
   worker -> client, for generate
@@ -197,7 +199,7 @@ class Worker:
                        "last": list(self.recent)[-16:]})
             conn.close()
             return
-        if kind not in ("generate", "clear"):
+        if kind not in ("generate", "clear", "budget"):
             conn.send({"type": "error", "message": f"unknown message type {kind!r}"})
             conn.close()
             return
@@ -252,6 +254,12 @@ class Worker:
         if job.kind == "clear":
             self.cache.clear()
             conn.send({"type": "cleared"})
+            return
+        if job.kind == "budget":
+            self.cache.budget = max(0, int(float(msg.get("gb", 0)) * 1e9))
+            self.cache.evict(self.cache.budget)
+            self.info["cache_budget_bytes"] = self.cache.budget
+            conn.send({"type": "budget", "budget_bytes": self.cache.budget, "bytes": self.cache.nbytes})
             return
         t_start = time.perf_counter()
         queue_s = t_start - job.t_recv
