@@ -430,9 +430,9 @@ class BatchEngine:
             self.bc.apply(leave=done)
 
     def _bspec_step(self):
-        """One batched speculative step of the two batch rows (both greedy): each row's draft (prompt lookup, else the
-        DFlash2 drafter on its own context), one verify forward of 2 x T rows (batch_spec), each row keeps its own
-        accepted run; the drafter contexts get the kept rows' features."""
+        """One batched speculative step of the B batch rows (2..bspec_max, all greedy): each row's draft (prompt lookup,
+        else the DFlash2 drafter on its own context), one verify forward of B x T rows (batch_spec), each row keeps its
+        own accepted run; the drafter contexts get the kept rows' features."""
         import batch_spec
         from lookup import Lookup
 

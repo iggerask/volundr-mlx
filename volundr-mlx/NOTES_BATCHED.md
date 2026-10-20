@@ -53,12 +53,15 @@ better of NAX on and off at each B (on from B = 4).
   - Each of the 57 divergences starts at a step where one run's top-1 / top-2 margin is 0 and the other's is
     ≤ 0.25, or both are 0.125.
   - None is exact by construction (see Correctness).
-- **Batched speculative decoding (ESTIMATE, not run): it doesn't pay past B = 2.**
+- **Batched speculative decoding (ESTIMATE, not run): it doesn't pay past B = 2.** Superseded: built and measured
+  later ([NOTES_BATCHED_SERVE.md](NOTES_BATCHED_SERVE.md)), with T = 16 // B so B × T stays ≤ 16 rows, it is
+  1.6× / 1.55× / 1.23× plain batched decode at B = 2 / 3 / 4 and slower past 4. The estimate below used T = 8.
   - B = 2: 46-52 tok/s aggregate at short context. That's 1.8-2.0× plain B = 2 and close to plain B = 4.
   - B = 4: 50-60 tok/s, below plain B = 8 (84).
   - B × 8 = 32 verify rows exceed the NAX kernel's 16. As 16-row pieces the verify costs 170 ms against 89 at B = 1.
 - **Against upstream.** Upstream measures 87.7 / 129.3 / 155.1 tok/s aggregate at 1 / 2 / 4 requests. Ours is
-  14.2 / 25.4 / 45.7 plain, or 27.7 (spec, measured) / ~46-52 / ~50-60 (spec, estimated).
+  14.2 / 25.4 / 45.7 plain, or 27.7 (spec, measured) / ~46-52 / ~50-60 (spec, estimated). Measured since, end to
+  end through the server with batched speculation: 24.0 / 38.0 / 56.1 (NOTES_BATCHED_SERVE.md).
   - We reach 133 tok/s only at B = 16.
   - Upstream's GPU has 2.8-3.1× the bandwidth. Its single-stream figure is below the weight-streaming floor for plain
     decode (see Upstream).
@@ -229,6 +232,10 @@ kernels: a per-row matrix-vector for the bf16 linears and the same 4-bit kernel 
 
 ## Batched speculative decoding: ESTIMATE (not run)
 
+Superseded by the measurement in [NOTES_BATCHED_SERVE.md](NOTES_BATCHED_SERVE.md) (`batch_spec.py`): batched
+speculation pays up to B = 4 when each row drafts T = 16 // B tokens. This section's T = 8 at every B is why it
+came out worse.
+
 **Why not built.**
 - A batched spec loop needs per-stream positions: each stream accepts a different number of tokens per step. The BCSA
   and dense caches have a scalar offset, so that is the server work below.
@@ -301,6 +308,9 @@ Ada GPU (~864-960 GB/s).
 | 4 | 155.1 | 45.7 | ~50-60 (estimate) |
 | 8 | - | 83.6 | - |
 | 16 | - | 133.2 | - |
+
+Measured since, server mode end to end like upstream (NOTES_BATCHED_SERVE.md): 24.0 / 38.0 / 56.1 / 64.2 / 86.2 tok/s
+at 1 / 2 / 4 / 8 / 16 requests, with batched speculation at 2-4.
 
 - **Scaling.** Upstream gains 1.47× from 1 to 2 requests and 1.77× from 1 to 4. Ours gains 1.8× and 3.2× (plain),
   because our single stream is far from compute-bound.
