@@ -9,7 +9,8 @@ aggregate at 1 / 2 / 4 / 8 / 16 concurrent (upstream: 87.7 / 129.3 / 155.1 at 1 
 Branch `batched-serve` from `batched-bench` (6d692bb), worktree `.claude/worktrees/agent-a3bd58d97e91bdf21`. Data
 links as in the brief (.venv, models, ref, spec/suite.json, spec/runs, parity/*.bin). Measured code: c79ffdd (the
 server-mode run `batched_serve/run2/`). After it, the code changes were:
-- the worker warm-up gained a plain batched pass at 2-4 rows;
+- the worker warm-up gained a plain batched pass at 2-4 rows (checked with `batched_serve/warmup_check.py`:
+  6.5 s with `--short-warmup`; 34 plain batched, 4 batched speculative and 6 speculative steps);
 - `serve_bench.py` counts each streamed delta as its request's tokens per delta in the full-batch window;
 - `report.py` prints the new columns;
 - comments.

@@ -1,0 +1,9 @@
+### 2026-10-20 07:56:51 /Users/ingemarrask/personal-dev/llms/.venv/bin/python batched_serve/warmup_check.py
+load: 6.10 5.57 5.27; swap: total = 16384.00M  used = 14666.12M  free = 1717.88M  (encrypted)
+canary 28.6 TFLOP/s
+warm-up 6.5 s
+{"steps_batch": 34, "steps_spec": 6, "steps_bspec": 4, "rows_batch": 99, "prefill_slices": 10, "stall_s_max": 0.22, "t_admit": 0.0, "t_prefill": 2.29, "t_spec": 0.62, "t_bspec": 0.48, "t_batch": 2.96, "t_join": 0.11, "t_switch": 0.0, "t_finish": 0.07}
+exit 0
+canary 29.4 TFLOP/s
+load: 4.94 5.35 5.20; swap: total = 15360.00M  used = 14489.06M  free = 870.94M  (encrypted)
+### done 2026-10-20 07:57:15
