@@ -306,11 +306,23 @@ AGENT_Q = ("Review how speculative decoding continues from a cached state in thi
            "Answer with the three riskiest places and why, briefly.")
 
 
-def gaps_in(arrivals, lo, hi):
-    """Inter-token gaps of a stream inside [lo, hi] (a gap counts if it ends inside the window)."""
-    g = [b - a for a, b in zip(arrivals, arrivals[1:]) if lo <= b <= hi]
-    n = sum(1 for t in arrivals if lo <= t <= hi)
-    return g, n
+def wait_record(path, t_wall, session, timeout=15.0):
+    """The worker log's record of `session` written after t_wall (the worker writes it just after the last token)."""
+    end = time.time() + timeout
+    while True:
+        recs = [r for r in worker_records(path, t_wall) if r.get("session_id") == session]
+        if recs or time.time() > end:
+            return recs[-1] if recs else None
+        time.sleep(0.1)
+
+
+def stall_stats(arr, lo, hi):
+    """A stream's inter-token gaps against the window [lo, hi] (the agent's prefill): the longest gap overlapping it,
+    tokens and rate inside it."""
+    gaps = [(a, b) for a, b in zip(arr, arr[1:])]
+    over = [b - a for a, b in gaps if b >= lo and a <= hi]
+    n_in = sum(1 for t in arr if lo <= t <= hi)
+    return (max(over) if over else None), n_in, n_in / max(1e-9, hi - lo)
 
 
 def cmd_mixed(a):
@@ -331,21 +343,20 @@ def cmd_mixed(a):
     # turn 1 alone: the long prefill, the reply snapshot
     t_wall = time.time()
     r1 = stream(a.port, agent_body(msgs), session=sid)
-    w1 = worker_records(a.worker_log, t_wall)
+    w1 = wait_record(a.worker_log, t_wall, sid)
     log({"kind": "agent_turn1_alone", "ttft_s": r1["arrivals"][0] - r1["t0"] if r1["arrivals"] else None,
-         "worker": {k: w1[-1].get(k) for k in ("prompt_tokens", "cached_tokens", "prefilled_tokens", "ttft_s",
-                                               "decode_tok_s", "mode")} if w1 else None})
+         "worker": {k: w1.get(k) for k in ("prompt_tokens", "cached_tokens", "prefilled_tokens", "ttft_s",
+                                           "decode_tok_s", "mode")} if w1 else None})
     base_msgs = msgs + [assistant_message({"content": r1["content"], "reasoning": r1["reasoning"],
                                            "tool_calls": r1["tool_calls"]})]
-    for k, (slice_ms, f) in enumerate(((None, FILES[4]), (1e7, FILES[5]))):
+    # turn 2, twice from turn 1's reply snapshot (a different file of the same size each time, ~3.5K new tokens)
+    for slice_ms, f in ((None, "kernels.py"), (1e7, "decode_fused.py")):
         if slice_ms is not None:
             wq({"type": "config", "slice_ms": slice_ms}, a.socket)
         m2 = base_msgs + [{"role": "user", "content": f"Here is {f} as well:\n```python\n{file_text(f)}\n```\n"
                                                       "Update your answer."}]
-        short = {}
-        ths = []
-        t_start = time.perf_counter()
-        t_wall = time.time()
+        short, ths = {}, []
+
         for j in range(a.short):
             def go(j=j):
                 stream(a.port, body_for(PROMPTS[j], a.short_tokens), into=short.setdefault(j, {}))
@@ -358,36 +369,35 @@ def cmd_mixed(a):
                                                       all(s["arrivals"] for s in short.values())):
             time.sleep(0.05)
         time.sleep(a.lead_s)
-        ra = {}
-        tha = threading.Thread(target=lambda: ra.update(stream(a.port, agent_body(m2), session=sid)))
+        t_wall = time.time()
         t_agent = time.perf_counter()
-        tha.start()
-        tha.join()
+        ra = stream(a.port, agent_body(m2), session=sid)
         for th in ths:
             th.join()
+        wa = wait_record(a.worker_log, t_wall, sid)
         if slice_ms is not None:
             wq({"type": "config", "slice_ms": a.slice_ms}, a.socket)
-        recs = worker_records(a.worker_log, t_wall)
-        wa = next((r for r in recs if r.get("session_id") == sid), None)
-        t_af = ra["arrivals"][0] if ra.get("arrivals") else None
+        t_af = ra["arrivals"][0] if ra.get("arrivals") else t_agent
         rows = []
-        for j, s in sorted(short.items()):
-            arr = s["arrivals"]
-            g_in, n_in = gaps_in(arr, t_agent, t_af or t_agent)
-            g_pre, n_pre = gaps_in(arr, t_start, t_agent)
-            pre_rate = n_pre / max(1e-9, (min(t_agent, arr[-1]) - arr[0])) if arr else None
-            rows.append({"stream": j, "tokens": len(arr), "max_gap_in_prefill_s": round(max(g_in), 3) if g_in else None,
-                         "p50_gap_in_prefill_s": round(pct(g_in, 50), 3) if g_in else None,
-                         "tok_s_in_prefill": round(n_in / max(1e-9, (t_af or t_agent) - t_agent), 2),
-                         "tok_s_before": round(pre_rate, 2) if pre_rate else None,
-                         "max_gap_overall_s": round(max(b - x for x, b in zip(arr, arr[1:])), 3) if len(arr) > 1
-                         else None})
-        log({"kind": "mixed", "schedule": "layer slices" if slice_ms is None else "whole chunks",
-             "slice_ms": a.slice_ms if slice_ms is None else slice_ms,
-             "agent_ttft_s": round(t_af - t_agent, 2) if t_af else None,
+        for j, s_ in sorted(short.items()):
+            arr = s_["arrivals"]
+            gmax, n_in, rate_in = stall_stats(arr, t_agent, t_af)
+            pre = [t for t in arr if t < t_agent]
+            rate_pre = (len(pre) - 1) / (pre[-1] - pre[0]) if len(pre) > 2 else None
+            after = [t for t in arr if t_af + 1.0 < t]
+            rate_after = (len(after) - 1) / (after[-1] - after[0]) if len(after) > 2 else None
+            big = [(round(x - t_agent, 2), round(y - x, 3)) for x, y in zip(arr, arr[1:]) if y - x > 0.25]
+            rows.append({"stream": j, "tokens": len(arr), "max_gap_during_prefill_s": round(gmax, 3) if gmax else None,
+                         "tokens_during_prefill": n_in, "tok_s_during_prefill": round(rate_in, 2),
+                         "tok_s_before": round(rate_pre, 2) if rate_pre else None,
+                         "tok_s_after_join": round(rate_after, 2) if rate_after else None,
+                         "gaps_over_250ms": big})
+        log({"kind": "mixed", "schedule": "layer slices" if slice_ms is None else "whole prefill",
+             "slice_ms": a.slice_ms if slice_ms is None else slice_ms, "file": f,
+             "agent_ttft_s": round(t_af - t_agent, 2),
              "agent_worker": {k: wa.get(k) for k in ("prompt_tokens", "cached_tokens", "prefilled_tokens", "ttft_s",
                                                      "decode_tok_s", "mode", "mean_batch", "snapshot")} if wa else None,
-             "short": rows, "t_wall": t_wall})
+             "short": rows})
 
 
 def main():

@@ -10,6 +10,9 @@
           NAX policy)
   engine  scheduler.BatchEngine in-process: concurrent greedy + sampled requests, a session follow-up, a cancellation,
           against the same requests one at a time (max_batch 1): tokens, divergence margins, records
+  serve   the server-mode workload (19 prompts x 256 tokens) on the engine in process, a pool of c clients
+  bspec   batched speculation (batch_spec): verify + per-row commits against the B = 1 verify path on the same states
+          and drafts; the engine with two concurrent greedy requests, batched speculation on / off, vs each alone
 
 usage (from volundr-mlx, under ./with_gpu_lock.sh): python batched_serve/gate.py exact|rows|timing|engine --out F
 """
@@ -33,6 +36,7 @@ ROOT = HERE.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "spec"))
 sys.path.insert(0, str(ROOT / "batched"))
+sys.path.insert(0, str(HERE))
 import batch as BT  # noqa: E402
 import nax_hook  # noqa: E402
 import session as S  # noqa: E402
@@ -329,10 +333,283 @@ def cmd_engine(args):
         log(rec)
 
 
+# ----------------------------------------------------------------------------- bspec
+def cmd_bspec(args):
+    """Batched verify + per-row commit (batch_spec) against the B = 1 verify path (verify.forward + commit) on the
+    same states and drafts, random accepted counts: per-row logits and the final states; then the engine with two
+    concurrent greedy requests, batched speculation on and off."""
+    import random
+
+    import batch_spec
+    import scheduler
+    import verify as VF
+
+    model, drafter, tok = load()
+    vv = model.args.vocab_valid
+    capl = drafter.capture_layers
+    ps = prompts_of(tok, args.lengths[:2], seed=5)
+    rng = random.Random(0)
+    refs = []
+    for ids in ps:
+        c, d, last = prefilled(model, drafter, ids)
+        refs.append((c, int(mx.argmax(last[:vv]).item())))
+    bc = BT.BatchCache(model)
+    bc.apply(join=[(i, S.restore(S.capture(c))[0]) for i, (c, _) in enumerate(refs)])
+    b1 = [S.restore(S.capture(c))[0] for c, _ in refs]
+    bonus = [t for _, t in refs]
+    worst, agree, rows_n, kl = 0.0, 0, 0, []
+    for step in range(args.steps):
+        inps, ns = [], []
+        for i in range(2):  # drafts: the B = 1 greedy continuation with some tokens replaced, so n varies
+            inps.append([bonus[i]] + [rng.randrange(1000, 200000) for _ in range(args.T - 1)])
+        inp = mx.array(inps, dtype=mx.int32)
+        lb, capb, recb = batch_spec.verify_forward(model, bc, inp, capture=capl)
+        mx.eval(lb, capb, bc.state)
+        for i in range(2):
+            lr, capr, recr = VF.forward(model, inp[i : i + 1], b1[i], capture=capl, verify=True)
+            mx.eval(lr, capr, [c.state for c in b1[i]])
+            a, b = lr.astype(mx.float32), lb[i].astype(mx.float32)
+            worst = max(worst, mx.abs(a - b).max().item())
+            agree += int(mx.sum(mx.argmax(a[:, :vv], -1) == mx.argmax(b[:, :vv], -1)).item())
+            rows_n += a.shape[0]
+            pa, pb = mx.softmax(a, -1), mx.softmax(b, -1)
+            kl.append(mx.sum(pa * (mx.log(pa + 1e-30) - mx.log(pb + 1e-30)), -1).max().item())
+            n = rng.randint(1, args.T)
+            ns.append(n)
+            VF.commit(b1[i], recr, n)
+            bonus[i] = int(mx.argmax(lr[n - 1, :vv]).item())
+        batch_spec.commit(bc, recb, ns)
+        mx.eval(bc.state, [c.state for c in b1[0] + b1[1]])
+    same_state = []
+    for i in range(2):
+        r2, _ = S.restore(bc.capture_row(i))
+        d = 0.0
+        for x, y in zip(b1[i], r2):
+            xs = [a for a in (x.cache if hasattr(x, "cache") else x.state) if a is not None] if not hasattr(x, "trim") \
+                else [x.keys[..., : x.offset, :], x.values[..., : x.offset, :]]
+            ys = [a for a in (y.cache if hasattr(y, "cache") else y.state) if a is not None] if not hasattr(y, "trim") \
+                else [y.keys[..., : y.offset, :], y.values[..., : y.offset, :]]
+            for p_, q_ in zip(xs, ys):
+                if p_.shape == q_.shape:
+                    d = max(d, mx.abs(p_.astype(mx.float32) - q_.astype(mx.float32)).max().item())
+        same_state.append(d)
+        assert S.cache_pos(b1[i]) == bc.pos[i]
+    log({"gate": "bspec-verify", "prompt_tokens": args.lengths[:2], "steps": args.steps, "rows": rows_n,
+         "max_abs_logit_diff": worst, "argmax_agree": agree, "max_kl": max(kl), "state_max_abs_diff": same_state})
+    del bc, b1, refs
+    mx.clear_cache()
+    # engine: two concurrent greedy requests, batched speculation on / off, and each alone (the spec loop)
+    lens = [180, 700]
+    ps = prompts_of(tok, lens, seed=7)
+    g = {"top_k": 1, "max_new_tokens": args.new}
+    out = {}
+    for mode in ("alone", "bspec", "plain"):
+        eng = scheduler.BatchEngine(model, drafter, None, bspec=(mode == "bspec"))
+        reqs = [(f"r{i}", {"prompt_ids": ps[i], "sampling": g}, None) for i in range(2)]
+        t0 = time.perf_counter()
+        if mode == "alone":
+            res = {}
+            for rq in reqs:
+                res.update(run_engine(eng, [rq]))
+        else:
+            res = run_engine(eng, reqs)
+        wall = time.perf_counter() - t0
+        out[mode] = res
+        st = eng.stats
+        log({"gate": "bspec-engine", "mode": mode, "wall_s": round(wall, 2),
+             "engine": st, "recs": {k: {x: v[1].get(x) for x in ("generated", "decode_tok_s", "bspec_steps",
+                                                                  "bspec_tokens", "mode", "ttft_s")}
+                                     for k, v in res.items()}})
+        del eng
+        mx.clear_cache()
+    for name in ("r0", "r1"):
+        a = out["alone"][name][0]
+        for mode in ("bspec", "plain"):
+            b = out[mode][name][0]
+            div = next((k for k, (x, y) in enumerate(zip(a, b)) if x != y), None)
+            rec = {"gate": "bspec-compare", "name": name, "mode": mode, "identical_to_alone": div is None}
+            if div is not None:
+                la, lb, m = tie(model, drafter, ps[int(name[1])], a[:div], a[div], b[div], vv)
+                rec.update(diverge_at=div, logit_alone=la, logit_other=lb, top2_margin=m)
+            log(rec)
+
+
+# ----------------------------------------------------------------------------- serve (in-process server-mode run)
+def cmd_serve(args):
+    """The server-mode workload (serve_bench.py's 19 prompts x --new tokens, greedy, ignore_eos) on the engine in
+    process: a pool of c clients, each submitting the next prompt when its last one ends; no HTTP. Per level: the
+    aggregate, the engine's time split, step counts."""
+    import scheduler
+    from serve_bench import PROMPTS
+
+    model, drafter, tok = load()
+    ids = [tok.apply_chat_template([{"role": "user", "content": t}], add_generation_prompt=True,
+                                   enable_thinking=False) for t in PROMPTS]
+    g = {"top_k": 1, "max_new_tokens": args.new, "ignore_eos": True}
+    for c in args.batches:
+        for bspec in ([True, False] if c == 2 and args.bspec_ab else [args.bspec]):
+            eng = scheduler.BatchEngine(model, drafter, S.SessionCache(budget_gb=args.cache_gb), bspec=bspec)
+            todo = list(range(len(ids)))
+            recs = {}
+
+            def submit(eng=eng):
+                i = todo.pop(0)
+                j = _Job({"prompt_ids": ids[i], "sampling": g})
+                j.name = i
+                eng.submit(j)
+
+            def done(job, req, rec, eng=eng):
+                recs[job.name] = rec
+                if todo:
+                    submit()
+
+            eng.on_done = done
+            for _ in range(min(c, len(todo))):
+                submit()
+            mx.reset_peak_memory()
+            t0 = time.perf_counter()
+            while eng.busy:
+                eng.tick()
+            wall = time.perf_counter() - t0
+            toks = sum(r.get("generated", 0) for r in recs.values())
+            st = {k: (round(v, 2) if isinstance(v, float) else v) for k, v in eng.stats.items()}
+            log({"gate": "serve", "concurrency": c, "bspec": bspec, "requests": len(recs), "tokens": toks,
+                 "wall_s": round(wall, 2), "agg_tok_s": round(toks / wall, 2),
+                 "ttft_p50_s": round(sorted(r["ttft_s"] for r in recs.values())[len(recs) // 2], 3),
+                 "peak_gb": round(mx.get_peak_memory() / 1e9, 2), "engine": st,
+                 "outputs": {i: r.get("tokens") for i, r in recs.items()}})
+            del eng
+            mx.clear_cache()
+
+
+# ----------------------------------------------------------------------------- prof (where the serving step goes)
+def cmd_prof(args):
+    """B rows decoding: equal prompts (the timing gate) vs the serve prompts (rows at different positions), without
+    and with the drafter feature capture; then the engine on the same serve prompts (all admitted at once), its
+    decode steps by batch size once every prefill is done."""
+    import scheduler
+    from serve_bench import PROMPTS
+
+    model, drafter, tok = load()
+    vv = model.args.vocab_valid
+    B = max(args.batches)
+    serve_ids = [tok.apply_chat_template([{"role": "user", "content": t}], add_generation_prompt=True,
+                                         enable_thinking=False) for t in PROMPTS][:B]
+    lens = [len(x) for x in serve_ids]
+    eq = make_prompts(tok, sorted(lens)[len(lens) // 2], B)
+
+    def build(bc, toks, capl, n):
+        with nax_hook.min_rows(4 if n < 4 else 2):
+            lg, f = BT.forward(model, bc, toks, capture=capl)
+        return lg, mx.argmax(lg[:, :vv], axis=-1).astype(mx.int32), [] if f is None else f, bc.state
+
+    for name, ps in (("equal", eq), ("serve", serve_ids)):
+        caches = []
+        for ids in ps:
+            c, _, last = prefilled(model, drafter, ids)
+            caches.append((c, int(mx.argmax(last[:vv]).item())))
+        for n in args.batches:
+            for capl in ((), drafter.capture_layers):
+                bc = BT.BatchCache(model)
+                bc.apply(join=[(i, S.restore(S.capture(caches[i][0]))[0]) for i in range(n)])
+                toks = mx.array([caches[i][1] for i in range(n)], dtype=mx.int32)
+                times = []
+                for s in range(args.warm + args.steps):
+                    t0 = time.perf_counter()
+                    pre = bc.take_prebuilt("next") or build(bc, toks, capl, n)
+                    lg, g, f, st = pre
+                    mx.async_eval(lg, g, f, st)
+                    bc.prebuild("next", lambda g=g, bc=bc, capl=capl, n=n: build(bc, g, capl, n))
+                    mx.eval(lg, g, f, st)
+                    del pre, st
+                    g.tolist()
+                    toks = g
+                    times.append(time.perf_counter() - t0)
+                bc.rollback()
+                ms = 1e3 * sum(times[args.warm:]) / args.steps
+                log({"gate": "prof", "prompts": name, "B": n, "capture": bool(capl),
+                     "prompt_tokens": [len(x) for x in ps[:n]], "ms_step": round(ms, 2),
+                     "agg_tok_s": round(n * 1e3 / ms, 1)})
+                del bc
+                mx.clear_cache()
+        del caches
+    g = {"top_k": 1, "max_new_tokens": args.new, "ignore_eos": True}
+    for cache_gb in (12.0, 0.0):
+        eng = scheduler.BatchEngine(model, drafter, S.SessionCache(budget_gb=cache_gb) if cache_gb else None)
+        eng.step_log = []
+        recs = {}
+        eng.on_done = lambda job, req, rec, recs=recs: recs.__setitem__(job.name, rec)
+        for i, ids in enumerate(serve_ids):
+            j = _Job({"prompt_ids": ids, "sampling": g})
+            j.name = i
+            eng.submit(j)
+        t0 = time.perf_counter()
+        while eng.busy:
+            eng.tick()
+        wall = time.perf_counter() - t0
+        sl = eng.step_log
+        full = [dt for n, dt, pw in sl if n == B and pw == 0.0]
+        with_pre = [(dt, pw) for n, dt, pw in sl if pw > 0.0]
+        st = {k: (round(v, 2) if isinstance(v, float) else v) for k, v in eng.stats.items()}
+        log({"gate": "prof-engine", "session_cache": bool(cache_gb), "B": B, "wall_s": round(wall, 2),
+             "steps": len(sl), "full_steps": len(full),
+             "full_ms_median": round(1e3 * sorted(full)[len(full) // 2], 2) if full else None,
+             "full_ms_mean": round(1e3 * sum(full) / len(full), 2) if full else None,
+             "ticks_with_prefill": len(with_pre),
+             "prefill_s": round(sum(pw for _, pw in with_pre), 2),
+             "step_ms_with_prefill_mean": round(1e3 * sum(dt for dt, _ in with_pre) / len(with_pre), 2)
+             if with_pre else None,
+             "ttft_s": sorted(round(r["ttft_s"], 2) for r in recs.values()), "engine": st,
+             "step_log": [(n, round(dt * 1e3, 1), round(pw * 1e3, 1)) for n, dt, pw in sl]})
+        del eng
+        mx.clear_cache()
+
+
+# ----------------------------------------------------------------------------- bspecn (batched spec at B rows)
+def cmd_bspecn(args):
+    """k concurrent greedy requests (the serve prompts, --new tokens each, ignore_eos) on the engine: batched
+    speculation at k rows (T = 16 // k) against plain batched decode; decode tok/s over the decode steps."""
+    import scheduler
+    from serve_bench import PROMPTS
+
+    model, drafter, tok = load()
+    ids = [tok.apply_chat_template([{"role": "user", "content": t}], add_generation_prompt=True,
+                                   enable_thinking=False) for t in PROMPTS]
+    g = {"top_k": 1, "max_new_tokens": args.new, "ignore_eos": True}
+    for k in args.batches:
+        res = {}
+        for mode in ("bspec", "plain"):
+            eng = scheduler.BatchEngine(model, drafter, None, bspec=(mode == "bspec"), bspec_max=max(args.batches))
+            reqs = [(f"r{i}", {"prompt_ids": ids[i], "sampling": g}, None) for i in range(k)]
+            t0 = time.perf_counter()
+            res[mode] = run_engine(eng, reqs)
+            wall = time.perf_counter() - t0
+            st = eng.stats
+            toks = sum(v[1]["generated"] for v in res[mode].values())
+            dec_s = st["t_bspec"] + st["t_batch"] + st["t_spec"]
+            log({"gate": "bspecn", "k": k, "mode": mode, "T": max(2, min(8, 16 // k)), "wall_s": round(wall, 2),
+                 "tokens": toks, "decode_s": round(dec_s, 2), "decode_tok_s": round(toks / dec_s, 1),
+                 "steps": {x: st[x] for x in ("steps_bspec", "steps_batch", "steps_spec")},
+                 "accepted_per_row_step": round(sum(v[1].get("bspec_tokens", 0) for v in res[mode].values())
+                                                / max(1, k * st["steps_bspec"]), 2),
+                 "ms_per_bspec_step": round(1e3 * st["t_bspec"] / max(1, st["steps_bspec"]), 1),
+                 "ms_per_batch_step": round(1e3 * st["t_batch"] / max(1, st["steps_batch"]), 1),
+                 "peak_gb": round(mx.get_peak_memory() / 1e9, 2)})
+            del eng
+            mx.clear_cache()
+        same = sum(res["bspec"][n][0] == res["plain"][n][0] for n in res["plain"])
+        div = [next((j for j, (x, y) in enumerate(zip(res["bspec"][n][0], res["plain"][n][0])) if x != y), None)
+               for n in res["plain"]]
+        log({"gate": "bspecn-compare", "k": k, "identical": same, "of": k, "diverge_at": div})
+
+
 def main():
     global OUT
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["exact", "rows", "timing", "engine"])
+    ap.add_argument("cmd", choices=["exact", "rows", "timing", "engine", "bspec", "serve", "prof", "bspecn"])
+    ap.add_argument("--cache-gb", type=float, default=12.0)
+    ap.add_argument("--bspec", type=int, default=1)
+    ap.add_argument("--bspec-ab", type=int, default=0)
     ap.add_argument("--out", default=None)
     ap.add_argument("--lengths", default="150,3000,4200,9000")
     ap.add_argument("--steps", type=int, default=48)
@@ -342,11 +619,15 @@ def main():
     ap.add_argument("--warm", type=int, default=4)
     ap.add_argument("--new", type=int, default=96)
     ap.add_argument("--max-batch", type=int, default=16)
+    ap.add_argument("--T", type=int, default=8)
     args = ap.parse_args()
     args.lengths = [int(x) for x in args.lengths.split(",")]
     args.batches = [int(x) for x in args.batches.split(",")]
     OUT = args.out
-    {"exact": cmd_exact, "rows": cmd_rows, "timing": cmd_timing, "engine": cmd_engine}[args.cmd](args)
+    {"exact": cmd_exact, "rows": cmd_rows, "timing": cmd_timing, "engine": cmd_engine, "bspec": cmd_bspec,
+     "serve": cmd_serve, "prof": cmd_prof,
+     "bspecn": cmd_bspecn}[
+        args.cmd](args)
 
 
 if __name__ == "__main__":

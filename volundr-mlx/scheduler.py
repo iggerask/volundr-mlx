@@ -51,6 +51,7 @@ class Req:
         self.gen = None  # prefill generator
         self.last = None  # logits of the last fed position (they chose out[-1])
         self.feats, self.feat_p0 = [], 0  # batch mode: drafter features not yet in dcache, from position feat_p0
+        self.lk, self.lk_len = None, 0  # batched speculative steps: the request's prompt lookup, len(out) it saw
         self.stepper = None
         self.sampler = None
         self.stop_ids = set() if sp.ignore_eos else set(sp.stop_token_ids)
@@ -69,7 +70,7 @@ class Req:
 class BatchEngine:
     def __init__(self, model, drafter, cache: SS.SessionCache, T=8, chunk=2048, lookup=True, loop="",
                  think_ids=(None, None), max_batch=16, slice_ms=200.0, nax_min_batch=4, spec=True, max_gb=46.0,
-                 pipeline=True, log=None):
+                 pipeline=True, bspec=True, bspec_max=4, bspec_rows=16, log=None):
         import specdec
 
         self.model, self.drafter, self.cache = model, drafter, cache
@@ -80,15 +81,22 @@ class BatchEngine:
         self.think_ids = think_ids
         self.vv = model.args.vocab_valid
         self.max_batch, self.slice_s, self.nax_min_batch = max_batch, slice_ms / 1e3, nax_min_batch
-        self.spec, self.max_gb, self.pipeline = spec, max_gb, pipeline
+        self.spec, self.max_gb, self.pipeline, self.bspec = spec, max_gb, pipeline, bspec
+        # batched speculation for 2..bspec_max greedy rows, each drafting T = bspec_rows // B tokens (2 <= T <= self.T)
+        self.bspec_max, self.bspec_rows = bspec_max, bspec_rows
         self.bc = BT.BatchCache(model)
         self.waiting = deque()
         self.active = []
         self.requests = 0
         self.log = log or (lambda s: print(s, file=sys.stderr, flush=True))
         self.on_done = None  # callback(req, rec) when a request ends (the worker sends the done frame)
-        self.stats = {"steps_batch": 0, "steps_spec": 0, "rows_batch": 0, "prefill_slices": 0, "stall_s_max": 0.0}
+        self.stats = {"steps_batch": 0, "steps_spec": 0, "steps_bspec": 0, "rows_batch": 0, "prefill_slices": 0,
+                      "stall_s_max": 0.0}
+        # wall seconds per part of the loop (admission, prefill work, decode steps by kind, joins, request ends)
+        for k in ("admit", "prefill", "spec", "bspec", "batch", "join", "switch", "finish"):
+            self.stats["t_" + k] = 0.0
         self._last_decode = None  # time of the last decode step (stall measurement)
+        self.step_log = None  # a list to record every tick's decode step in (gate.py)
 
     # ------------------------------------------------------------------ admission
     def submit(self, job):
@@ -176,7 +184,10 @@ class BatchEngine:
         for r in list(self.active):
             if r.cancelled and r.phase != "done":
                 self._finish(r, "cancelled")
+        t0 = time.perf_counter()
         self._admit()
+        t1 = time.perf_counter()
+        self.stats["t_admit"] += t1 - t0
         decoding = [r for r in self.active if r.phase == "decode"]
         pre = next((r for r in self.active if r.phase == "prefill"), None)
         if pre is not None:
@@ -184,12 +195,16 @@ class BatchEngine:
                 self._prefill_work(pre, bool(decoding))
             except Exception as e:  # noqa: BLE001
                 self._fail([pre], e)
+            self.stats["t_prefill"] += time.perf_counter() - t1
         decoding = [r for r in self.active if r.phase == "decode"]
         if decoding:
+            t2 = time.perf_counter()
             try:
                 self._decode_step(decoding)
             except Exception as e:  # noqa: BLE001
                 self._fail(decoding, e, reset_batch=True)
+            if self.step_log is not None:  # (rows, decode step s, prefill work s this tick)
+                self.step_log.append((len(decoding), time.perf_counter() - t2, t2 - t1 if pre is not None else 0.0))
         if not self.active:
             self._last_decode = None
 
@@ -274,7 +289,10 @@ class BatchEngine:
                 self._batch_to_spec(r)
             elif r.mode is None:
                 self._start_spec(r)
+            t1 = time.perf_counter()
+            self.stats["t_switch"] += t1 - now
             r.stepper.step()
+            self.stats["t_spec"] += time.perf_counter() - t1
             r.spec_steps += 1
             self.stats["steps_spec"] += 1
             if r.stepper.done and not r.finish:
@@ -294,7 +312,14 @@ class BatchEngine:
                     r.mode = "batch"
                     r.cache = None  # the batch row holds it now
                     r.feats, r.feat_p0 = [], self.bc.pos[self.bc.row(r)]
-            self._batch_step()
+            t1 = time.perf_counter()
+            self.stats["t_join"] += t1 - now
+            if self.bspec and 2 <= len(decoding) <= self.bspec_max and all(r.spec_ok for r in decoding):
+                self._bspec_step()
+                self.stats["t_bspec"] += time.perf_counter() - t1
+            else:
+                self._batch_step()
+                self.stats["t_batch"] += time.perf_counter() - t1
         self._last_decode = time.perf_counter()
 
     # ------------------------------------------------------------------ speculative mode
@@ -386,11 +411,89 @@ class BatchEngine:
         if done:
             self.bc.apply(leave=done)
 
+    def _bspec_step(self):
+        """One batched speculative step of the two batch rows (both greedy): each row's draft (prompt lookup, else the
+        DFlash2 drafter on its own context), one verify forward of 2 x T rows (batch_spec), each row keeps its own
+        accepted run; the drafter contexts get the kept rows' features."""
+        import batch_spec
+        from lookup import Lookup
+
+        bc = self.bc
+        bc.rollback()
+        rows = list(bc.keys)
+        T = max(2, min(self.T, self.bspec_rows // len(rows)))
+        drafts = []
+        for b, r in enumerate(rows):
+            self._flush_feats(r)
+            if self.lookup and (r.lk is None or r.lk_len != len(r.out)):  # (re)entering: a fresh lookup
+                r.lk = Lookup()
+                r.lk.reset(r.ids + r.out)
+            P = bc.pos[b]
+            bonus = mx.array(r.out[-1], dtype=mx.int32)
+            hint = r.lk.propose() if r.lk is not None else []
+            if len(hint) >= T - 1:
+                d = mx.array(hint[: T - 1], dtype=mx.int32)
+            else:
+                d = self.drafter.propose(r.dcache, bonus, P)[: T - 1]
+                if hint:
+                    d = mx.concatenate([mx.array(hint, dtype=mx.int32), d[len(hint) :]])
+            drafts.append(mx.concatenate([bonus.reshape(1), d]))
+        inp = mx.stack(drafts)  # [B, T]
+        mx.async_eval(inp)
+        logits, cap, rec = batch_spec.verify_forward(self.model, bc, inp, capture=self.drafter.capture_layers)
+        tok = mx.argmax(logits[:, :, : self.vv], axis=-1).astype(mx.int32)
+        nacc = mx.cumprod((inp[:, 1:] == tok[:, :-1]).astype(mx.int32), axis=1).sum(axis=1)
+        mx.eval(tok, nacc, inp, bc.state)
+        ns = (nacc + 1).tolist()
+        inp_l, tok_l = inp.tolist(), tok.tolist()
+        kept, P0 = [], list(bc.pos)
+        for b, r in enumerate(rows):
+            n = ns[b]
+            em = inp_l[b][1:n] + [tok_l[b][n - 1]]
+            room = r.sp.max_new_tokens - len(r.out)
+            em_k = em[: max(0, room)]
+            stop = next((i for i, t in enumerate(em_k) if t in r.stop_ids), None)
+            if stop is not None:
+                em_k = em_k[: stop + 1]
+            kept.append((em, em_k))
+        # each row keeps its emitted run: the caches then hold ids + out[:-1] (its last token is the next input)
+        batch_spec.commit(bc, rec, [max(1, len(k)) for _, k in kept])
+        for b, r in enumerate(rows):
+            nk = max(1, len(kept[b][1]))
+            self.drafter.materialize(r.dcache, cap[b, :nk], P0[b])
+        mx.async_eval(bc.state, [r.dcache.state for r in rows])
+        self.stats["steps_bspec"] += 1
+        self.stats["rows_batch"] += len(rows)
+        for b, r in enumerate(rows):
+            em, em_k = kept[b]
+            r.batch_steps += 1
+            r.batch_rows += len(rows)
+            r.bspec_steps = getattr(r, "bspec_steps", 0) + 1
+            r.bspec_tokens = getattr(r, "bspec_tokens", 0) + len(em_k)
+            r.last = logits[b, len(em_k) - 1] if em_k else r.last
+            r.feats, r.feat_p0 = [], bc.pos[b]
+            self._emit(r, em_k)
+            if r.lk is not None:
+                r.lk.record(em)
+                r.lk_len = len(r.out)
+        done = [r for r in rows if r.finish]
+        for r in done:
+            self._finish(r, r.finish, leave=False)
+        if done:
+            self.bc.apply(leave=done)
+
     # ------------------------------------------------------------------ the end of a request
     def _finish(self, r, reason, leave=True):
         """End r: its reply snapshot, its batch row (leave=False: the caller removes the row), the done record."""
         if r.phase == "done":
             return
+        t_fin = time.perf_counter()
+        try:
+            self._finish_inner(r, reason, leave)
+        finally:
+            self.stats["t_finish"] += time.perf_counter() - t_fin
+
+    def _finish_inner(self, r, reason, leave):
         r.finish = r.finish or reason
         t_end = time.perf_counter()
         rec = r.rec
@@ -425,6 +528,7 @@ class BatchEngine:
         rec.update(mode=("spec" if r.batch_steps == 0 else "batch" if r.spec_steps == 0 else "mixed")
                    if n > 1 else "none", generated=n, finish=r.finish, spec_steps=r.spec_steps,
                    batch_steps=r.batch_steps, mean_batch=(r.batch_rows / r.batch_steps) if r.batch_steps else None,
+                   bspec_steps=getattr(r, "bspec_steps", 0), bspec_tokens=getattr(r, "bspec_tokens", 0),
                    switches=r.switches, ttft_s=ttft, decode_s=dec_s,
                    decode_tok_s=((n - 1) / dec_s) if dec_s and n > 1 else None, total_s=t_end - r.t_admit,
                    peak_gb=mx.get_peak_memory() / 1e9, active_gb=mx.get_active_memory() / 1e9,

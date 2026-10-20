@@ -23,6 +23,7 @@ sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE))
 import batch as BT  # noqa: E402
 import session as S  # noqa: E402
+import volundr  # noqa: E402
 from tiny import tiny_model  # noqa: E402
 from test_session import feed, ids_for, same  # noqa: E402
 
@@ -174,6 +175,48 @@ def test_prebuilt_step_and_rollback():
     for x, y in zip(S.restore(sa)[0], S.restore(sb)[0]):
         for p, q in zip(arrays(x), arrays(y)):
             same(p, q, "snapshot taken with a step prebuilt")
+
+
+def test_bspec_append_rows():
+    """batch_spec's per-row commit of the BCSA state (n_b of T verified tokens per row: ring rows, closed blocks,
+    open-block keys) equals BCSACache.update of those n_b tokens on each row's B = 1 cache, at every phase of the
+    block / window cycle, with the ring widths scaled to W = 16."""
+    import batch_spec
+
+    W, C, F, KVH, D, Di, T = 16, 4, 3, 2, 64, 32, 8
+    saved = BT.RING_SIZES
+    BT.RING_SIZES = (8, 12)
+    try:
+        rng = np.random.default_rng(5)
+        for trial, starts in enumerate(([3, 0, 9], [15, 22, 40], [1, 2, 3], [60, 7, 13])):
+            b1, rows = [], BT.BatchRows()
+            for P in starts:
+                c = volundr.BCSACache(W, C, F)
+                if P:
+                    c.update(*[mx.array(rng.standard_normal(sh).astype(np.float32)).astype(mx.bfloat16)
+                               for sh in ((1, KVH, P, D), (1, KVH, P, D), (1, P, Di))])
+                b1.append(c)
+            bc = BT.BatchBCSACache(rows, W, C, F, KVH, D, Di)
+            need = max(starts) + 1
+            R = next((r for r in BT.RING_SIZES if r >= need and r < W), W + F)
+            bc.ensure(len(starts), R, max(starts) // C + 1)
+            for b, c in enumerate(b1):
+                if c.k is not None:
+                    bc.put(b, c)
+            rows.pos = list(starts)
+            k = mx.array(rng.standard_normal((3, KVH, T, D)).astype(np.float32)).astype(mx.bfloat16)
+            v = mx.array(rng.standard_normal((3, KVH, T, D)).astype(np.float32)).astype(mx.bfloat16)
+            ik = mx.array(rng.standard_normal((3, T, Di)).astype(np.float32)).astype(mx.bfloat16)
+            ns = [int(x) for x in rng.integers(1, T + 1, size=3)]
+            batch_spec._append_rows(bc, {"k": k, "v": v, "ik": ik}, ns, list(starts))
+            for b, (c, n) in enumerate(zip(b1, ns)):
+                c.update(k[b : b + 1, :, :n], v[b : b + 1, :, :n], ik[b : b + 1, :n])
+                st1 = S.capture([c])
+                st2 = S.State(c.offset, [bc.capture_row(b, c.offset)])
+                for x, y in zip(S.restore(st1)[0][0].state, S.restore(st2)[0][0].state):
+                    same(x, y, f"trial {trial} row {b} (P {starts[b]}, n {n})")
+    finally:
+        BT.RING_SIZES = saved
 
 
 def test_slots():

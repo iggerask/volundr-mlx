@@ -17,7 +17,8 @@ object with a "type"). One request per connection.
     {"type": "budget", "gb": float} -> {"type": "budget", "budget_bytes": n} (sets the cache budget, evicting down to
                            it; 0 disables the cache)
     {"type": "reset_peak"} -> {"type": "reset_peak", "peak_gb": float} (the MLX peak memory so far, then reset)
-    {"type": "config", "slice_ms"?, "max_batch"?, "spec"?, "pipeline"?} -> the scheduler settings (measurements)
+    {"type": "config", "slice_ms"?, "max_batch"?, "spec"?, "pipeline"?, "bspec"?, "bspec_max"?} -> the scheduler
+                                                                                        settings
     {"type": "cancel"}  (optional, on a generate connection; closing the connection does the same)
 
   worker -> client, for generate
@@ -172,7 +173,8 @@ class Worker:
                                             lookup=not args.no_lookup, loop=args.loop, think_ids=think,
                                             max_batch=args.max_batch, slice_ms=args.slice_ms,
                                             nax_min_batch=args.nax_min_batch, spec=not args.no_spec,
-                                            max_gb=args.max_active_gb, pipeline=not args.no_pipeline)
+                                            max_gb=args.max_active_gb, pipeline=not args.no_pipeline,
+                                            bspec=not args.no_bspec, bspec_max=args.bspec_max)
         self.engine.on_done = self._done
         self.args = args
         self.jobs = queue.Queue()
@@ -187,7 +189,8 @@ class Worker:
                      "loop": args.loop or "early@cv", "single_stream": not args.no_spec},
                      "batch": {"max_batch": args.max_batch, "slice_ms": args.slice_ms,
                                "nax_min_batch": args.nax_min_batch, "max_active_gb": args.max_active_gb,
-                               "pipeline": not args.no_pipeline},
+                               "pipeline": not args.no_pipeline, "bspec": not args.no_bspec,
+                               "bspec_max": args.bspec_max},
                      "load_s": round(self.load_s, 1)}
 
     # -- warm-up (Metal JIT for the prefill, verify and decode kernels, batched decode at 2-4 rows, far blocks)
@@ -339,8 +342,12 @@ class Worker:
                 e.spec = bool(msg["spec"])
             if msg.get("pipeline") is not None:
                 e.pipeline = bool(msg["pipeline"])
+            if msg.get("bspec") is not None:
+                e.bspec = bool(msg["bspec"])
+            if msg.get("bspec_max") is not None:
+                e.bspec_max = int(msg["bspec_max"])
             conn.send({"type": "config", "slice_ms": e.slice_s * 1e3, "max_batch": e.max_batch, "spec": e.spec,
-                       "pipeline": e.pipeline})
+                       "pipeline": e.pipeline, "bspec": e.bspec, "bspec_max": e.bspec_max})
 
     # -- the end of a request (engine thread): the done / error frame, the log, the connection
     def _done(self, job, req, rec):
@@ -396,6 +403,10 @@ def main():
     ap.add_argument("--nax-min-batch", type=int, default=4, help="batched decode uses the NAX matmuls from N rows")
     ap.add_argument("--no-spec", action="store_true",
                     help="a lone greedy request decodes plainly too (batched path), not speculatively")
+    ap.add_argument("--no-bspec", action="store_true",
+                    help="greedy decoding requests decode plainly in the batch, never with batched speculation")
+    ap.add_argument("--bspec-max", type=int, default=4,
+                    help="batched speculation while 2..N greedy requests decode (each drafts 16 // N tokens)")
     ap.add_argument("--no-pipeline", action="store_true",
                     help="batched steps one at a time (by default the next step's graph is built while one runs)")
     ap.add_argument("--max-active-gb", type=float, default=46.0,
