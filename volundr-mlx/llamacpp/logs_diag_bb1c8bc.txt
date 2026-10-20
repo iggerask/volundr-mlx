@@ -1,0 +1,6 @@
+canary 25.0 TFLOP/s
+server up after 31s
+## swedish: wall 5.082 s, usage {'completion_tokens': 29, 'prompt_tokens': 52, 'total_tokens': 81, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 56.1 tok/s, tg 6.53 tok/s
+Den snabba bruna räven hoppar över den tröga hunden, och sedan går den hem för att sova.
+canary 18.0 TFLOP/s
+exit 0

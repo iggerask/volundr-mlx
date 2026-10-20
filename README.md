@@ -211,30 +211,28 @@ single stream here is far from compute-bound.
 Stock llama.cpp, mlx-lm and vLLM don't support the Volundr architecture. Blockway's
 [llama.cpp fork](https://github.com/BlockWayz/llama.cpp/tree/volundr) (branch `volundr`) is the only other engine
 that runs it on Apple silicon. This is its
-[Q4_K_M GGUF](https://huggingface.co/Blockway/Agens-Volundr-32B-v1-GGUF) on the same M5 Pro, with Metal and all
-layers on the GPU:
+[Q4_K_M GGUF](https://huggingface.co/Blockway/Agens-Volundr-32B-v1-GGUF) on the same M5 Pro, at fork commit
+bb1c8bc, with Metal and all layers on the GPU:
 
 | | llama.cpp fork, Q4_K_M | This port, INT4 |
 |---|---|---|
-| Decode, short context | 8.6 tok/s | 13.8 plain, 27.6 speculative |
-| Decode at 8K context | 6.0 tok/s | |
-| Decode at 19K context | 5.3 tok/s | 13.6 plain |
-| Prefill, 19K-token prompt | 117 tok/s | 374 tok/s |
+| Decode, short context | 9.8 tok/s | 13.8 plain, 27.6 speculative |
+| Decode at 8K context | 7.4 tok/s | |
+| Decode at 19K context | 7.7 tok/s | 13.6 plain |
+| Prefill, 19K-token prompt | 137 tok/s | 374 tok/s |
 | Speculative decoding | No | Yes |
-| GPU memory | 31.3 GB, with 32K of context preallocated | ~29 GB at 19K |
+| GPU memory | 31.4 GB, with 32K of context preallocated | ~29 GB at 19K |
 
-- The fork has no Metal kernels for the mHC residual ops. They run on the CPU in every layer, so each forward pass
-  is split into 298 pieces that alternate between the GPU and the CPU.
+- In the first test, at commit 67e4001, the mHC and Engram ops had no Metal kernels and ran on the CPU in every
+  layer: 298 GPU/CPU splits per forward pass. Blockway added the kernels after that test. Now everything except the
+  token-embedding lookup runs on the GPU. Decode got 14–43% faster and short-prompt prefill 26–30% faster (17% on
+  the 19K prompt).
+- Decode takes about 102 ms per token. Reading the weights once takes about 73 ms at this bandwidth, and this port's
+  plain step is 72 ms. Where the fork's remaining ~30 ms goes hasn't been profiled.
 - Its output is coherent and matches llama.cpp's own CPU backend.
 - Greedy replies differ from this port's within the first few dozen tokens. That's expected from a different 4-bit
   quantization: Q4_K_M keeps some layers at 8 bits, and this port uses Blockway's INT4 with a bf16 head.
-- Method and raw results are in [`NOTES_LLAMACPP.md`](volundr-mlx/NOTES_LLAMACPP.md).
-
-Methods, per-run logs and caveats are in the NOTES files:
-
-- [`NOTES_COMBINED.md`](volundr-mlx/NOTES_COMBINED.md) and [`NOTES_SPEC_ACCEPT.md`](volundr-mlx/NOTES_SPEC_ACCEPT.md) for single-request decoding;
-- [`NOTES_BATCHED_SERVE.md`](volundr-mlx/NOTES_BATCHED_SERVE.md) and [`NOTES_BATCHED.md`](volundr-mlx/NOTES_BATCHED.md) for batching;
-- [`NOTES_SESSION.md`](volundr-mlx/NOTES_SESSION.md) for the session cache.
+- Method, both runs and raw results are in [`NOTES_LLAMACPP.md`](volundr-mlx/NOTES_LLAMACPP.md).
 
 ## Status
 

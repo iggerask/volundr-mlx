@@ -1,0 +1,142 @@
+{
+ "fib": [
+  {
+   "content": "```python\ndef fibonacci(n: int) -> int:\n    \"\"\"Return the n-th Fibonacci number (0-indexed) using an iterative approach.\n\n    Args:\n        n: A non-negative integer representing the index in the Fibonacci sequence.\n\n    Returns:\n        The n-th Fibonacci number, where F(0) = 0, F(1) = 1, F(2) = 1, etc.\n\n    Raises:\n        ValueError: If n is negative.\n    \"\"\"\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    if n == 0:\n        return 0\n    if n == 1:\n        return 1\n\n    a, b = ",
+   "reasoning_content": null,
+   "finish_reason": "length",
+   "usage": {
+    "completion_tokens": 160,
+    "prompt_tokens": 49,
+    "total_tokens": 209,
+    "prompt_tokens_details": {
+     "cached_tokens": 18
+    }
+   },
+   "timings": {
+    "cache_n": 18,
+    "prompt_n": 31,
+    "prompt_ms": 480.132,
+    "prompt_per_token_ms": 15.488129032258065,
+    "prompt_per_second": 64.56557779943849,
+    "predicted_n": 160,
+    "predicted_ms": 16161.738,
+    "predicted_per_token_ms": 101.0108625,
+    "predicted_per_second": 9.89992536693764
+   },
+   "wall_s": 16.687,
+   "logprobs": null
+  }
+ ],
+ "sky": [
+  {
+   "content": "Sunlight appears white but is actually composed of a spectrum of colors, each with a different wavelength. As this light enters Earth's atmosphere, it collides with air molecules, causing shorter blue wavelengths to scatter in all directions much more efficiently than longer red wavelengths. This scattered blue light reaches our eyes from every part of the sky, making it appear blue during the day.",
+   "reasoning_content": null,
+   "finish_reason": "stop",
+   "usage": {
+    "completion_tokens": 75,
+    "prompt_tokens": 41,
+    "total_tokens": 116,
+    "prompt_tokens_details": {
+     "cached_tokens": 18
+    }
+   },
+   "timings": {
+    "cache_n": 18,
+    "prompt_n": 23,
+    "prompt_ms": 503.035,
+    "prompt_per_token_ms": 21.87108695652174,
+    "prompt_per_second": 45.7224646396374,
+    "predicted_n": 75,
+    "predicted_ms": 7894.228,
+    "predicted_per_token_ms": 105.25637333333333,
+    "predicted_per_second": 9.500612346134416
+   },
+   "wall_s": 8.989,
+   "logprobs": null
+  }
+ ],
+ "swedish": [
+  {
+   "content": "Den snabba bruna räven hoppar över den tröga hunden, och sedan går den hem för att sova.",
+   "reasoning_content": null,
+   "finish_reason": "stop",
+   "usage": {
+    "completion_tokens": 29,
+    "prompt_tokens": 52,
+    "total_tokens": 81,
+    "prompt_tokens_details": {
+     "cached_tokens": 18
+    }
+   },
+   "timings": {
+    "cache_n": 18,
+    "prompt_n": 34,
+    "prompt_ms": 495.595,
+    "prompt_per_token_ms": 14.576323529411766,
+    "prompt_per_second": 68.60440480634388,
+    "predicted_n": 29,
+    "predicted_ms": 2973.756,
+    "predicted_per_token_ms": 102.54331034482757,
+    "predicted_per_second": 9.751976961122567
+   },
+   "wall_s": 3.703,
+   "logprobs": null
+  }
+ ],
+ "zh": [
+  {
+   "content": "长城是中国古代伟大的军事防御工程，也是世界文化遗产之一。它横跨中国北部，绵延数千里，见证了中华民族悠久的历史与智慧。",
+   "reasoning_content": null,
+   "finish_reason": "stop",
+   "usage": {
+    "completion_tokens": 29,
+    "prompt_tokens": 36,
+    "total_tokens": 65,
+    "prompt_tokens_details": {
+     "cached_tokens": 18
+    }
+   },
+   "timings": {
+    "cache_n": 18,
+    "prompt_n": 18,
+    "prompt_ms": 466.118,
+    "prompt_per_token_ms": 25.895444444444443,
+    "prompt_per_second": 38.616830931223426,
+    "predicted_n": 29,
+    "predicted_ms": 2850.345,
+    "predicted_per_token_ms": 98.28775862068964,
+    "predicted_per_second": 10.174206981961834
+   },
+   "wall_s": 3.427,
+   "logprobs": null
+  }
+ ],
+ "arith": [
+  {
+   "content": "The trip is **3 hours and 35 minutes** long.\n\n**Calculation:**\n1.  From 09:40 to 12:40 is 3 hours.\n2.  From 12:40 to 13:15 is 35 minutes.\n3.  Total: 3 hours + 35 minutes = **3 hours 35 minutes**.",
+   "reasoning_content": null,
+   "finish_reason": "stop",
+   "usage": {
+    "completion_tokens": 90,
+    "prompt_tokens": 63,
+    "total_tokens": 153,
+    "prompt_tokens_details": {
+     "cached_tokens": 18
+    }
+   },
+   "timings": {
+    "cache_n": 18,
+    "prompt_n": 45,
+    "prompt_ms": 552.194,
+    "prompt_per_token_ms": 12.270977777777777,
+    "prompt_per_second": 81.49309844004101,
+    "predicted_n": 90,
+    "predicted_ms": 9361.041,
+    "predicted_per_token_ms": 104.01156666666665,
+    "predicted_per_second": 9.61431533095518
+   },
+   "wall_s": 11.34,
+   "logprobs": null
+  }
+ ]
+}
