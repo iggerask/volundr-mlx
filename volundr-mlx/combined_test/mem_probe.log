@@ -1,0 +1,36 @@
+### 2026-10-19 22:53:58 zsh -c cd spec && $PY ../combined_test/mem_probe.py 
+load: 4.12 4.49 6.34
+canary 27.9 TFLOP/s
+after load: active 26.04 GB, peak 28.95 GB
+after Modes: active 26.04 GB
+{"config": "baseline", "prompt_tokens": 5404, "active_before_gb": 26.04, "prefill_peak_gb": 55.88, "after_prefill_active_gb": 28.23, "spec_generate_peak_gb": 55.88, "steps": 10}
+{"config": "main+v8q", "prompt_tokens": 5404, "active_before_gb": 26.04, "prefill_peak_gb": 55.88, "after_prefill_active_gb": 28.23, "spec_generate_peak_gb": 55.88, "steps": 10}
+{"config": "fused+vprefill", "prompt_tokens": 5404, "active_before_gb": 26.04, "prefill_peak_gb": 57.26, "after_prefill_active_gb": 26.79, "spec_generate_peak_gb": 57.26, "steps": 10}
+{"config": "exact", "prompt_tokens": 5404, "active_before_gb": 26.04, "prefill_peak_gb": 57.26, "after_prefill_active_gb": 26.79, "spec_generate_peak_gb": 57.26, "steps": 10}
+{"config": "baseline", "prompt_tokens": 5404, "active_before_gb": 26.04, "prefill_peak_gb": 55.88, "after_prefill_active_gb": 28.23, "spec_generate_peak_gb": 55.88, "steps": 10}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/../combined_test/mem_probe.py", line 36, in <module>
+    SD.spec_prefill(model, drafter, cache, dcache, ids)
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 68, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 27.5 TFLOP/s
+load: 5.32 4.63 6.06
+### done 2026-10-19 22:56:41
+### 2026-10-19 23:57:16 zsh -c cd spec && $PY ../combined_test/mem_probe.py agent/01-pytest-dev__iniconfig main,unfused,fused+copyidx,fused
+load: 3.04 3.29 4.01
+canary 28.1 TFLOP/s
+after load: active 26.04 GB, peak 28.95 GB
+after Modes: active 26.04 GB
+{"config": "main", "prompt_tokens": 5404, "active_before_gb": 26.04, "prefill_peak_gb": 55.88, "after_prefill_active_gb": 28.23, "spec_generate_peak_gb": 55.88, "steps": 10}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/../combined_test/mem_probe.py", line 36, in <module>
+    SD.spec_prefill(model, drafter, cache, dcache, ids)
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 69, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 27.5 TFLOP/s
+load: 3.40 3.37 4.00
+### done 2026-10-19 23:58:13

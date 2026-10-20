@@ -1,0 +1,29 @@
+### 2026-10-19 05:03:07 /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/run2.sh
+canary 24.3 TFLOP/s
+chat-nothink: 49 prompt tokens, teacher-forced top-1 agreement 47/48
+code-think: 80 prompt tokens, teacher-forced top-1 agreement 48/48
+zh-nothink: 36 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-6k: 6064 prompt tokens, teacher-forced top-1 agreement 47/48
+long-code-14k: 14064 prompt tokens, teacher-forced top-1 agreement 48/48
+FUSED DUMP == mlx.bin (bit-identical)
+prompt 85 tokens; 128 timed tokens after 8; configs ['unfused', 'fused', 'fused+q8g64', 'fused+q8g128']
+rep 1 unfused            72.36 ms/token (13.82 tok/s), prefill   0.36 s, tokens == unfused: True
+rep 1 fused              70.67 ms/token (14.15 tok/s), prefill   0.36 s, tokens == unfused: True
+rep 1 fused+q8g64        65.66 ms/token (15.23 tok/s), prefill   0.34 s, tokens == unfused: True
+rep 1 fused+q8g128       65.90 ms/token (15.18 tok/s), prefill   0.34 s, tokens == unfused: True
+rep 2 unfused            70.62 ms/token (14.16 tok/s), prefill   0.35 s, tokens == unfused: True
+rep 2 fused              70.39 ms/token (14.21 tok/s), prefill   0.35 s, tokens == unfused: True
+rep 2 fused+q8g64        65.72 ms/token (15.22 tok/s), prefill   0.35 s, tokens == unfused: True
+rep 2 fused+q8g128       65.63 ms/token (15.24 tok/s), prefill   0.35 s, tokens == unfused: True
+rep 3 unfused            72.22 ms/token (13.85 tok/s), prefill   0.44 s, tokens == unfused: True
+rep 3 fused              70.64 ms/token (14.16 tok/s), prefill   0.35 s, tokens == unfused: True
+rep 3 fused+q8g64        65.44 ms/token (15.28 tok/s), prefill   0.35 s, tokens == unfused: True
+rep 3 fused+q8g128       65.43 ms/token (15.28 tok/s), prefill   0.35 s, tokens == unfused: True
+summary (ms/token):
+  unfused          best   70.62  median   72.22  (14.16 tok/s)    +0.0% vs unfused; greedy tokens vs unfused: identical
+  fused            best   70.39  median   70.64  (14.21 tok/s)    -0.3% vs unfused; greedy tokens vs unfused: identical
+  fused+q8g64      best   65.44  median   65.66  (15.28 tok/s)    -7.3% vs unfused; greedy tokens vs unfused: identical
+  fused+q8g128     best   65.43  median   65.63  (15.28 tok/s)    -7.4% vs unfused; greedy tokens vs unfused: identical
+exit 0
+canary 26.6 TFLOP/s
+### done 2026-10-19 05:07:09

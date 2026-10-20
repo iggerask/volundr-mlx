@@ -1,0 +1,15 @@
+canary 27.1 TFLOP/s
+### tune 8q
+canary 28.4 TFLOP/s
+{"name": "long/01-long1", "category": "long", "split": "tune", "prompt_tokens": 9552, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 256, "prefill_s": 27.676, "decode_s": 14.673, "wait_s": 12.958, "seg_s": [0.2830853331834078, 0.2500387844629586, 1.180502456612885], "steps": 128, "mean_acc": 2.016, "tok_s": 17.379}
+{"name": "long/02-long2-think", "category": "long", "split": "tune", "prompt_tokens": 11085, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 256, "prefill_s": 32.868, "decode_s": 12.488, "wait_s": 11.001, "seg_s": [0.49412928614765406, 0.1375588346272707, 0.8541110856458545], "steps": 111, "mean_acc": 2.297, "tok_s": 20.419}
+{"name": "long/03-long3", "category": "long", "split": "tune", "prompt_tokens": 12547, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 256, "prefill_s": 36.663, "decode_s": 15.016, "wait_s": 13.564, "seg_s": [0.2430185442790389, 0.20260379323735833, 1.0053006201051176], "steps": 136, "mean_acc": 1.882, "tok_s": 16.982}
+canary 25.8 TFLOP/s
+### tune prefill
+canary 24.5 TFLOP/s
+{"name": "long/01-long1", "category": "long", "split": "tune", "prompt_tokens": 9552, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 256, "prefill_s": 27.255, "decode_s": 16.636, "wait_s": 14.962, "seg_s": [0.2758962051011622, 0.23411491140723228, 1.162611671257764], "steps": 132, "mean_acc": 1.939, "tok_s": 15.329}
+{"name": "long/02-long2-think", "category": "long", "split": "tune", "prompt_tokens": 11085, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 256, "prefill_s": 32.307, "decode_s": 17.848, "wait_s": 15.812, "seg_s": [0.27491420740261674, 0.20345645677298307, 1.5564215816557407], "steps": 125, "mean_acc": 2.048, "tok_s": 14.287}
+{"name": "long/03-long3", "category": "long", "split": "tune", "prompt_tokens": 12547, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 256, "prefill_s": 36.382, "decode_s": 20.022, "wait_s": 18.047, "seg_s": [0.31186342099681497, 0.2675715824589133, 1.394408413209021], "steps": 155, "mean_acc": 1.645, "tok_s": 12.736}
+canary 26.6 TFLOP/s
+### done a Mon Oct 19 06:37:50 CEST 2026
+canary 25.2 TFLOP/s

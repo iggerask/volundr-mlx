@@ -1,0 +1,25 @@
+### 2026-10-19 05:15:46 /Users/ingemarrask/personal-dev/llms/.venv/bin/python /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/mmfloor.py
+canary 26.3 TFLOP/s
+rep 0 matmuls only (+head)                            66.07 ms/step
+rep 0 4-bit matmuls only (no head, no bf16 smalls)    54.72 ms/step
+rep 0 real unfused                                    74.50 ms/step
+rep 0 real fused                                      74.28 ms/step
+rep 1 matmuls only (+head)                            68.09 ms/step
+rep 1 4-bit matmuls only (no head, no bf16 smalls)    58.61 ms/step
+rep 1 real unfused                                    71.44 ms/step
+rep 1 real fused                                      72.45 ms/step
+rep 2 matmuls only (+head)                            65.51 ms/step
+rep 2 4-bit matmuls only (no head, no bf16 smalls)    55.65 ms/step
+rep 2 real unfused                                    73.01 ms/step
+rep 2 real fused                                      72.22 ms/step
+rep 3 matmuls only (+head)                            66.70 ms/step
+rep 3 4-bit matmuls only (no head, no bf16 smalls)    59.08 ms/step
+rep 3 real unfused                                    74.34 ms/step
+rep 3 real fused                                      73.17 ms/step
+best matmuls only (+head)                            65.51
+best 4-bit matmuls only (no head, no bf16 smalls)    55.65
+best real unfused                                    71.44
+best real fused                                      72.22
+exit 0
+canary 26.4 TFLOP/s
+### done 2026-10-19 05:16:51

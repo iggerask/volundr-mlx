@@ -1,0 +1,73 @@
+### 2026-10-20 00:14:19 zsh -c VOLUNDR_LMHEAD8=64 $PY combined_test/peak_probe.py --label spec-accept-layersync --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx
+load: 3.68 3.75 3.84; swap: total = 14336.00M  used = 13378.88M  free = 957.12M  (encrypted)
+canary 28.3 TFLOP/s
+PEAK {"label": "spec-accept-layersync", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "64", "prompt_tokens": 12547, "target_head_q8": 64, "active_after_load_gb": 24.84, "peak_load_gb": 28.95, "prefill_s": 30.56, "prefill_peak_gb": 27.67, "active_after_prefill_gb": 25.78, "tok_s": 18.78, "generate_peak_gb": 27.67}
+exit 0
+canary 28.1 TFLOP/s
+load: 3.63 3.77 3.84; swap: total = 14336.00M  used = 13362.88M  free = 973.12M  (encrypted)
+### done 2026-10-20 00:15:48
+### 2026-10-20 00:15:48 zsh -c VOLUNDR_LMHEAD8=64 VOLUNDR_PREFILL_SYNC=0 $PY combined_test/peak_probe.py --label spec-accept-nosync --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx
+load: 3.63 3.77 3.84; swap: total = 14336.00M  used = 13362.88M  free = 973.12M  (encrypted)
+canary 27.6 TFLOP/s
+PEAK {"label": "spec-accept-nosync", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "64", "prompt_tokens": 12547, "target_head_q8": 64, "active_after_load_gb": 24.84, "peak_load_gb": 28.95, "prefill_s": 31.23, "prefill_peak_gb": 56.0, "active_after_prefill_gb": 25.78, "tok_s": 18.39, "generate_peak_gb": 56.0}
+exit 0
+canary 27.8 TFLOP/s
+load: 3.86 3.79 3.84; swap: total = 18432.00M  used = 17340.50M  free = 1091.50M  (encrypted)
+### done 2026-10-20 00:17:21
+### 2026-10-20 00:17:21 zsh -c VOLUNDR_LMHEAD8=64 $PY spec_accept/step0_check.py --names long/03-long3,agent/01-pytest-dev__iniconfig,coding/00-12623519-think,rag/00-330006df-think --reps 2 --out spec/runs/spec-accept_step0_check.jsonl
+load: 3.86 3.79 3.84; swap: total = 18432.00M  used = 17340.50M  free = 1091.50M  (encrypted)
+canary 27.6 TFLOP/s
+{"name": "long/03-long3", "prompt_tokens": 12547, "rep": 0, "variant": "new", "prefill_s": 30.861, "prefill_tok_s": 406.6, "prefill_peak_gb": 27.67, "prefill_state_same_as_first": null, "gen_prefill_s": 30.63, "gen_peak_gb": 28.6, "steps": 136, "ms_step": 100.85, "mean_acc": 1.8823529411764706}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec_accept/step0_check.py", line 107, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec_accept/step0_check.py", line 77, in main
+    same = len(arrs) == len(ref["arrs"]) and all(
+                                             ^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec_accept/step0_check.py", line 78, in <genexpr>
+    a.shape == b.shape and mx.array_equal(a, b).item() for a, b in zip(arrs, ref["arrs"]))
+    ^^^^^^^
+AttributeError: 'list' object has no attribute 'shape'
+exit 1
+canary 28.1 TFLOP/s
+load: 3.96 3.87 3.86; swap: total = 24576.00M  used = 23021.44M  free = 1554.56M  (encrypted)
+### done 2026-10-20 00:19:15
+step0 done 00:19:15
+### 2026-10-20 00:21:48 zsh -c VOLUNDR_LMHEAD8=64 $PY spec_accept/step0_check.py --names long/03-long3 --reps 1 --out spec/runs/spec-accept_step0_check.jsonl
+load: 4.39 3.96 3.89; swap: total = 16384.00M  used = 14719.50M  free = 1664.50M  (encrypted)
+canary 28.0 TFLOP/s
+{"name": "long/03-long3", "prompt_tokens": 12547, "rep": 0, "variant": "new", "prefill_s": 30.657, "prefill_tok_s": 409.3, "prefill_peak_gb": 27.67, "prefill_state_same_as_first": null, "gen_prefill_s": 31.232, "gen_peak_gb": 28.6, "steps": 136, "ms_step": 103.38, "mean_acc": 1.8823529411764706}
+{"name": "long/03-long3", "prompt_tokens": 12547, "rep": 0, "variant": "old", "prefill_s": 32.318, "prefill_tok_s": 388.2, "prefill_peak_gb": 50.12, "prefill_state_same_as_first": true, "gen_prefill_s": 31.238, "gen_peak_gb": 56.93, "steps": 136, "ms_step": 101.83, "mean_acc": 1.8823529411764706}
+{"name": "long/03-long3", "tokens_new_eq_old": [true], "acc_new_eq_old": [true]}
+exit 0
+canary 27.3 TFLOP/s
+load: 5.33 4.96 4.33; swap: total = 19456.00M  used = 17862.88M  free = 1593.12M  (encrypted)
+### done 2026-10-20 00:24:36
+### 2026-10-20 00:24:36 zsh -c VOLUNDR_LMHEAD8=64 $PY spec_accept/step0_check.py --names agent/01-pytest-dev__iniconfig,coding/00-12623519-think,rag/00-330006df-think,json/00-boolq2-think --reps 2 --out spec/runs/spec-accept_step0_check.jsonl
+load: 5.33 4.96 4.33; swap: total = 19456.00M  used = 17854.88M  free = 1601.12M  (encrypted)
+canary 27.8 TFLOP/s
+{"name": "agent/01-pytest-dev__iniconfig", "prompt_tokens": 5404, "rep": 0, "variant": "new", "prefill_s": 12.925, "prefill_tok_s": 418.1, "prefill_peak_gb": 27.39, "prefill_state_same_as_first": null, "gen_prefill_s": 12.918, "gen_peak_gb": 28.14, "steps": 10, "ms_step": 101.47, "mean_acc": 4.6}
+{"name": "agent/01-pytest-dev__iniconfig", "prompt_tokens": 5404, "rep": 0, "variant": "old", "prefill_s": 13.166, "prefill_tok_s": 410.4, "prefill_peak_gb": 56.57, "prefill_state_same_as_first": true, "gen_prefill_s": 13.159, "gen_peak_gb": 56.82, "steps": 10, "ms_step": 100.88, "mean_acc": 4.6}
+{"name": "agent/01-pytest-dev__iniconfig", "prompt_tokens": 5404, "rep": 1, "variant": "new", "prefill_s": 12.904, "prefill_tok_s": 418.8, "prefill_peak_gb": 28.14, "prefill_state_same_as_first": true, "gen_prefill_s": 12.888, "gen_peak_gb": 28.14, "steps": 10, "ms_step": 101.61, "mean_acc": 4.6}
+{"name": "agent/01-pytest-dev__iniconfig", "prompt_tokens": 5404, "rep": 1, "variant": "old", "prefill_s": 13.107, "prefill_tok_s": 412.3, "prefill_peak_gb": 56.82, "prefill_state_same_as_first": true, "gen_prefill_s": 13.141, "gen_peak_gb": 56.82, "steps": 10, "ms_step": 102.4, "mean_acc": 4.6}
+{"name": "agent/01-pytest-dev__iniconfig", "tokens_new_eq_old": [true, true], "acc_new_eq_old": [true, true]}
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "rep": 0, "variant": "new", "prefill_s": 0.654, "prefill_tok_s": 301.2, "prefill_peak_gb": 25.66, "prefill_state_same_as_first": null, "gen_prefill_s": 0.632, "gen_peak_gb": 26.6, "steps": 92, "ms_step": 95.52, "mean_acc": 2.782608695652174}
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "rep": 0, "variant": "old", "prefill_s": 0.651, "prefill_tok_s": 302.6, "prefill_peak_gb": 28.47, "prefill_state_same_as_first": true, "gen_prefill_s": 0.648, "gen_peak_gb": 28.47, "steps": 92, "ms_step": 96.28, "mean_acc": 2.782608695652174}
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "rep": 1, "variant": "new", "prefill_s": 0.632, "prefill_tok_s": 311.6, "prefill_peak_gb": 26.32, "prefill_state_same_as_first": true, "gen_prefill_s": 0.635, "gen_peak_gb": 26.6, "steps": 95, "ms_step": 97.13, "mean_acc": 2.7157894736842105}
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "rep": 1, "variant": "old", "prefill_s": 0.649, "prefill_tok_s": 303.4, "prefill_peak_gb": 28.47, "prefill_state_same_as_first": true, "gen_prefill_s": 0.649, "gen_peak_gb": 28.47, "steps": 95, "ms_step": 96.32, "mean_acc": 2.7157894736842105}
+{"name": "coding/00-12623519-think", "tokens_new_eq_old": [true, true], "acc_new_eq_old": [true, true]}
+{"name": "rag/00-330006df-think", "prompt_tokens": 738, "rep": 0, "variant": "new", "prefill_s": 1.818, "prefill_tok_s": 405.9, "prefill_peak_gb": 26.11, "prefill_state_same_as_first": null, "gen_prefill_s": 1.818, "gen_peak_gb": 26.77, "steps": 117, "ms_step": 98.08, "mean_acc": 2.2393162393162394}
+{"name": "rag/00-330006df-think", "prompt_tokens": 738, "rep": 0, "variant": "old", "prefill_s": 1.854, "prefill_tok_s": 398.0, "prefill_peak_gb": 36.04, "prefill_state_same_as_first": true, "gen_prefill_s": 1.851, "gen_peak_gb": 36.04, "steps": 117, "ms_step": 97.34, "mean_acc": 2.2393162393162394}
+{"name": "rag/00-330006df-think", "prompt_tokens": 738, "rep": 1, "variant": "new", "prefill_s": 1.814, "prefill_tok_s": 406.9, "prefill_peak_gb": 26.77, "prefill_state_same_as_first": true, "gen_prefill_s": 1.806, "gen_peak_gb": 26.77, "steps": 118, "ms_step": 96.85, "mean_acc": 2.2203389830508473}
+{"name": "rag/00-330006df-think", "prompt_tokens": 738, "rep": 1, "variant": "old", "prefill_s": 1.85, "prefill_tok_s": 398.8, "prefill_peak_gb": 34.38, "prefill_state_same_as_first": true, "gen_prefill_s": 1.867, "gen_peak_gb": 36.04, "steps": 118, "ms_step": 97.86, "mean_acc": 2.2203389830508473}
+{"name": "rag/00-330006df-think", "tokens_new_eq_old": [true, true], "acc_new_eq_old": [true, true]}
+{"name": "json/00-boolq2-think", "prompt_tokens": 463, "rep": 0, "variant": "new", "prefill_s": 1.221, "prefill_tok_s": 379.3, "prefill_peak_gb": 25.85, "prefill_state_same_as_first": null, "gen_prefill_s": 1.214, "gen_peak_gb": 26.6, "steps": 91, "ms_step": 97.44, "mean_acc": 2.879120879120879}
+{"name": "json/00-boolq2-think", "prompt_tokens": 463, "rep": 0, "variant": "old", "prefill_s": 1.265, "prefill_tok_s": 366.1, "prefill_peak_gb": 32.12, "prefill_state_same_as_first": true, "gen_prefill_s": 1.25, "gen_peak_gb": 32.16, "steps": 91, "ms_step": 97.49, "mean_acc": 2.879120879120879}
+{"name": "json/00-boolq2-think", "prompt_tokens": 463, "rep": 1, "variant": "new", "prefill_s": 1.218, "prefill_tok_s": 380.0, "prefill_peak_gb": 26.51, "prefill_state_same_as_first": true, "gen_prefill_s": 1.224, "gen_peak_gb": 26.6, "steps": 91, "ms_step": 97.63, "mean_acc": 2.879120879120879}
+{"name": "json/00-boolq2-think", "prompt_tokens": 463, "rep": 1, "variant": "old", "prefill_s": 1.246, "prefill_tok_s": 371.6, "prefill_peak_gb": 30.7, "prefill_state_same_as_first": true, "gen_prefill_s": 1.267, "gen_peak_gb": 32.16, "steps": 91, "ms_step": 97.99, "mean_acc": 2.879120879120879}
+{"name": "json/00-boolq2-think", "tokens_new_eq_old": [true, true], "acc_new_eq_old": [true, true]}
+exit 0
+canary 28.0 TFLOP/s
+load: 5.04 4.80 4.41; swap: total = 15360.00M  used = 14269.50M  free = 1090.50M  (encrypted)
+### done 2026-10-20 00:29:01
+step0b done 00:29:01

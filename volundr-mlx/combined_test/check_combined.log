@@ -1,0 +1,23 @@
+### 2026-10-19 22:16:39 zsh -c cd spec && $PY check_combined.py --nax
+load: 8.33 13.31 16.40
+canary 25.4 TFLOP/s
+{"name": "coding/00-12623519-think", "config": "main", "fused": false, "views": false, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "coding/00-12623519-think", "config": "main+v8q", "fused": false, "views": false, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "coding/00-12623519-think", "config": "fused+vprefill", "fused": true, "views": true, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "coding/00-12623519-think", "config": "fused", "fused": true, "views": true, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "rows": 192, "main+v8q == fused": true, "main == fused+vprefill": true, "kl_prefill_vs_8q_mean": 0.00026968884048983455, "kl_prefill_vs_8q_max": 0.004245525225996971, "argmax_agree": 191}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "main", "fused": false, "views": false, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "main+v8q", "fused": false, "views": false, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "fused+vprefill", "fused": true, "views": true, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "fused", "fused": true, "views": true, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "agent/00-marshmallow-code__apispe-think", "prompt_tokens": 7260, "rows": 192, "main+v8q == fused": true, "main == fused+vprefill": true, "kl_prefill_vs_8q_mean": 0.00015556879225187004, "kl_prefill_vs_8q_max": 0.0019204765558242798, "argmax_agree": 192}
+{"name": "long/03-long3", "config": "main", "fused": false, "views": false, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "long/03-long3", "config": "main+v8q", "fused": false, "views": false, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "long/03-long3", "config": "fused+vprefill", "fused": true, "views": true, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "long/03-long3", "config": "fused", "fused": true, "views": true, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "long/03-long3", "prompt_tokens": 12547, "rows": 192, "main+v8q == fused": true, "main == fused+vprefill": true, "kl_prefill_vs_8q_mean": 0.0006188670522533357, "kl_prefill_vs_8q_max": 0.0038358718156814575, "argmax_agree": 187}
+ALL BIT-IDENTICAL
+exit 0
+canary 25.5 TFLOP/s
+load: 35.57 23.10 19.37
+### done 2026-10-19 22:21:13

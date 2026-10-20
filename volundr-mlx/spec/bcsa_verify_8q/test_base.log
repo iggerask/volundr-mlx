@@ -1,0 +1,8 @@
+canary 23.2 TFLOP/s
+### test base Mon Oct 19 07:45:41 CEST 2026
+canary 22.8 TFLOP/s
+{"name": "long/08-long8-think", "category": "long", "split": "test", "prompt_tokens": 19096, "T": 8, "drafter_bits": 0, "head_bits": 0, "nax": false, "lookup": false, "generated": 256, "prefill_s": 50.972, "decode_s": 20.526, "tok_s": 12.423}
+{"name": "long/09-long9", "category": "long", "split": "test", "prompt_tokens": 21545, "T": 8, "drafter_bits": 0, "head_bits": 0, "nax": false, "lookup": false, "generated": 256, "prefill_s": 53.459, "decode_s": 21.54, "tok_s": 11.838}
+canary 24.8 TFLOP/s
+### done base Mon Oct 19 08:14:34 CEST 2026
+canary 25.0 TFLOP/s

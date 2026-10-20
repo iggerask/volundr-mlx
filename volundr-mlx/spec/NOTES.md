@@ -3,6 +3,12 @@
 Drafter: Blockway/Agens-Volundr-32B-v1-DFlash2 (HF cache snapshot 0e66f1fe…, SHA256SUMS verified). Target: the INT4
 MLX port (../models/volundr-int4-mlx). M5 Pro 64 GB, MLX 0.32.4. Greedy only. Nothing committed.
 
+**Later work (2026-10-20).** The numbers below are from the first release.
+- The 8-query BCSA verify (../NOTES_BCSA_VERIFY.md), decode fusion and the opt-in 8-bit lm_head (../NOTES_decode.md),
+  and the compiled verify plus layer-synced prefill (../NOTES_SPEC_ACCEPT.md) add about +13% on the tune split, +31% on
+  long and agent prompts. Summary: ../NOTES_COMBINED.md.
+- The spec loop now defaults to `early@cv`, which gives the same tokens as the loop described here.
+
 ## Result (held-out test split, 84 prompts, frozen config)
 
 **Speculative decoding: 1.77× pooled decode tok/s over plain greedy (24.0 against 13.5 tok/s, the means of two runs

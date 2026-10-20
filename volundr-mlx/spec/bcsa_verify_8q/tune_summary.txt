@@ -1,0 +1,47 @@
+category         base | bcsa-verify-8q_tune_prefil | bcsa-verify-8q_tune_8q.jso | bcsa-verify-8q_tune_la_pre | bcsa-verify-8q_tune_la_8q_ | bcsa-verify-8q_tune_la_pre | bcsa-verify-8q_tune_la_8q_
+agent           10.27 | 33.96 3.31x 125.9ms 4.34 | 40.30 3.92x 106.1ms 4.34 | 30.10 2.93x 138.6ms 4.25 | 38.56 3.75x 107.3ms 4.24 | 33.46 3.26x 124.7ms 4.25 | 39.64 3.86x 104.4ms 4.24 
+coding          11.85 | 28.81 2.43x 105.4ms 3.06 | 27.83 2.35x 105.6ms 2.96 |                           |                           |                           |                           
+humanities      11.43 | 21.84 1.91x 105.2ms 2.30 | 21.34 1.87x 107.2ms 2.29 |                           |                           |                           |                           
+json            11.23 | 36.06 3.21x 109.8ms 3.98 | 35.52 3.16x 112.1ms 4.02 |                           |                           |                           |                           
+long             9.82 | 14.67 1.49x 129.7ms 1.91 | 18.52 1.89x 111.7ms 2.09 | 15.02 1.53x 124.4ms 1.87 | 19.34 1.97x 107.4ms 2.09 | 15.16 1.54x 123.3ms 1.87 | 19.76 2.01x 105.1ms 2.09 
+math            11.21 | 37.90 3.38x 104.7ms 3.99 | 33.25 2.97x 115.2ms 3.87 |                           |                           |                           |                           
+multilingual    11.06 | 21.45 1.94x 104.3ms 2.26 | 20.61 1.86x 109.5ms 2.28 |                           |                           |                           |                           
+qa              10.38 | 19.95 1.92x 103.9ms 2.09 | 19.65 1.89x 106.0ms 2.09 |                           |                           |                           |                           
+rag             11.17 | 22.24 1.99x 102.5ms 2.29 | 21.71 1.94x 103.9ms 2.27 |                           |                           |                           |                           
+reasoning       12.05 | 28.35 2.35x 104.1ms 2.98 | 29.35 2.44x 103.6ms 3.05 |                           |                           |                           |                           
+roleplay        11.62 | 21.07 1.81x 113.6ms 2.41 | 21.80 1.88x 104.9ms 2.31 |                           |                           |                           |                           
+stem            12.83 | 21.37 1.67x 105.1ms 2.26 | 22.32 1.74x 106.0ms 2.37 |                           |                           |                           |                           
+summarization   12.04 | 22.87 1.90x 111.2ms 2.57 | 23.90 1.99x 108.2ms 2.62 |                           |                           |                           |                           
+writing          9.38 | 22.67 2.42x 107.1ms 2.44 | 23.06 2.46x 105.8ms 2.45 |                           |                           |                           |                           
+ALL             11.10 | 23.32 2.10x 109.2ms 2.56 | 23.90 2.15x 107.4ms 2.59 | 18.02 1.81x 127.0ms 2.30 | 23.19 2.33x 107.4ms 2.52 | 18.53 1.86x 123.5ms 2.30 | 23.72 2.38x 105.0ms 2.52 
+long+agent>4K    9.96 | 18.09 1.82x 129.0ms 2.35 | 22.59 2.27x 110.6ms 2.52 | 18.02 1.81x 127.0ms 2.30 | 23.19 2.33x 107.4ms 2.52 | 18.53 1.86x 123.5ms 2.30 | 23.72 2.38x 105.0ms 2.52 
+bcsa-verify-8q_tune_prefill.jsonl vs bcsa-verify-8q_tune_8q.jsonl: identical tokens on 20/56 prompts
+bcsa-verify-8q_tune_8q.jsonl vs bcsa-verify-8q_tune_la_prefill_r2.jsonl: identical tokens on 4/8 prompts
+bcsa-verify-8q_tune_la_prefill_r2.jsonl vs bcsa-verify-8q_tune_la_8q_r2.jsonl: identical tokens on 4/8 prompts
+bcsa-verify-8q_tune_la_8q_r2.jsonl vs bcsa-verify-8q_tune_la_prefill_r3.jsonl: identical tokens on 4/8 prompts
+bcsa-verify-8q_tune_la_prefill_r3.jsonl vs bcsa-verify-8q_tune_la_8q_r3.jsonl: identical tokens on 4/8 prompts
+bcsa-verify-8q_tune_prefill.jsonl: differs from greedy on 35/56 prompts
+bcsa-verify-8q_tune_8q.jsonl: differs from greedy on 30/56 prompts
+bcsa-verify-8q_tune_la_prefill_r2.jsonl: differs from greedy on 4/8 prompts
+bcsa-verify-8q_tune_la_8q_r2.jsonl: differs from greedy on 4/8 prompts
+bcsa-verify-8q_tune_la_prefill_r3.jsonl: differs from greedy on 4/8 prompts
+bcsa-verify-8q_tune_la_8q_r3.jsonl: differs from greedy on 4/8 prompts
+category         base | bcsa-verify-8q_tune_pr | bcsa-verify-8q_tune_8q
+                tok/s | tok/s   x     acc  div | tok/s   x     acc  div
+agent            10.3 |  34.0 3.31x 4.34  1/4  |  40.3 3.92x 4.34  0/4 
+coding           11.8 |  28.8 2.43x 3.06  3/4  |  27.8 2.35x 2.96  2/4 
+humanities       11.4 |  21.8 1.91x 2.30  2/4  |  21.3 1.87x 2.29  2/4 
+json             11.2 |  36.1 3.21x 3.98  2/4  |  35.5 3.16x 4.02  2/4 
+long              9.8 |  14.7 1.49x 1.91  4/4  |  18.5 1.89x 2.09  4/4 
+math             11.2 |  37.9 3.38x 3.99  3/4  |  33.3 2.97x 3.87  2/4 
+multilingual     11.1 |  21.4 1.94x 2.26  3/4  |  20.6 1.86x 2.28  3/4 
+qa               10.4 |  20.0 1.92x 2.09  4/4  |  19.7 1.89x 2.09  2/4 
+rag              11.2 |  22.2 1.99x 2.29  2/4  |  21.7 1.94x 2.27  1/4 
+reasoning        12.0 |  28.3 2.35x 2.98  2/4  |  29.3 2.44x 3.05  3/4 
+roleplay         11.6 |  21.1 1.81x 2.41  3/4  |  21.8 1.88x 2.31  2/4 
+stem             12.8 |  21.4 1.67x 2.26  2/4  |  22.3 1.74x 2.37  4/4 
+summarization    12.0 |  22.9 1.90x 2.57  1/4  |  23.9 1.99x 2.62  2/4 
+writing           9.4 |  22.7 2.42x 2.44  3/4  |  23.1 2.46x 2.45  1/4 
+ALL              11.1 |  23.3 2.10x 2.56 35/56 |  23.9 2.15x 2.59 30/56
+runs/bcsa-verify-8q_tune_prefill.jsonl: geo-mean per-prompt speed-up 2.24x over 56 prompts; lookup steps 564/5125; first divergence at token [1, 3, 10, 26, 26, 32, 38, 45, 50, 51, 56, 57, 61, 62, 64, 80, 88, 89, 101, 115, 133, 135, 144, 145, 153, 162, 164, 185, 197, 204, 232, 235, 240, 250, 253]
+runs/bcsa-verify-8q_tune_8q.jsonl: geo-mean per-prompt speed-up 2.30x over 56 prompts; lookup steps 526/5070; first divergence at token [10, 18, 21, 32, 38, 48, 50, 57, 64, 68, 80, 82, 89, 111, 115, 128, 133, 135, 138, 145, 150, 167, 176, 177, 189, 196, 202, 213, 225, 229]

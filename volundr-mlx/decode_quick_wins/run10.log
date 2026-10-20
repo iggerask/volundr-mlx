@@ -1,0 +1,89 @@
+### 2026-10-19 08:33:59 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-ae877536cb39838a7/volundr-mlx/decode_quick_wins/run10.sh
+canary 26.2 TFLOP/s
+PASS test_mix_norm (0.5 s)
+PASS test_combine_norm (0.1 s)
+PASS test_kda_conv_gates (0.0 s)
+PASS test_gated_delta_bf16_out (0.0 s)
+PASS test_rms_norm_mlx (0.0 s)
+PASS test_rms_norm_unrolled_equals_strided (0.0 s)
+PASS test_bcsa_views_equal_integer_index (0.0 s)
+PASS test_tiny_model_fused_equals_unfused (0.2 s)
+8/8 passed
+    converted (quantized matmuls) vs dequantized dense, fp32 CPU: max rel 2.32e-06
+PASS test_convert_end_to_end (0.3 s)
+10/10 passed
+chat-nothink: 49 prompt tokens, teacher-forced top-1 agreement 47/48
+code-think: 80 prompt tokens, teacher-forced top-1 agreement 48/48
+zh-nothink: 36 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-6k: 6064 prompt tokens, teacher-forced top-1 agreement 47/48
+long-code-14k: 14064 prompt tokens, teacher-forced top-1 agreement 48/48
+FUSED3 DUMP == mlx.bin (bit-identical)
+prompt 85 tokens; 128 timed tokens after 8; configs ['main', 'unfused', 'fused+copyidx', 'fused', 'fused+q8g64', 'fused+q8g128']
+rep 1 main               71.92 ms/token (13.90 tok/s), prefill   0.38 s, tokens == main: True
+rep 1 unfused            70.37 ms/token (14.21 tok/s), prefill   0.43 s, tokens == main: True
+rep 1 fused+copyidx      70.85 ms/token (14.11 tok/s), prefill   0.40 s, tokens == main: True
+rep 1 fused              72.30 ms/token (13.83 tok/s), prefill   0.39 s, tokens == main: True
+rep 1 fused+q8g64        66.86 ms/token (14.96 tok/s), prefill   0.41 s, tokens == main: True
+rep 1 fused+q8g128       66.59 ms/token (15.02 tok/s), prefill   0.35 s, tokens == main: True
+rep 2 main               74.31 ms/token (13.46 tok/s), prefill   0.67 s, tokens == main: True
+rep 2 unfused            83.14 ms/token (12.03 tok/s), prefill   0.36 s, tokens == main: True
+rep 2 fused+copyidx      70.51 ms/token (14.18 tok/s), prefill   0.36 s, tokens == main: True
+rep 2 fused              70.43 ms/token (14.20 tok/s), prefill   0.36 s, tokens == main: True
+rep 2 fused+q8g64        64.99 ms/token (15.39 tok/s), prefill   0.38 s, tokens == main: True
+rep 2 fused+q8g128       66.50 ms/token (15.04 tok/s), prefill   0.38 s, tokens == main: True
+rep 3 main               71.98 ms/token (13.89 tok/s), prefill   0.49 s, tokens == main: True
+rep 3 unfused            70.45 ms/token (14.19 tok/s), prefill   0.38 s, tokens == main: True
+rep 3 fused+copyidx      71.55 ms/token (13.98 tok/s), prefill   0.37 s, tokens == main: True
+rep 3 fused              71.01 ms/token (14.08 tok/s), prefill   0.42 s, tokens == main: True
+rep 3 fused+q8g64        67.61 ms/token (14.79 tok/s), prefill   0.44 s, tokens == main: True
+rep 3 fused+q8g128       80.85 ms/token (12.37 tok/s), prefill   0.45 s, tokens == main: True
+summary (ms/token):
+  main             best   71.92  median   71.98  (13.90 tok/s)    +0.0% vs main; greedy tokens vs main: identical
+  unfused          best   70.37  median   70.45  (14.21 tok/s)    -2.2% vs main; greedy tokens vs main: identical
+  fused+copyidx    best   70.51  median   70.85  (14.18 tok/s)    -2.0% vs main; greedy tokens vs main: identical
+  fused            best   70.43  median   71.01  (14.20 tok/s)    -2.1% vs main; greedy tokens vs main: identical
+  fused+q8g64      best   64.99  median   66.86  (15.39 tok/s)    -9.6% vs main; greedy tokens vs main: identical
+  fused+q8g128     best   66.50  median   66.59  (15.04 tok/s)    -7.5% vs main; greedy tokens vs main: identical
+canary 25.8 TFLOP/s
+prompt 19045 tokens; 48 timed tokens after 8; configs ['main', 'fused+copyidx', 'fused', 'fused+q8g64']
+prefill 48.1 s
+rep 1 main                       82.04 ms/token (12.19 tok/s) at 19330 positions
+rep 1 fused+copyidx              81.40 ms/token (12.29 tok/s) at 19387 positions
+rep 1 fused                      78.25 ms/token (12.78 tok/s) at 19444 positions
+rep 1 fused+q8g64                73.75 ms/token (13.56 tok/s) at 19501 positions
+rep 2 main                       83.19 ms/token (12.02 tok/s) at 19558 positions
+rep 2 fused+copyidx              78.38 ms/token (12.76 tok/s) at 19615 positions
+rep 2 fused                      76.84 ms/token (13.01 tok/s) at 19672 positions
+rep 2 fused+q8g64                71.02 ms/token (14.08 tok/s) at 19729 positions
+rep 3 main                       82.60 ms/token (12.11 tok/s) at 19786 positions
+rep 3 fused+copyidx              81.18 ms/token (12.32 tok/s) at 19843 positions
+rep 3 fused                      78.88 ms/token (12.68 tok/s) at 19900 positions
+rep 3 fused+q8g64                72.57 ms/token (13.78 tok/s) at 19957 positions
+summary (ms/token):
+  main                     best   82.04  median   82.60  (12.19 tok/s)    +0.0% vs main
+  fused+copyidx            best   78.38  median   81.18  (12.76 tok/s)    -4.5% vs main
+  fused                    best   76.84  median   78.25  (13.01 tok/s)    -6.3% vs main
+  fused+q8g64              best   71.02  median   72.57  (14.08 tok/s)   -13.4% vs main
+canary 25.9 TFLOP/s
+prompt 33020 tokens; 48 timed tokens after 8; configs ['main', 'fused+copyidx', 'fused', 'fused+q8g64']
+prefill 81.8 s
+rep 1 main                       88.71 ms/token (11.27 tok/s) at 33305 positions
+rep 1 fused+copyidx              98.08 ms/token (10.20 tok/s) at 33362 positions
+rep 1 fused                     100.71 ms/token ( 9.93 tok/s) at 33419 positions
+rep 1 fused+q8g64                91.95 ms/token (10.88 tok/s) at 33476 positions
+rep 2 main                      133.13 ms/token ( 7.51 tok/s) at 33533 positions
+rep 2 fused+copyidx             135.79 ms/token ( 7.36 tok/s) at 33590 positions
+rep 2 fused                     122.44 ms/token ( 8.17 tok/s) at 33647 positions
+rep 2 fused+q8g64               106.03 ms/token ( 9.43 tok/s) at 33704 positions
+rep 3 main                      191.83 ms/token ( 5.21 tok/s) at 33761 positions
+rep 3 fused+copyidx             129.70 ms/token ( 7.71 tok/s) at 33818 positions
+rep 3 fused                     108.34 ms/token ( 9.23 tok/s) at 33875 positions
+rep 3 fused+q8g64               106.37 ms/token ( 9.40 tok/s) at 33932 positions
+summary (ms/token):
+  main                     best   88.71  median  133.13  (11.27 tok/s)    +0.0% vs main
+  fused+copyidx            best   98.08  median  129.70  (10.20 tok/s)   +10.6% vs main
+  fused                    best  100.71  median  108.34  ( 9.93 tok/s)   +13.5% vs main
+  fused+q8g64              best   91.95  median  106.03  (10.88 tok/s)    +3.7% vs main
+exit 0
+canary 23.7 TFLOP/s
+### done 2026-10-19 08:45:27

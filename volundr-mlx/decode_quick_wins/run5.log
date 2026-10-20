@@ -1,0 +1,28 @@
+### 2026-10-19 05:39:05 /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/run5.sh
+canary 25.9 TFLOP/s
+T=1 tgy=2: vec4 == vec: True True
+T=1 tgy=4: vec4 == vec: True True
+T=1 tgy=8: vec4 == vec: True True
+T=3 tgy=2: vec4 == vec: True True
+T=3 tgy=4: vec4 == vec: True True
+T=3 tgy=8: vec4 == vec: True True
+T=8 tgy=2: vec4 == vec: True True
+T=8 tgy=4: vec4 == vec: True True
+T=8 tgy=8: vec4 == vec: True True
+vec tg2      30.7 us per layer ( 205 GB/s)
+vec tg4      30.6 us per layer ( 205 GB/s)
+vec tg8      30.8 us per layer ( 204 GB/s)
+vec4 tg2     31.0 us per layer ( 203 GB/s)
+vec4 tg4     30.7 us per layer ( 205 GB/s)
+vec4 tg8     30.9 us per layer ( 204 GB/s)
+mhc old (6 kernels/layer)               41.8 us per layer
+mhc fused (3 kernels/layer)             32.8 us per layer
+2 single-TG norms                       21.5 us per layer
+serial Sinkhorn + concat                16.4 us per layer
+parallel Sinkhorn (mix) + concat        11.5 us per layer
+concat only                              5.3 us per layer
+kda old                                 45.1 us per layer
+kda fused                               44.2 us per layer
+exit 0
+canary 24.6 TFLOP/s
+### done 2026-10-19 05:39:09

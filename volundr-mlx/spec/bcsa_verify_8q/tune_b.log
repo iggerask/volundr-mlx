@@ -1,0 +1,9 @@
+canary 25.3 TFLOP/s
+### tune greedy
+canary 27.3 TFLOP/s
+{"name": "long/01-long1", "category": "long", "split": "tune", "prompt_tokens": 9552, "T": 8, "drafter_bits": 0, "head_bits": 0, "nax": false, "lookup": false, "generated": 256, "prefill_s": 29.793, "decode_s": 24.759, "tok_s": 10.299}
+{"name": "long/02-long2-think", "category": "long", "split": "tune", "prompt_tokens": 11085, "T": 8, "drafter_bits": 0, "head_bits": 0, "nax": false, "lookup": false, "generated": 256, "prefill_s": 36.028, "decode_s": 26.873, "tok_s": 9.489}
+{"name": "long/03-long3", "category": "long", "split": "tune", "prompt_tokens": 12547, "T": 8, "drafter_bits": 0, "head_bits": 0, "nax": false, "lookup": false, "generated": 256, "prefill_s": 41.9, "decode_s": 27.392, "tok_s": 9.309}
+canary 25.5 TFLOP/s
+### done b Mon Oct 19 07:08:57 CEST 2026
+canary 25.0 TFLOP/s

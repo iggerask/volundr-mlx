@@ -209,8 +209,10 @@ _NORM_SRC = """
     threadgroup float red[NT / 32];
     float hv[(D + NT - 1) / NT];
     float ss = 0.0f;
-    int k = 0;
-    for (int i = tid; i < D; i += NT, k++) {
+    // constant trip count (all rows' loads issued up front); the same elements in the same order as a strided loop
+    for (int k = 0; k < (D + NT - 1) / NT; k++) {
+        const int i = tid + k * NT;
+        if (D % NT != 0 && i >= D) break;
         LOAD
         hv[k] = v;
         ss += v * v;
@@ -225,9 +227,54 @@ _NORM_SRC = """
     }
     threadgroup_barrier(mem_flags::mem_threadgroup);
     const float rs = metal::precise::rsqrt(red[0] / float(D) + EPS_VAL);
-    k = 0;
-    for (int i = tid; i < D; i += NT, k++) y[base + i] = bfloat16_t(hv[k] * rs * (OFFSET + float(w[i])));
+    for (int k = 0; k < (D + NT - 1) / NT; k++) {
+        const int i = tid + k * NT;
+        if (D % NT != 0 && i >= D) break;
+        y[base + i] = bfloat16_t(hv[k] * rs * (OFFSET + float(w[i])));
+    }
 """
+# Wide variant for D >= 1024: NW (> NT) threads load / write the row with NW-strided coalesced accesses and stage the
+# values in threadgroup memory; then the first NT threads sum the squares exactly as above (thread t: elements t, t + NT,
+# ... in order, then the same simd / partial sums), so the result is bit-identical with more loads in flight.
+_NORM_WIDE_SRC = """
+    const uint row = threadgroup_position_in_grid.y;
+    const uint tid = thread_position_in_threadgroup.x;
+    const size_t base = size_t(row) * D;
+    threadgroup float red[NT / 32];
+    threadgroup float sv[D];
+    for (int j = 0; j < (D + NW - 1) / NW; j++) {
+        const int i = tid + j * NW;
+        if (D % NW != 0 && i >= D) break;
+        LOAD
+        sv[i] = v;
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    if (tid < NT) {
+        float ss = 0.0f;
+        for (int k = 0; k < (D + NT - 1) / NT; k++) {
+            const int i = tid + k * NT;
+            if (D % NT != 0 && i >= D) break;
+            const float v = sv[i];
+            ss += v * v;
+        }
+        ss = simd_sum(ss);
+        if (thread_index_in_simdgroup == 0) red[simdgroup_index_in_threadgroup] = ss;
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    if (simdgroup_index_in_threadgroup == 0) {
+        float t = thread_index_in_simdgroup < NT / 32 ? red[thread_index_in_simdgroup] : 0.0f;
+        t = simd_sum(t);
+        if (thread_index_in_simdgroup == 0) red[0] = t;
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    const float rs = metal::precise::rsqrt(red[0] / float(D) + EPS_VAL);
+    for (int j = 0; j < (D + NW - 1) / NW; j++) {
+        const int i = tid + j * NW;
+        if (D % NW != 0 && i >= D) break;
+        y[base + i] = bfloat16_t(sv[i] * rs * (OFFSET + float(w[i])));
+    }
+"""
+NORM_WIDE = 1024  # threads per row of the wide variant (0: always the NT-thread kernel); used for <= 64 rows
 _NORM_LOAD = "float v = float(x[base + i]);"
 _NORM_LOAD_ADD = """const bfloat16_t hb = bfloat16_t(float(x[base + i]) + float(r[base + i]));
         h[base + i] = hb;
@@ -240,17 +287,21 @@ def rms_norm(x, w, eps, offset: bool, r=None):
     D = x.shape[-1]
     N = x.size // D
     add = r is not None
-    key = (add, offset, eps)
+    nt = 256 if D >= 1024 else 32 * max(1, min(8, D // 32))
+    nw = NORM_WIDE if (NORM_WIDE > nt and 1024 <= D <= 6144 and N <= 64) else 0
+    key = (add, offset, eps, nw > 0)
     if key not in _norm_kernels:
-        src = _NORM_SRC.replace("EPS_VAL", repr(float(eps)) + "f").replace("LOAD", _NORM_LOAD_ADD if add else _NORM_LOAD)
+        src = (_NORM_WIDE_SRC if nw else _NORM_SRC).replace("EPS_VAL", repr(float(eps)) + "f").replace(
+            "LOAD", _NORM_LOAD_ADD if add else _NORM_LOAD)
         _norm_kernels[key] = mx.fast.metal_kernel(
-            name=f"volundr_rmsnorm_{int(add)}{int(offset)}_{len(_norm_kernels)}",
+            name=f"volundr_rmsnorm_{int(add)}{int(offset)}{int(nw > 0)}_{len(_norm_kernels)}",
             input_names=["x", "w"] + (["r"] if add else []), output_names=(["h"] if add else []) + ["y"],
             source=src)
-    nt = 256 if D >= 1024 else 32 * max(1, min(8, D // 32))
+    tg = nw or nt
     outs = _norm_kernels[key](
-        inputs=[x, w] + ([r] if add else []), template=[("D", D), ("NT", nt), ("OFFSET", 1 if offset else 0)],
-        grid=(nt, N, 1), threadgroup=(nt, 1, 1),
+        inputs=[x, w] + ([r] if add else []),
+        template=[("D", D), ("NT", nt), ("OFFSET", 1 if offset else 0)] + ([("NW", nw)] if nw else []),
+        grid=(tg, N, 1), threadgroup=(tg, 1, 1),
         output_shapes=[x.shape] * (2 if add else 1), output_dtypes=[mx.bfloat16] * (2 if add else 1))
     return (outs[0], outs[1]) if add else (None, outs[0])
 
@@ -392,17 +443,19 @@ _gdn_vec_kernel = mx.fast.metal_kernel(
     output_names=["y", "state_out"], source=_GDN_VEC_SRC)
 
 
-def gated_delta_vec(q, k, v, g, beta, state):
+def gated_delta_vec(q, k, v, g, beta, state, out_dtype=None):
     """q, k [B, T, Hk, 128] fp32 (normalized), v [B, T, Hv, Dv], g [B, T, Hv, 128] fp32 decay (not log), beta
-    [B, T, Hv] fp32, state [B, Hv, Dv, 128] fp32 -> y [B, T, Hv, Dv] (q's dtype), new state."""
+    [B, T, Hv] fp32, state [B, Hv, Dv, 128] fp32 -> y [B, T, Hv, Dv] (out_dtype, default q's), new state.
+    out_dtype=bf16 rounds y in the kernel exactly as y.astype(bf16) would, without the extra pass."""
     B, T, Hk, Dk = k.shape
     Hv, Dv = v.shape[2:]
     assert Dk == 128 and Dv % 8 == 0
+    ot = out_dtype or q.dtype
     return _gdn_vec_kernel(
         inputs=[q, k, v, g, beta, state, T],
-        template=[("InT", q.dtype), ("StT", state.dtype), ("Dk", Dk), ("Dv", Dv), ("Hk", Hk), ("Hv", Hv)],
+        template=[("InT", ot), ("StT", state.dtype), ("Dk", Dk), ("Dv", Dv), ("Hk", Hk), ("Hv", Hv)],
         grid=(32, Dv // 8, B * Hv), threadgroup=(32, 2, 1),
-        output_shapes=[(B, T, Hv, Dv), state.shape], output_dtypes=[q.dtype, state.dtype])
+        output_shapes=[(B, T, Hv, Dv), state.shape], output_dtypes=[ot, state.dtype])
 
 
 # Same recurrence, one threadgroup per (batch, value head) holding all Dv rows (Dv / 8 simdgroups); TS timesteps of
@@ -488,17 +541,18 @@ _gdn_tg_kernel = mx.fast.metal_kernel(
     output_names=["y", "state_out"], source=_GDN_TG_SRC)
 
 
-def gated_delta_tg(q, k, v, g, beta, state, ts=8):
+def gated_delta_tg(q, k, v, g, beta, state, ts=8, out_dtype=None):
     """As gated_delta_vec, staged through threadgroup memory (one threadgroup per value head)."""
     B, T, Hk, Dk = k.shape
     Hv, Dv = v.shape[2:]
     assert Dk == 128 and Dv % 8 == 0 and Dv <= 256
     nth = (Dv // 8) * 32
+    ot = out_dtype or q.dtype
     return _gdn_tg_kernel(
         inputs=[q, k, v, g, beta, state, T],
-        template=[("InT", q.dtype), ("StT", state.dtype), ("Dk", Dk), ("Dv", Dv), ("Hk", Hk), ("Hv", Hv), ("TS", ts)],
+        template=[("InT", ot), ("StT", state.dtype), ("Dk", Dk), ("Dv", Dv), ("Hk", Hk), ("Hv", Hv), ("TS", ts)],
         grid=(nth, B * Hv, 1), threadgroup=(nth, 1, 1),
-        output_shapes=[(B, T, Hv, Dv), state.shape], output_dtypes=[q.dtype, state.dtype])
+        output_shapes=[(B, T, Hv, Dv), state.shape], output_dtypes=[ot, state.dtype])
 
 
 # ----------------------------------------------------------------------------- BCSA window attention (NAX)

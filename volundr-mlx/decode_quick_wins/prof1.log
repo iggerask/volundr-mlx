@@ -1,0 +1,26 @@
+[waiting for the GPU to go idle]
+canary 23.3 TFLOP/s
+{"prompts": "long/03-long3", "P": 12547, "impl": "prefill", "verify8_ms": 123.221, "verify8_nocommit_ms": 114.13, "decode_ms": 82.07, "verify8_no_far_ms": 110.117, "verify8_no_attn_ms": 93.178, "nv_max": 2132, "union": 1162, "ring_wraps": true, "window_concat_x17_ms": 6.51, "idx_q_x17_ms": 0.573, "scores_x17_ms": 0.525, "topk_x17_ms": 0.255, "select_x17_ms": 0.929, "far_union_x17_ms": 0.423, "attend_x17_ms": 9.5, "window_attend_x17_ms": 7.987, "bcsa_verify_total_x17_ms": 17.779, "dec_select_x17_ms": 0.807, "dec_sdpa_x17_ms": 1.385, "dec_sdpa_8q_x17_ms": 7.201, "peak_gb": 53.5}
+canary 22.5 TFLOP/s
+
+  Squeeze                                  60
+  Sigmoid                                  56
+  RMSNorm                                  56
+  CompiledExpNegativeAsTypeBroadcastBroadcastAddBroadcastBroadcastLogAddExpBroadcastBroadcastMultiplyExp 54
+  SliceUpdate                              53
+  RoPE                                     36
+  Concatenate                              20
+  ScaledDotProductAttention                18
+  CompiledAsTypeAsTypeSigmoidBroadcastBroadcastMultiplyAsType 18
+  Multiply                                 7
+  Gather                                   5
+  AddMM                                    2
+  Full                                     2
+  BitwiseAnd                               2
+  ExpandDims                               1
+rep 0: real 71.88 ms/step, no 4-bit matmuls and no head 12.60, no head 60.79
+rep 1: real 68.58 ms/step, no 4-bit matmuls and no head 12.02, no head 61.28
+rep 2: real 69.42 ms/step, no 4-bit matmuls and no head 13.10, no head 60.88
+exit 0
+canary 23.3 TFLOP/s
+### done 2026-10-19 04:41:19

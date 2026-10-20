@@ -45,7 +45,7 @@ class Lookup:
                 self.idx.setdefault((h[p - 1], h[p]), []).append(p)
             self.indexed += 1
 
-    def find(self):
+    def find(self, max_draft=MAX_DRAFT):
         h, n = self.hist, len(self.hist)
         if n < 3:
             return None
@@ -65,29 +65,34 @@ class Lookup:
         if best is None:
             return None
         m, p = best
-        cont = h[p + 1 : min(p + 1 + MAX_DRAFT, n)]
+        cont = h[p + 1 : min(p + 1 + max_draft, n)]
         return (cont, m) if cont else None
 
-    def propose(self):
-        """The copy proposal for this step if it is expected to beat the drafter, else []."""
+    def propose(self, long=0):
+        """The copy proposal for this step if it is expected to beat the drafter, else [].
+        long > MAX_DRAFT: a copy used with the full MAX_DRAFT tokens is returned with up to `long` tokens (the decision
+        itself is the engine's: it sees at most MAX_DRAFT tokens)."""
         self.steps += 1
         self.pending = (False, 0)
         if not self.on:
             return []
-        f = self.find()
+        f = self.find(max(long, MAX_DRAFT))
         if f is None:
             return []
         cont, m = f
         b = bucket(m)
-        if min(self.lk[b].v, len(cont)) > self.dr.v:
+        if min(self.lk[b].v, len(cont[:MAX_DRAFT])) > self.dr.v:
             self.pending = (True, b)
             self.used += 1
-            return cont
+            return cont if len(cont) > MAX_DRAFT else cont[:MAX_DRAFT]
         return []
 
-    def record(self, emitted):
-        """The step's outcome: the emitted tokens (accepted drafts + the target's next token)."""
+    def record(self, emitted, cap=None):
+        """The step's outcome: the emitted tokens (accepted drafts + the target's next token). cap: count at most that
+        many accepted drafts in the running means (long copies: keep the means on the engine's 7-draft scale)."""
         acc = max(0, len(emitted) - 1)
+        if cap is not None:
+            acc = min(acc, cap)
         if self.pending is not None:
             used, b = self.pending
             if used:

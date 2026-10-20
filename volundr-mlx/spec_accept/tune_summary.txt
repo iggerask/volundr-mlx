@@ -1,0 +1,46 @@
+spec-accept_tune: 56 prompts in all of ['exact+q8g64', 'exact+q8g64@early@cv', 'exact+q8g64@early@cv@long16', 'exact+q8g64@early@cv@long16c']
+  exact+q8g64: (fused, views, bcsa_verify) = [(True, True, '8q')]
+  exact+q8g64@early@cv: (fused, views, bcsa_verify) = [(True, True, '8q')]
+  exact+q8g64@early@cv@long16: (fused, views, bcsa_verify) = [(True, True, '8q')]
+  exact+q8g64@early@cv@long16c: (fused, views, bcsa_verify) = [(True, True, '8q')]
+
+| group | prompts | config | tok/s | x baseline | median ms/step | pooled ms/step | tokens/step |
+|---|---|---|---|---|---|---|---|
+| all | 56 | exact+q8g64 | 26.96 | 1.000 | 95.6 | 96.0 | 2.60 |
+| all | 56 | exact+q8g64@early@cv | 27.62 | 1.025 | 93.5 | 93.7 | 2.60 |
+| all | 56 | exact+q8g64@early@cv@long16 | 27.47 | 1.019 | 93.9 | 94.3 | 2.61 |
+| all | 56 | exact+q8g64@early@cv@long16c | 27.51 | 1.020 | 93.8 | 94.3 | 2.61 |
+| short (<4K) | 48 | exact+q8g64 | 27.24 | 1.000 | 95.4 | 95.5 | 2.62 |
+| short (<4K) | 48 | exact+q8g64@early@cv | 27.92 | 1.025 | 93.3 | 93.2 | 2.62 |
+| short (<4K) | 48 | exact+q8g64@early@cv@long16 | 27.71 | 1.017 | 93.7 | 93.8 | 2.62 |
+| short (<4K) | 48 | exact+q8g64@early@cv@long16c | 27.78 | 1.020 | 93.7 | 93.7 | 2.62 |
+| long+agent | 8 | exact+q8g64 | 24.99 | 1.000 | 99.1 | 99.6 | 2.52 |
+| long+agent | 8 | exact+q8g64@early@cv | 25.55 | 1.023 | 96.6 | 97.5 | 2.52 |
+| long+agent | 8 | exact+q8g64@early@cv@long16 | 25.78 | 1.032 | 98.2 | 98.2 | 2.55 |
+| long+agent | 8 | exact+q8g64@early@cv@long16c | 25.65 | 1.027 | 98.5 | 98.7 | 2.55 |
+| long | 4 | exact+q8g64 | 20.77 | 1.000 | 100.1 | 100.0 | 2.09 |
+| long | 4 | exact+q8g64@early@cv | 21.22 | 1.022 | 98.1 | 97.9 | 2.09 |
+| long | 4 | exact+q8g64@early@cv@long16 | 21.02 | 1.012 | 98.1 | 98.2 | 2.07 |
+| long | 4 | exact+q8g64@early@cv@long16c | 20.96 | 1.009 | 98.5 | 98.5 | 2.07 |
+| agent | 4 | exact+q8g64 | 42.14 | 1.000 | 98.3 | 98.2 | 4.24 |
+| agent | 4 | exact+q8g64@early@cv | 43.23 | 1.026 | 95.6 | 95.7 | 4.24 |
+| agent | 4 | exact+q8g64@early@cv@long16 | 47.18 | 1.119 | 98.4 | 98.1 | 4.71 |
+| agent | 4 | exact+q8g64@early@cv@long16c | 46.55 | 1.105 | 99.3 | 99.4 | 4.71 |
+
+  exact+q8g64@early@cv vs exact+q8g64: tokens identical on 56/56, per-step acceptance identical on 56/56; first divergences at []
+  exact+q8g64@early@cv@long16 vs exact+q8g64: tokens identical on 36/56, per-step acceptance identical on 9/56; first divergences at [20, 40, 70, 70, 71, 88, 107, 115, 118, 135, 142, 153, 171, 171, 184, 193, 193, 197, 204, 227]
+  exact+q8g64@early@cv@long16c vs exact+q8g64: tokens identical on 40/56, per-step acceptance identical on 11/56; first divergences at [20, 40, 70, 70, 88, 107, 115, 135, 142, 153, 171, 184, 193, 197, 204, 227]
+  exact+q8g64@early@cv vs exact+q8g64, short (<4K): tokens identical on 48/48
+  exact+q8g64@early@cv vs exact+q8g64, long+agent: tokens identical on 8/8
+  exact+q8g64@early@cv@long16 vs exact+q8g64, short (<4K): tokens identical on 31/48
+  exact+q8g64@early@cv@long16 vs exact+q8g64, long+agent: tokens identical on 5/8
+  exact+q8g64@early@cv@long16c vs exact+q8g64, short (<4K): tokens identical on 35/48
+  exact+q8g64@early@cv@long16c vs exact+q8g64, long+agent: tokens identical on 5/8
+  exact+q8g64 vs combined-test_tune_spec_exact+q8g64.jsonl: tokens identical on 56/56, per-step acceptance identical on 56/56
+56 prompts
+| config | CPU before submit ms | submit (+commit build) ms | verify build ms | wait ms | lookup steps | 16-row steps | max peak GB | tokens = first | acceptance = first |
+|---|---|---|---|---|---|---|---|---|---|
+| exact+q8g64 | 1.70 | 1.41 | 7.68 | 85.22 | 9.5% | 0.0% | 30.21 | 56/56 | 56/56 |
+| exact+q8g64@early@cv | 1.31 | 2.59 | 4.44 | 85.35 | 9.5% | 0.0% | 30.21 | 56/56 | 56/56 |
+| exact+q8g64@early@cv@long16 | 1.43 | 2.67 | 4.47 | 85.74 | 8.4% | 8.1% | 30.21 | 36/56 | 9/56 |
+| exact+q8g64@early@cv@long16c | 1.35 | 2.68 | 4.49 | 85.75 | 7.4% | 7.1% | 30.21 | 40/56 | 11/56 |

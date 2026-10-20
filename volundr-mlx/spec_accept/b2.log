@@ -1,0 +1,22 @@
+### 2026-10-20 01:04:47 zsh -c cd spec && VOLUNDR_LMHEAD8=64 $PY check_verify_b2.py --nax --cats coding,json,agent,long
+load: 3.59 4.26 5.16; swap: total = 14336.00M  used = 13341.00M  free = 995.00M  (encrypted)
+canary 28.6 TFLOP/s
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "rows": 96, "agree": 95, "kl_mean": 0.0006189316209633456, "kl_p99": 0.005953986197710037, "kl_max": 0.007054814603179693, "kl_b2_vs_b1_mean": 0.0005997747163349545, "kl_b2_vs_b1_max": 0.017779698595404625, "kl_decoy_prefix_max": 0.0}
+{"name": "json/00-boolq2-think", "prompt_tokens": 463, "rows": 72, "agree": 69, "kl_mean": 0.0005186815852274275, "kl_p99": 0.0029162056744098663, "kl_max": 0.004862764850258827, "kl_b2_vs_b1_mean": 0.00030085558716237356, "kl_b2_vs_b1_max": 0.0019475463777780533, "kl_decoy_prefix_max": 0.0}
+{"name": "agent/00-marshmallow-code__apispe-think", "prompt_tokens": 7260, "rows": 112, "agree": 112, "kl_mean": 0.00026675820669263016, "kl_p99": 0.0019274335354566574, "kl_max": 0.0025235721841454506, "kl_b2_vs_b1_mean": 0.00034335033462888333, "kl_b2_vs_b1_max": 0.001989329233765602, "kl_decoy_prefix_max": 0.0016924776136875153}
+{"name": "long/00-long0-think", "prompt_tokens": 8078, "rows": 88, "agree": 88, "kl_mean": 0.0007784375292612931, "kl_p99": 0.0053718117997050285, "kl_max": 0.007117645349353552, "kl_b2_vs_b1_mean": 0.0006081180702927788, "kl_b2_vs_b1_max": 0.002896839752793312, "kl_decoy_prefix_max": 0.002620590850710869}
+{"all_rows": 368, "kl_mean": 0.0005302769876995226, "kl_p99": 0.0053718117997050285, "kl_max": 0.007117645349353552, "kl_b2_vs_b1_mean": 0.0004652434856196902, "kl_b2_vs_b1_max": 0.017779698595404625}
+exit 0
+canary 28.2 TFLOP/s
+load: 4.12 4.20 4.98; swap: total = 14336.00M  used = 13317.00M  free = 1019.00M  (encrypted)
+### done 2026-10-20 01:07:28
+### 2026-10-20 01:07:28 zsh -c cd spec && VOLUNDR_LMHEAD8=64 $PY time_b2.py --names coding/00-12623519-think,long/01-long1
+load: 4.12 4.20 4.98; swap: total = 14336.00M  used = 13317.00M  free = 1019.00M  (encrypted)
+canary 28.4 TFLOP/s
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "T": 8, "n": 3, "reps": 8, "b1_ms": 89.03, "b2_ms": 98.08, "b1_commit_ms": 3.2, "b2_commit_ms": 3.18}
+{"name": "long/01-long1", "prompt_tokens": 9552, "T": 8, "n": 3, "reps": 8, "b1_ms": 92.17, "b2_ms": 105.37, "b1_commit_ms": 3.14, "b2_commit_ms": 3.41}
+exit 0
+canary 27.2 TFLOP/s
+load: 3.69 4.10 4.91; swap: total = 14336.00M  used = 13309.00M  free = 1027.00M  (encrypted)
+### done 2026-10-20 01:08:08
+next1 done 01:08:08

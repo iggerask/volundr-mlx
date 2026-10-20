@@ -1,0 +1,8 @@
+canary 24.9 TFLOP/s
+### test prefill Mon Oct 19 08:14:35 CEST 2026
+canary 23.6 TFLOP/s
+{"name": "json/09-boolq0", "category": "json", "split": "test", "prompt_tokens": 354, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 256, "prefill_s": 0.932, "decode_s": 4.58, "wait_s": 4.132, "seg_s": [0.06418507918715477, 0.05064337933436036, 0.3320829151198268], "steps": 47, "mean_acc": 5.426, "tok_s": 55.673}
+{"name": "math/04-1e0e4ffd-think", "category": "math", "split": "test", "prompt_tokens": 129, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 158, "prefill_s": 0.496, "decode_s": 3.931, "wait_s": 3.503, "seg_s": [0.07321270694956183, 0.060564371291548014, 0.2934921276755631], "steps": 39, "mean_acc": 4.051, "tok_s": 39.939}
+canary 25.5 TFLOP/s
+### done prefill Mon Oct 19 08:17:52 CEST 2026
+canary 25.7 TFLOP/s

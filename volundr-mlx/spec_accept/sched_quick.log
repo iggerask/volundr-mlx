@@ -1,0 +1,102 @@
+### 2026-10-20 00:56:11 zsh -c cd spec && $PY ab_suite.py spec --split tune --per-cat 1 --configs exact+q8g64,exact+q8g64@early,exact+q8g64@s2 --out runs/spec-accept_sched_quick --resume
+load: 4.23 6.74 6.36; swap: total = 14336.00M  used = 13445.00M  free = 891.00M  (encrypted)
+canary 28.1 TFLOP/s
+spec: 14 prompts x ['exact+q8g64', 'exact+q8g64@early', 'exact+q8g64@s2']
+{"name": "coding/00-12623519-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.908, "steps": 92, "mean_acc": 2.783, "tok_s": 28.626, "peak_gb": 28.95}
+{"name": "coding/00-12623519-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 8.956, "steps": 92, "mean_acc": 2.783, "tok_s": 28.471, "peak_gb": 28.48}
+{"name": "coding/00-12623519-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 8.872, "steps": 92, "mean_acc": 2.783, "tok_s": 28.744, "peak_gb": 28.4}
+{"name": "humanities/00-69d831e1-think", "config": "exact+q8g64", "generated": 256, "decode_s": 10.78, "steps": 111, "mean_acc": 2.297, "tok_s": 23.654, "peak_gb": 28.48}
+{"name": "humanities/00-69d831e1-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 10.81, "steps": 111, "mean_acc": 2.297, "tok_s": 23.589, "peak_gb": 28.48}
+{"name": "humanities/00-69d831e1-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 10.671, "steps": 111, "mean_acc": 2.297, "tok_s": 23.896, "peak_gb": 28.4}
+{"name": "json/00-boolq2-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.748, "steps": 91, "mean_acc": 2.879, "tok_s": 29.15, "peak_gb": 28.48}
+{"name": "json/00-boolq2-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 8.847, "steps": 91, "mean_acc": 2.879, "tok_s": 28.823, "peak_gb": 28.48}
+{"name": "json/00-boolq2-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 8.826, "steps": 91, "mean_acc": 2.879, "tok_s": 28.892, "peak_gb": 28.4}
+{"name": "math/00-14afaf18-think", "config": "exact+q8g64", "generated": 186, "decode_s": 4.545, "steps": 48, "mean_acc": 3.875, "tok_s": 40.704, "peak_gb": 28.48}
+{"name": "math/00-14afaf18-think", "config": "exact+q8g64@early", "generated": 186, "decode_s": 4.5, "steps": 48, "mean_acc": 3.875, "tok_s": 41.111, "peak_gb": 28.48}
+{"name": "math/00-14afaf18-think", "config": "exact+q8g64@s2", "generated": 186, "decode_s": 4.543, "steps": 48, "mean_acc": 3.875, "tok_s": 40.719, "peak_gb": 28.4}
+{"name": "multilingual/00-37507e6a-think", "config": "exact+q8g64", "generated": 256, "decode_s": 9.043, "steps": 97, "mean_acc": 2.629, "tok_s": 28.199, "peak_gb": 28.48}
+{"name": "multilingual/00-37507e6a-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 9.091, "steps": 97, "mean_acc": 2.629, "tok_s": 28.049, "peak_gb": 28.48}
+{"name": "multilingual/00-37507e6a-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 9.106, "steps": 97, "mean_acc": 2.629, "tok_s": 28.004, "peak_gb": 28.4}
+{"name": "qa/00-adc5ed5f-think", "config": "exact+q8g64", "generated": 240, "decode_s": 9.309, "steps": 99, "mean_acc": 2.424, "tok_s": 25.674, "peak_gb": 28.48}
+{"name": "qa/00-adc5ed5f-think", "config": "exact+q8g64@early", "generated": 240, "decode_s": 9.356, "steps": 99, "mean_acc": 2.424, "tok_s": 25.546, "peak_gb": 28.48}
+{"name": "qa/00-adc5ed5f-think", "config": "exact+q8g64@s2", "generated": 240, "decode_s": 9.253, "steps": 99, "mean_acc": 2.424, "tok_s": 25.829, "peak_gb": 28.4}
+{"name": "rag/00-330006df-think", "config": "exact+q8g64", "generated": 256, "decode_s": 11.465, "steps": 122, "mean_acc": 2.123, "tok_s": 22.242, "peak_gb": 28.66}
+{"name": "rag/00-330006df-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 11.488, "steps": 122, "mean_acc": 2.123, "tok_s": 22.198, "peak_gb": 28.66}
+{"name": "rag/00-330006df-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 11.437, "steps": 122, "mean_acc": 2.123, "tok_s": 22.296, "peak_gb": 28.66}
+{"name": "reasoning/00-mmlu-logical_fa-think", "config": "exact+q8g64", "generated": 256, "decode_s": 7.032, "steps": 74, "mean_acc": 3.459, "tok_s": 36.261, "peak_gb": 28.48}
+{"name": "reasoning/00-mmlu-logical_fa-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 6.927, "steps": 74, "mean_acc": 3.459, "tok_s": 36.814, "peak_gb": 28.48}
+{"name": "reasoning/00-mmlu-logical_fa-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 6.929, "steps": 74, "mean_acc": 3.459, "tok_s": 36.801, "peak_gb": 28.4}
+{"name": "roleplay/00-cbd7ad2d-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.908, "steps": 95, "mean_acc": 2.716, "tok_s": 28.625, "peak_gb": 28.48}
+{"name": "roleplay/00-cbd7ad2d-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 8.997, "steps": 95, "mean_acc": 2.716, "tok_s": 28.343, "peak_gb": 28.48}
+{"name": "roleplay/00-cbd7ad2d-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 8.899, "steps": 95, "mean_acc": 2.716, "tok_s": 28.656, "peak_gb": 28.4}
+{"name": "stem/00-8624cf28-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.117, "steps": 87, "mean_acc": 2.931, "tok_s": 31.416, "peak_gb": 28.48}
+{"name": "stem/00-8624cf28-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 8.2, "steps": 87, "mean_acc": 2.931, "tok_s": 31.099, "peak_gb": 28.48}
+{"name": "stem/00-8624cf28-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 8.122, "steps": 87, "mean_acc": 2.931, "tok_s": 31.398, "peak_gb": 28.4}
+{"name": "summarization/00-boolq6-think", "config": "exact+q8g64", "generated": 256, "decode_s": 9.04, "steps": 96, "mean_acc": 2.677, "tok_s": 28.207, "peak_gb": 28.49}
+{"name": "summarization/00-boolq6-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 9.058, "steps": 96, "mean_acc": 2.677, "tok_s": 28.151, "peak_gb": 28.48}
+{"name": "summarization/00-boolq6-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 8.995, "steps": 96, "mean_acc": 2.677, "tok_s": 28.349, "peak_gb": 28.4}
+{"name": "writing/00-6ce4d69d-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.844, "steps": 93, "mean_acc": 2.763, "tok_s": 28.834, "peak_gb": 28.48}
+{"name": "writing/00-6ce4d69d-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 8.903, "steps": 93, "mean_acc": 2.763, "tok_s": 28.641, "peak_gb": 28.48}
+{"name": "writing/00-6ce4d69d-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 8.718, "steps": 93, "mean_acc": 2.763, "tok_s": 29.251, "peak_gb": 28.4}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact+q8g64", "generated": 131, "decode_s": 3.422, "steps": 35, "mean_acc": 3.8, "tok_s": 37.989, "peak_gb": 30.06}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact+q8g64@early", "generated": 131, "decode_s": 3.447, "steps": 35, "mean_acc": 3.8, "tok_s": 37.718, "peak_gb": 30.06}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact+q8g64@s2", "generated": 131, "decode_s": 3.414, "steps": 35, "mean_acc": 3.8, "tok_s": 38.074, "peak_gb": 30.06}
+{"name": "long/00-long0-think", "config": "exact+q8g64", "generated": 256, "decode_s": 12.027, "steps": 122, "mean_acc": 2.09, "tok_s": 21.202, "peak_gb": 30.11}
+{"name": "long/00-long0-think", "config": "exact+q8g64@early", "generated": 256, "decode_s": 11.875, "steps": 122, "mean_acc": 2.09, "tok_s": 21.474, "peak_gb": 30.11}
+{"name": "long/00-long0-think", "config": "exact+q8g64@s2", "generated": 256, "decode_s": 11.864, "steps": 122, "mean_acc": 2.09, "tok_s": 21.494, "peak_gb": 30.11}
+done in 515 s
+exit 0
+canary 28.8 TFLOP/s
+load: 3.59 4.26 5.16; swap: total = 14336.00M  used = 13341.00M  free = 995.00M  (encrypted)
+### done 2026-10-20 01:04:47
+### 2026-10-20 01:25:34 zsh -c cd spec && $PY ab_suite.py spec --split tune --per-cat 1 --configs exact+q8g64,exact+q8g64@cv,exact+q8g64@early@cv --out runs/spec-accept_cv_quick --resume
+load: 4.01 4.13 4.29; swap: total = 16384.00M  used = 15194.56M  free = 1189.44M  (encrypted)
+canary 28.2 TFLOP/s
+spec: 14 prompts x ['exact+q8g64', 'exact+q8g64@cv', 'exact+q8g64@early@cv']
+{"name": "coding/00-12623519-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.784, "steps": 92, "mean_acc": 2.783, "tok_s": 29.03, "peak_gb": 28.95}
+{"name": "coding/00-12623519-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 8.586, "steps": 92, "mean_acc": 2.783, "tok_s": 29.698, "peak_gb": 28.5}
+{"name": "coding/00-12623519-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 8.56, "steps": 92, "mean_acc": 2.783, "tok_s": 29.79, "peak_gb": 28.49}
+{"name": "humanities/00-69d831e1-think", "config": "exact+q8g64", "generated": 256, "decode_s": 10.615, "steps": 111, "mean_acc": 2.297, "tok_s": 24.022, "peak_gb": 28.48}
+{"name": "humanities/00-69d831e1-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 10.285, "steps": 111, "mean_acc": 2.297, "tok_s": 24.793, "peak_gb": 28.49}
+{"name": "humanities/00-69d831e1-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 10.327, "steps": 111, "mean_acc": 2.297, "tok_s": 24.693, "peak_gb": 28.49}
+{"name": "json/00-boolq2-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.808, "steps": 91, "mean_acc": 2.879, "tok_s": 28.95, "peak_gb": 28.48}
+{"name": "json/00-boolq2-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 8.458, "steps": 91, "mean_acc": 2.879, "tok_s": 30.149, "peak_gb": 28.5}
+{"name": "json/00-boolq2-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 8.458, "steps": 91, "mean_acc": 2.879, "tok_s": 30.148, "peak_gb": 28.5}
+{"name": "math/00-14afaf18-think", "config": "exact+q8g64", "generated": 186, "decode_s": 4.574, "steps": 48, "mean_acc": 3.875, "tok_s": 40.449, "peak_gb": 28.48}
+{"name": "math/00-14afaf18-think", "config": "exact+q8g64@cv", "generated": 186, "decode_s": 4.441, "steps": 48, "mean_acc": 3.875, "tok_s": 41.656, "peak_gb": 28.5}
+{"name": "math/00-14afaf18-think", "config": "exact+q8g64@early@cv", "generated": 186, "decode_s": 4.432, "steps": 48, "mean_acc": 3.875, "tok_s": 41.74, "peak_gb": 28.5}
+{"name": "multilingual/00-37507e6a-think", "config": "exact+q8g64", "generated": 256, "decode_s": 9.165, "steps": 97, "mean_acc": 2.629, "tok_s": 27.824, "peak_gb": 28.48}
+{"name": "multilingual/00-37507e6a-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 8.951, "steps": 97, "mean_acc": 2.629, "tok_s": 28.487, "peak_gb": 28.49}
+{"name": "multilingual/00-37507e6a-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 8.947, "steps": 97, "mean_acc": 2.629, "tok_s": 28.502, "peak_gb": 28.49}
+{"name": "qa/00-adc5ed5f-think", "config": "exact+q8g64", "generated": 240, "decode_s": 9.294, "steps": 99, "mean_acc": 2.424, "tok_s": 25.716, "peak_gb": 28.48}
+{"name": "qa/00-adc5ed5f-think", "config": "exact+q8g64@cv", "generated": 240, "decode_s": 9.129, "steps": 99, "mean_acc": 2.424, "tok_s": 26.179, "peak_gb": 28.49}
+{"name": "qa/00-adc5ed5f-think", "config": "exact+q8g64@early@cv", "generated": 240, "decode_s": 9.065, "steps": 99, "mean_acc": 2.424, "tok_s": 26.366, "peak_gb": 28.49}
+{"name": "rag/00-330006df-think", "config": "exact+q8g64", "generated": 256, "decode_s": 11.608, "steps": 122, "mean_acc": 2.123, "tok_s": 21.968, "peak_gb": 28.66}
+{"name": "rag/00-330006df-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 11.28, "steps": 122, "mean_acc": 2.123, "tok_s": 22.607, "peak_gb": 28.66}
+{"name": "rag/00-330006df-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 11.21, "steps": 122, "mean_acc": 2.123, "tok_s": 22.747, "peak_gb": 28.66}
+{"name": "reasoning/00-mmlu-logical_fa-think", "config": "exact+q8g64", "generated": 256, "decode_s": 7.018, "steps": 74, "mean_acc": 3.459, "tok_s": 36.333, "peak_gb": 28.48}
+{"name": "reasoning/00-mmlu-logical_fa-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 6.81, "steps": 74, "mean_acc": 3.459, "tok_s": 37.444, "peak_gb": 28.5}
+{"name": "reasoning/00-mmlu-logical_fa-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 6.804, "steps": 74, "mean_acc": 3.459, "tok_s": 37.477, "peak_gb": 28.49}
+{"name": "roleplay/00-cbd7ad2d-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.931, "steps": 95, "mean_acc": 2.716, "tok_s": 28.553, "peak_gb": 28.48}
+{"name": "roleplay/00-cbd7ad2d-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 8.732, "steps": 95, "mean_acc": 2.716, "tok_s": 29.204, "peak_gb": 28.49}
+{"name": "roleplay/00-cbd7ad2d-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 8.768, "steps": 95, "mean_acc": 2.716, "tok_s": 29.083, "peak_gb": 28.49}
+{"name": "stem/00-8624cf28-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.186, "steps": 87, "mean_acc": 2.931, "tok_s": 31.151, "peak_gb": 28.48}
+{"name": "stem/00-8624cf28-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 7.961, "steps": 87, "mean_acc": 2.931, "tok_s": 32.031, "peak_gb": 28.49}
+{"name": "stem/00-8624cf28-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 7.923, "steps": 87, "mean_acc": 2.931, "tok_s": 32.185, "peak_gb": 28.49}
+{"name": "summarization/00-boolq6-think", "config": "exact+q8g64", "generated": 256, "decode_s": 9.094, "steps": 96, "mean_acc": 2.677, "tok_s": 28.039, "peak_gb": 28.49}
+{"name": "summarization/00-boolq6-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 8.86, "steps": 96, "mean_acc": 2.677, "tok_s": 28.782, "peak_gb": 28.5}
+{"name": "summarization/00-boolq6-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 8.811, "steps": 96, "mean_acc": 2.677, "tok_s": 28.94, "peak_gb": 28.5}
+{"name": "writing/00-6ce4d69d-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.853, "steps": 93, "mean_acc": 2.763, "tok_s": 28.803, "peak_gb": 28.48}
+{"name": "writing/00-6ce4d69d-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 8.594, "steps": 93, "mean_acc": 2.763, "tok_s": 29.671, "peak_gb": 28.5}
+{"name": "writing/00-6ce4d69d-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 8.563, "steps": 93, "mean_acc": 2.763, "tok_s": 29.778, "peak_gb": 28.5}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact+q8g64", "generated": 131, "decode_s": 3.457, "steps": 35, "mean_acc": 3.8, "tok_s": 37.604, "peak_gb": 30.06}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact+q8g64@cv", "generated": 131, "decode_s": 3.362, "steps": 35, "mean_acc": 3.8, "tok_s": 38.662, "peak_gb": 30.06}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact+q8g64@early@cv", "generated": 131, "decode_s": 3.353, "steps": 35, "mean_acc": 3.8, "tok_s": 38.772, "peak_gb": 30.06}
+{"name": "long/00-long0-think", "config": "exact+q8g64", "generated": 256, "decode_s": 12.046, "steps": 122, "mean_acc": 2.09, "tok_s": 21.169, "peak_gb": 30.11}
+{"name": "long/00-long0-think", "config": "exact+q8g64@cv", "generated": 256, "decode_s": 11.806, "steps": 122, "mean_acc": 2.09, "tok_s": 21.599, "peak_gb": 30.11}
+{"name": "long/00-long0-think", "config": "exact+q8g64@early@cv", "generated": 256, "decode_s": 11.705, "steps": 122, "mean_acc": 2.09, "tok_s": 21.786, "peak_gb": 30.11}
+done in 508 s
+exit 0
+canary 28.1 TFLOP/s
+load: 4.01 4.18 4.26; swap: total = 15360.00M  used = 14081.56M  free = 1278.44M  (encrypted)
+### done 2026-10-20 01:34:03

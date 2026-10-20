@@ -1,0 +1,42 @@
+### 2026-10-19 04:46:54 /Users/ingemarrask/personal-dev/llms/.venv/bin/python /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/ablate.py all 3
+canary 24.6 TFLOP/s
+rep 0 base          7.84 ms/step
+rep 0 params        5.88 ms/step
+rep 0 mix           4.86 ms/step
+rep 0 combine       6.58 ms/step
+rep 0 rmsnorm       6.17 ms/step
+rep 0 conv          7.25 ms/step
+rep 0 gdn           5.86 ms/step
+rep 0 gnorm         7.80 ms/step
+rep 0 gates         7.89 ms/step
+rep 1 base          7.78 ms/step
+rep 1 params        5.96 ms/step
+rep 1 mix           5.07 ms/step
+rep 1 combine       5.89 ms/step
+rep 1 rmsnorm       5.97 ms/step
+rep 1 conv          8.01 ms/step
+rep 1 gdn           5.81 ms/step
+rep 1 gnorm         7.41 ms/step
+rep 1 gates         7.35 ms/step
+rep 2 base          8.23 ms/step
+rep 2 params        5.98 ms/step
+rep 2 mix           5.20 ms/step
+rep 2 combine       5.94 ms/step
+rep 2 rmsnorm       5.91 ms/step
+rep 2 conv          7.23 ms/step
+rep 2 gdn           5.77 ms/step
+rep 2 gnorm         7.41 ms/step
+rep 2 gates         7.73 ms/step
+best:
+  base          7.78 ms/step  delta  +0.00
+  params        5.88 ms/step  delta  +1.91
+  mix           4.86 ms/step  delta  +2.93
+  combine       5.89 ms/step  delta  +1.89
+  rmsnorm       5.91 ms/step  delta  +1.87
+  conv          7.23 ms/step  delta  +0.55
+  gdn           5.77 ms/step  delta  +2.01
+  gnorm         7.41 ms/step  delta  +0.37
+  gates         7.35 ms/step  delta  +0.43
+exit 0
+canary 22.6 TFLOP/s
+### done 2026-10-19 04:47:12

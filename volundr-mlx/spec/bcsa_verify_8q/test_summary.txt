@@ -1,0 +1,36 @@
+category         base | bcsa-verify-8q_test_8q.jso
+agent           12.18 | 35.87 2.95x 110.1ms 4.09 
+coding          13.98 | 30.20 2.16x 101.5ms 3.08 
+humanities      14.43 | 21.43 1.48x 102.3ms 2.19 
+json            14.46 | 43.30 2.99x  96.3ms 4.19 
+long            11.69 | 20.91 1.79x 106.7ms 2.23 
+math            14.02 | 42.03 3.00x  93.8ms 3.96 
+multilingual    14.00 | 27.43 1.96x  94.1ms 2.60 
+qa              13.39 | 21.79 1.63x 101.2ms 2.22 
+rag             13.29 | 29.17 2.19x 100.5ms 2.95 
+reasoning       13.32 | 24.34 1.83x  98.6ms 2.41 
+roleplay        11.10 | 22.16 2.00x 100.1ms 2.22 
+stem            12.40 | 23.95 1.93x  99.0ms 2.39 
+summarization   13.04 | 26.15 2.01x 100.0ms 2.64 
+writing         13.32 | 24.04 1.80x 102.8ms 2.48 
+ALL             13.17 | 26.09 1.98x 100.5ms 2.63 
+long+agent>4K   11.72 | 22.75 1.94x 107.2ms 2.46 
+bcsa-verify-8q_test_8q.jsonl: differs from greedy on 48/84 prompts
+category         base | bcsa-verify-8q_test_8q
+                tok/s | tok/s   x     acc  div
+agent            12.2 |  35.9 2.95x 4.09  1/6 
+coding           14.0 |  30.2 2.16x 3.08  3/6 
+humanities       14.4 |  21.4 1.48x 2.19  4/6 
+json             14.5 |  43.3 2.99x 4.19  2/6 
+long             11.7 |  20.9 1.79x 2.23  4/6 
+math             14.0 |  42.0 3.00x 3.96  2/6 
+multilingual     14.0 |  27.4 1.96x 2.60  5/6 
+qa               13.4 |  21.8 1.63x 2.22  5/6 
+rag              13.3 |  29.2 2.19x 2.95  3/6 
+reasoning        13.3 |  24.3 1.83x 2.41  2/6 
+roleplay         11.1 |  22.2 2.00x 2.22  4/6 
+stem             12.4 |  23.9 1.93x 2.39  4/6 
+summarization    13.0 |  26.2 2.01x 2.64  4/6 
+writing          13.3 |  24.0 1.80x 2.48  5/6 
+ALL              13.2 |  26.1 1.98x 2.63 48/84
+runs/bcsa-verify-8q_test_8q.jsonl: geo-mean per-prompt speed-up 2.12x over 84 prompts; lookup steps 609/6688; first divergence at token [2, 7, 7, 9, 9, 9, 14, 22, 25, 25, 26, 33, 38, 43, 46, 48, 48, 48, 68, 79, 80, 82, 87, 87, 89, 91, 93, 94, 99, 100, 104, 108, 109, 121, 122, 125, 132, 134, 140, 142, 151, 155, 157, 161, 174, 187, 215, 226]

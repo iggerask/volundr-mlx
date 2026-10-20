@@ -1,0 +1,13 @@
+dqw_base.bin == mlx.bin (bit-identical)
+lmhead8_g64 vs reference over 240 positions: top-1 agreement 239/240 (99.58%), KL mean 1.600e-04 nats, p50 5.67e-07, p99 1.95e-03, max 2.497e-03
+chat-nothink         49 prompt tokens: top-1 48/48, KL mean 9.14e-05 p50 4.62e-07 max 1.84e-03; first row (prefill) 5.50e-08
+code-think           80 prompt tokens: top-1 48/48, KL mean 2.01e-04 p50 6.91e-08 max 1.95e-03; first row (prefill) 1.90e-07
+zh-nothink           36 prompt tokens: top-1 48/48, KL mean 1.48e-04 p50 1.59e-06 max 1.82e-03; first row (prefill) 7.66e-07
+long-code-6k       6064 prompt tokens: top-1 47/48, KL mean 1.48e-04 p50 2.00e-06 max 1.95e-03; first row (prefill) 7.43e-05
+long-code-14k     14064 prompt tokens: top-1 48/48, KL mean 2.13e-04 p50 2.72e-07 max 2.50e-03; first row (prefill) 1.22e-06
+lmhead8_g128 vs reference over 240 positions: top-1 agreement 239/240 (99.58%), KL mean 2.121e-04 nats, p50 1.23e-06, p99 2.06e-03, max 2.616e-03
+chat-nothink         49 prompt tokens: top-1 48/48, KL mean 1.32e-04 p50 1.31e-06 max 1.53e-03; first row (prefill) 1.35e-07
+code-think           80 prompt tokens: top-1 48/48, KL mean 1.29e-04 p50 3.69e-08 max 1.93e-03; first row (prefill) 3.29e-08
+zh-nothink           36 prompt tokens: top-1 48/48, KL mean 3.57e-04 p50 6.14e-06 max 2.12e-03; first row (prefill) 2.50e-07
+long-code-6k       6064 prompt tokens: top-1 47/48, KL mean 2.16e-04 p50 5.28e-06 max 2.62e-03; first row (prefill) 1.63e-05
+long-code-14k     14064 prompt tokens: top-1 48/48, KL mean 2.26e-04 p50 8.77e-07 max 1.96e-03; first row (prefill) 1.53e-03

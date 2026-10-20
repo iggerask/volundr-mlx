@@ -1,0 +1,10 @@
+### 2026-10-19 04:53:20 /Users/ingemarrask/personal-dev/llms/.venv/bin/python /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/head.py
+canary 26.3 TFLOP/s
+(248320, 5120) mlx.core.bfloat16 2.5427968 GB
+q8g64: 1.351 GB
+q8g128: 1.311 GB
+M=1: bf16 9.29 ms, q8g64 5.11 ms, q8g128 4.96 ms
+M=8: bf16 10.08 ms, q8g64 7.17 ms, q8g128 6.96 ms
+exit 0
+canary 24.0 TFLOP/s
+### done 2026-10-19 04:53:25

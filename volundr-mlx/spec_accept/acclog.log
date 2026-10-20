@@ -1,0 +1,64 @@
+### 2026-10-20 00:32:52 zsh -c cd spec && VOLUNDR_LMHEAD8=64 $PY accept_log.py --split tune --check --resume --out runs/spec-accept_acclog_tune.jsonl
+load: 4.72 5.79 5.06; swap: total = 15360.00M  used = 13981.50M  free = 1378.50M  (encrypted)
+canary 27.7 TFLOP/s
+{"name": "coding/00-12623519-think", "steps": 92, "tok_step": 2.783, "dflash": 2.902, "check": true, "s": 9.6}
+{"name": "coding/01-91ec6537", "steps": 57, "tok_step": 4.509, "dflash": 3.825, "check": true, "s": 6.2}
+{"name": "coding/02-b9ec7a3c-think", "steps": 98, "tok_step": 2.602, "dflash": 2.622, "check": true, "s": 10.2}
+{"name": "coding/03-97f49a2c", "steps": 89, "tok_step": 2.865, "dflash": 2.865, "check": true, "s": 8.8}
+{"name": "humanities/00-69d831e1-think", "steps": 111, "tok_step": 2.297, "dflash": 2.279, "check": true, "s": 11.2}
+{"name": "humanities/01-7f06f76a", "steps": 125, "tok_step": 2.04, "dflash": 2.056, "check": true, "s": 13.1}
+{"name": "humanities/02-mmlu-prehistory-think", "steps": 95, "tok_step": 2.695, "dflash": 2.758, "check": true, "s": 9.8}
+{"name": "humanities/03-mmlu-high_schoo", "steps": 116, "tok_step": 2.198, "dflash": 2.198, "check": true, "s": 12.2}
+{"name": "json/00-boolq2-think", "steps": 91, "tok_step": 2.879, "dflash": 2.714, "check": true, "s": 10.0}
+{"name": "json/01-boolq9", "steps": 66, "tok_step": 3.727, "dflash": 3.727, "check": true, "s": 7.1}
+{"name": "json/02-boolq5-think", "steps": 42, "tok_step": 6.143, "dflash": 5.143, "check": true, "s": 5.1}
+{"name": "json/03-boolq1", "steps": 55, "tok_step": 4.655, "dflash": 4.891, "check": true, "s": 6.1}
+{"name": "math/00-14afaf18-think", "steps": 40, "tok_step": 4.5, "dflash": 4.65, "check": true, "s": 4.4}
+{"name": "math/01-bd5b0d97", "steps": 35, "tok_step": 5.371, "dflash": 5.371, "check": true, "s": 3.7}
+{"name": "math/02-4b193822-think", "steps": 84, "tok_step": 3.036, "dflash": 3.036, "check": true, "s": 8.6}
+{"name": "math/03-36dd5592", "steps": 60, "tok_step": 4.3, "dflash": 4.433, "check": true, "s": 6.1}
+{"name": "multilingual/00-37507e6a-think", "steps": 97, "tok_step": 2.629, "dflash": 1.897, "check": true, "s": 9.8}
+{"name": "multilingual/01-2f5322fd", "steps": 155, "tok_step": 1.652, "dflash": 1.529, "check": true, "s": 15.2}
+{"name": "multilingual/02-2ca502cd-think", "steps": 81, "tok_step": 3.222, "dflash": 2.506, "check": true, "s": 8.3}
+{"name": "multilingual/03-62d39190", "steps": 119, "tok_step": 2.168, "dflash": 2.218, "check": true, "s": 11.7}
+{"name": "qa/00-adc5ed5f-think", "steps": 103, "tok_step": 2.33, "dflash": 2.35, "check": true, "s": 10.3}
+{"name": "qa/01-121692a7", "steps": 145, "tok_step": 1.759, "dflash": 1.862, "check": true, "s": 15.8}
+{"name": "qa/02-c7fa9dac-think", "steps": 103, "tok_step": 2.485, "dflash": 2.621, "check": true, "s": 10.4}
+{"name": "qa/03-2b9de4e5", "steps": 125, "tok_step": 2.072, "dflash": 2.048, "check": true, "s": 12.3}
+{"name": "rag/00-330006df-think", "steps": 122, "tok_step": 2.123, "dflash": 2.107, "check": true, "s": 13.7}
+{"name": "rag/01-a66255bd", "steps": 53, "tok_step": 3.113, "dflash": 3.358, "check": true, "s": 8.3}
+{"name": "rag/02-b3ddda1e-think", "steps": 129, "tok_step": 1.977, "dflash": 2.054, "check": true, "s": 17.7}
+{"name": "rag/03-85c384e4", "steps": 51, "tok_step": 2.961, "dflash": 2.922, "check": true, "s": 6.8}
+{"name": "reasoning/00-mmlu-logical_fa-think", "steps": 63, "tok_step": 4.079, "dflash": 3.413, "check": true, "s": 6.6}
+{"name": "reasoning/01-7a9f9338", "steps": 42, "tok_step": 2.881, "dflash": 2.881, "check": true, "s": 4.2}
+{"name": "reasoning/02-arc-400887-think", "steps": 55, "tok_step": 4.655, "dflash": 4.727, "check": true, "s": 5.8}
+{"name": "reasoning/03-mmlu-moral_disp", "steps": 131, "tok_step": 1.947, "dflash": 1.954, "check": true, "s": 13.0}
+{"name": "roleplay/00-cbd7ad2d-think", "steps": 95, "tok_step": 2.716, "dflash": 2.832, "check": true, "s": 9.5}
+{"name": "roleplay/01-f5a6890f", "steps": 144, "tok_step": 1.812, "dflash": 1.785, "check": true, "s": 14.2}
+{"name": "roleplay/02-7c1045fd-think", "steps": 61, "tok_step": 4.197, "dflash": 4.049, "check": true, "s": 6.5}
+{"name": "roleplay/03-2121a48e", "steps": 146, "tok_step": 1.747, "dflash": 1.747, "check": true, "s": 18.8}
+{"name": "stem/00-8624cf28-think", "steps": 87, "tok_step": 2.931, "dflash": 2.621, "check": true, "s": 8.8}
+{"name": "stem/01-mmlu-astronomy", "steps": 111, "tok_step": 2.306, "dflash": 2.369, "check": true, "s": 11.2}
+{"name": "stem/02-e1f686c4-think", "steps": 137, "tok_step": 1.861, "dflash": 1.898, "check": true, "s": 13.6}
+{"name": "stem/03-f6e63ee7", "steps": 96, "tok_step": 2.667, "dflash": 2.729, "check": true, "s": 9.6}
+{"name": "summarization/00-boolq6-think", "steps": 93, "tok_step": 2.763, "dflash": 2.763, "check": true, "s": 9.9}
+{"name": "summarization/01-boolq9", "steps": 75, "tok_step": 1.84, "dflash": 1.853, "check": true, "s": 8.6}
+{"name": "summarization/02-boolq5-think", "steps": 79, "tok_step": 3.228, "dflash": 3.304, "check": true, "s": 8.5}
+{"name": "summarization/03-boolq2", "steps": 51, "tok_step": 2.49, "dflash": 2.412, "check": true, "s": 5.7}
+{"name": "writing/00-6ce4d69d-think", "steps": 90, "tok_step": 2.856, "dflash": 2.833, "check": true, "s": 9.4}
+{"name": "writing/01-adc7fcea", "steps": 112, "tok_step": 2.277, "dflash": 2.188, "check": true, "s": 13.2}
+{"name": "writing/02-ea9178c2-think", "steps": 109, "tok_step": 2.339, "dflash": 2.385, "check": true, "s": 10.9}
+{"name": "writing/03-a5d11560", "steps": 112, "tok_step": 2.286, "dflash": 2.232, "check": true, "s": 11.3}
+{"name": "agent/00-marshmallow-code__apispe-think", "steps": 35, "tok_step": 3.8, "dflash": 3.429, "check": true, "s": 21.1}
+{"name": "agent/01-pytest-dev__iniconfig", "steps": 11, "tok_step": 4.364, "dflash": 4.909, "check": true, "s": 14.1}
+{"name": "agent/02-buriy__python-readabilit-think", "steps": 58, "tok_step": 4.397, "dflash": 3.828, "check": true, "s": 17.0}
+{"name": "agent/03-pyupio__safety", "steps": 15, "tok_step": 5.333, "dflash": 4.467, "check": true, "s": 18.6}
+{"name": "long/00-long0-think", "steps": 117, "tok_step": 2.239, "dflash": 2.316, "check": true, "s": 31.7}
+{"name": "long/01-long1", "steps": 125, "tok_step": 2.064, "dflash": 2.048, "check": true, "s": 38.9}
+{"name": "long/02-long2-think", "steps": 128, "tok_step": 1.992, "dflash": 1.898, "check": true, "s": 40.2}
+{"name": "long/03-long3", "steps": 136, "tok_step": 1.882, "dflash": 1.801, "check": true, "s": 44.7}
+exit 0
+canary 27.0 TFLOP/s
+load: 4.23 6.74 6.36; swap: total = 14336.00M  used = 13445.00M  free = 891.00M  (encrypted)
+### done 2026-10-20 00:56:10
+acclog done 00:56:10

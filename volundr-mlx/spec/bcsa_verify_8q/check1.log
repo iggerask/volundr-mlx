@@ -1,0 +1,75 @@
+canary 24.7 TFLOP/s
+### test_bcsa_verify
+    (8, 2, 64, 8, 5000, 512, 4, 1200, 128) ntg=3: vs prefill kernels max |diff| 0.00391, 8.74% of outputs differ
+    (8, 2, 64, 5, 40, 64, 4, 4, 8) ntg=None: vs prefill kernels max |diff| 0.00391, 3.75% of outputs differ
+    (8, 2, 64, 5, 40, 64, 4, 4, 8) ntg=3: vs prefill kernels max |diff| 0.00781, 4.53% of outputs differ
+ok
+### test_volundr
+PASS test_convert_linear (0.0 s)
+PASS test_topk_tie_order (0.0 s)
+PASS test_kernels_match_ops (0.1 s)
+PASS test_model_matches_reference_cpu_fp32 (0.4 s)
+    gpu fp32 full: max rel err 2.60e-03
+    gpu fp32 chunked: max rel err 2.60e-03
+    gpu fp32 decode: max rel err 1.77e-03
+PASS test_model_gpu_fp32_kernels (0.1 s)
+    gpu bf16 full: max rel err 6.62e-02 (cpu bf16 floor 6.71e-02), argmax agreement 93.33%
+    gpu bf16 chunked: max rel err 7.23e-02 (cpu bf16 floor 6.54e-02), argmax agreement 91.67%
+    gpu bf16 decode: max rel err 6.71e-02 (cpu bf16 floor 6.79e-02), argmax agreement 93.33%
+PASS test_model_gpu_bf16 (0.5 s)
+    converted (quantized matmuls) vs dequantized dense, fp32 CPU: max rel 2.32e-06
+PASS test_convert_end_to_end (0.4 s)
+10/10 passed
+### check_verify all-cats 8q
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "rows": 128, "agree": 128, "kl_mean": 0.0006470499609142434, "kl_p99": 0.004784775897860527, "kl_max": 0.010353190824389458, "kl_mean_j0": 0.00046047202122867503, "kl_mean_j7": 0.0006661505147917968}
+{"name": "humanities/00-69d831e1-think", "prompt_tokens": 94, "rows": 136, "agree": 136, "kl_mean": 0.00026907215689103806, "kl_p99": 0.0019626368302851915, "kl_max": 0.0025344062596559525, "kl_mean_j0": 0.00013460784772261335, "kl_mean_j7": 0.00045147901099628534}
+{"name": "json/00-boolq2-think", "prompt_tokens": 463, "rows": 96, "agree": 94, "kl_mean": 0.000352993555854637, "kl_p99": 0.001952014397829771, "kl_max": 0.006527839228510857, "kl_mean_j0": 0.0002796810943689702, "kl_mean_j7": 0.00015339682339599037}
+{"name": "math/00-14afaf18-think", "prompt_tokens": 171, "rows": 104, "agree": 102, "kl_mean": 0.0002503198102130185, "kl_p99": 0.0021244531963020563, "kl_max": 0.0024886541068553925, "kl_mean_j0": 0.000251655177721957, "kl_mean_j7": 0.0004806024040307286}
+{"name": "multilingual/00-37507e6a-think", "prompt_tokens": 154, "rows": 96, "agree": 96, "kl_mean": 0.00017918980899726358, "kl_p99": 0.0019179627997800708, "kl_max": 0.005209452472627163, "kl_mean_j0": 0.0006009895050252586, "kl_mean_j7": 0.00017283380551210334}
+{"name": "qa/00-adc5ed5f-think", "prompt_tokens": 75, "rows": 104, "agree": 104, "kl_mean": 0.0007644454361910436, "kl_p99": 0.006124305073171854, "kl_max": 0.011831631883978844, "kl_mean_j0": 0.0007607760319751505, "kl_mean_j7": 0.00032927214184312283}
+{"name": "rag/00-330006df-think", "prompt_tokens": 738, "rows": 96, "agree": 96, "kl_mean": 0.00034294958915060905, "kl_p99": 0.0020089000463485718, "kl_max": 0.0042173429392278194, "kl_mean_j0": 0.00019375416065063136, "kl_mean_j7": 0.00030679431944801344}
+{"name": "reasoning/00-mmlu-logical_fa-think", "prompt_tokens": 181, "rows": 88, "agree": 88, "kl_mean": 0.000255777593572488, "kl_p99": 0.0019447654485702515, "kl_max": 0.0019537676125764847, "kl_mean_j0": 6.960501709303694e-05, "kl_mean_j7": 0.00029138175159921435}
+{"name": "roleplay/00-cbd7ad2d-think", "prompt_tokens": 105, "rows": 128, "agree": 128, "kl_mean": 0.00018209669581457336, "kl_p99": 0.0021777600049972534, "kl_max": 0.002284826710820198, "kl_mean_j0": 4.20243658078856e-05, "kl_mean_j7": 0.00026675887289790735}
+{"name": "stem/00-8624cf28-think", "prompt_tokens": 128, "rows": 88, "agree": 87, "kl_mean": 0.00014764602275278325, "kl_p99": 0.0019133016467094421, "kl_max": 0.004661981016397476, "kl_mean_j0": 0.00010353628032857351, "kl_mean_j7": 0.00019271958452489596}
+{"name": "summarization/00-boolq6-think", "prompt_tokens": 342, "rows": 144, "agree": 142, "kl_mean": 0.00021435430216405012, "kl_p99": 0.0026111332699656487, "kl_max": 0.003847116371616721, "kl_mean_j0": 0.0002652204189962741, "kl_mean_j7": 0.00027083378059970337}
+{"name": "writing/00-6ce4d69d-think", "prompt_tokens": 207, "rows": 88, "agree": 88, "kl_mean": 0.00022425534048885388, "kl_p99": 0.0019519329071044922, "kl_max": 0.002020135521888733, "kl_mean_j0": 0.00014046860896751748, "kl_mean_j7": 0.00028120914726108157}
+{"name": "agent/00-marshmallow-code__apispe-think", "prompt_tokens": 7260, "rows": 128, "agree": 127, "kl_mean": 0.00022254384087237527, "kl_p99": 0.0018864648882299662, "kl_max": 0.00407235324382782, "kl_mean_j0": 0.0004547090397779563, "kl_mean_j7": 0.00013155122994299578}
+{"name": "long/00-long0-think", "prompt_tokens": 8078, "rows": 96, "agree": 96, "kl_mean": 0.0007052035309712927, "kl_p99": 0.002350177615880966, "kl_max": 0.004143722355365753, "kl_mean_j0": 0.0007092116264704925, "kl_mean_j7": 0.0012638214231587193}
+{"all_rows": 1520, "kl_mean": 0.00033852687692428125, "kl_p99": 0.003847116371616721, "kl_max": 0.011831631883978844}
+### check_verify all-cats prefill
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "rows": 128, "agree": 128, "kl_mean": 0.0008186490320571055, "kl_p99": 0.006586980074644089, "kl_max": 0.006586980074644089, "kl_mean_j0": 0.0009632241832520094, "kl_mean_j7": 0.000702972702051885}
+{"name": "humanities/00-69d831e1-think", "prompt_tokens": 94, "rows": 136, "agree": 136, "kl_mean": 0.00023786179318897738, "kl_p99": 0.0034653116017580032, "kl_max": 0.0034653116017580032, "kl_mean_j0": 0.00020278076616850714, "kl_mean_j7": 0.0002475891633576728}
+{"name": "json/00-boolq2-think", "prompt_tokens": 463, "rows": 96, "agree": 95, "kl_mean": 0.0003146775355974893, "kl_p99": 0.0023084916174411774, "kl_max": 0.0023706797510385513, "kl_mean_j0": 0.0002916397455365131, "kl_mean_j7": 4.631795981298777e-05}
+{"name": "math/00-14afaf18-think", "prompt_tokens": 171, "rows": 104, "agree": 104, "kl_mean": 0.00023582807091286176, "kl_p99": 0.0019387733191251755, "kl_max": 0.0020295761059969664, "kl_mean_j0": 0.00024544329167068665, "kl_mean_j7": 0.00029365855616645054}
+{"name": "multilingual/00-37507e6a-think", "prompt_tokens": 154, "rows": 96, "agree": 96, "kl_mean": 0.00010099520314070058, "kl_p99": 0.0014585680328309536, "kl_max": 0.0014585680328309536, "kl_mean_j0": 0.0001292735126826964, "kl_mean_j7": 2.6682245772254493e-05}
+{"name": "qa/00-adc5ed5f-think", "prompt_tokens": 75, "rows": 104, "agree": 104, "kl_mean": 0.0006836947040319435, "kl_p99": 0.004057103767991066, "kl_max": 0.010375428944826126, "kl_mean_j0": 0.0006084166595795837, "kl_mean_j7": 0.00028167379808999944}
+{"name": "rag/00-330006df-think", "prompt_tokens": 738, "rows": 96, "agree": 96, "kl_mean": 0.00028037774249023065, "kl_p99": 0.0019162630196660757, "kl_max": 0.0019162630196660757, "kl_mean_j0": 0.0003588252126306794, "kl_mean_j7": 0.000318618845195943}
+{"name": "reasoning/00-mmlu-logical_fa-think", "prompt_tokens": 181, "rows": 88, "agree": 88, "kl_mean": 0.00030712900773463125, "kl_p99": 0.0037207433488219976, "kl_max": 0.0037207433488219976, "kl_mean_j0": 0.00019869161504266157, "kl_mean_j7": 0.0004893261486776985}
+{"name": "roleplay/00-cbd7ad2d-think", "prompt_tokens": 105, "rows": 128, "agree": 128, "kl_mean": 0.00017414517422875827, "kl_p99": 0.0017991997301578522, "kl_max": 0.006413999944925308, "kl_mean_j0": 5.0142061366692525e-05, "kl_mean_j7": 0.0001251786372200303}
+{"name": "stem/00-8624cf28-think", "prompt_tokens": 128, "rows": 88, "agree": 88, "kl_mean": 9.561144824912266e-05, "kl_p99": 0.0029760822653770447, "kl_max": 0.0029760822653770447, "kl_mean_j0": 6.598692524196658e-05, "kl_mean_j7": 0.0002721085617609743}
+{"name": "summarization/00-boolq6-think", "prompt_tokens": 342, "rows": 144, "agree": 141, "kl_mean": 0.00017590789865256878, "kl_p99": 0.0019469265826046467, "kl_max": 0.0019469265826046467, "kl_mean_j0": 0.0002634825957362752, "kl_mean_j7": 0.00022837007426023003}
+{"name": "writing/00-6ce4d69d-think", "prompt_tokens": 207, "rows": 88, "agree": 88, "kl_mean": 0.0004103281767147844, "kl_p99": 0.004534199368208647, "kl_max": 0.0052982354536652565, "kl_mean_j0": 0.00012581751621946896, "kl_mean_j7": 0.0002767768243175019}
+{"name": "agent/00-marshmallow-code__apispe-think", "prompt_tokens": 7260, "rows": 128, "agree": 127, "kl_mean": 0.00020379837857396887, "kl_p99": 0.0019474849104881287, "kl_max": 0.002129985950887203, "kl_mean_j0": 0.0004103863639193239, "kl_mean_j7": 0.00011777444133714843}
+{"name": "long/00-long0-think", "prompt_tokens": 8078, "rows": 96, "agree": 96, "kl_mean": 0.0008398812316924165, "kl_p99": 0.005352128762751818, "kl_max": 0.005433559883385897, "kl_mean_j0": 0.0004886816978699748, "kl_mean_j7": 0.0010029392979347084}
+{"all_rows": 1520, "kl_mean": 0.00034570634529859266, "kl_p99": 0.004534199368208647, "kl_max": 0.010375428944826126}
+### check_verify long+agent 8q
+{"name": "agent/00-marshmallow-code__apispe-think", "prompt_tokens": 7260, "rows": 128, "agree": 127, "kl_mean": 0.00032061120202202253, "kl_p99": 0.002347894012928009, "kl_max": 0.003480244427919388, "kl_mean_j0": 0.00038280743847846077, "kl_mean_j7": 0.0007309114637781278}
+{"name": "agent/01-pytest-dev__iniconfig", "prompt_tokens": 5404, "rows": 136, "agree": 136, "kl_mean": 0.00010398728649515572, "kl_p99": 0.0018436481477692723, "kl_max": 0.0021228352561593056, "kl_mean_j0": 6.255732767787093e-05, "kl_mean_j7": 0.00014610947016003873}
+{"name": "agent/02-buriy__python-readabilit-think", "prompt_tokens": 4545, "rows": 96, "agree": 96, "kl_mean": 0.0002952989972777375, "kl_p99": 0.003325167577713728, "kl_max": 0.004031641408801079, "kl_mean_j0": 0.00031339212190569415, "kl_mean_j7": 0.0001374408620837264}
+{"name": "agent/03-pyupio__safety", "prompt_tokens": 6911, "rows": 104, "agree": 104, "kl_mean": 4.255445685832383e-05, "kl_p99": 0.0011350399581715465, "kl_max": 0.0017065387219190598, "kl_mean_j0": 2.0133821142947613e-06, "kl_mean_j7": 0.00013284481960371984}
+{"name": "long/00-long0-think", "prompt_tokens": 8078, "rows": 96, "agree": 96, "kl_mean": 0.0007148140425472434, "kl_p99": 0.0053650736808776855, "kl_max": 0.005535732489079237, "kl_mean_j0": 0.0008061507240455512, "kl_mean_j7": 0.0011575200835902688}
+{"name": "long/01-long1", "prompt_tokens": 9552, "rows": 104, "agree": 104, "kl_mean": 0.0003410855386858369, "kl_p99": 0.002060655504465103, "kl_max": 0.002969600260257721, "kl_mean_j0": 0.00039457977798863255, "kl_mean_j7": 0.0002491365656020697}
+{"name": "long/02-long2-think", "prompt_tokens": 11085, "rows": 96, "agree": 95, "kl_mean": 0.0003526396073029181, "kl_p99": 0.0035136076621711254, "kl_max": 0.00351747777312994, "kl_mean_j0": 0.00021866583841016288, "kl_mean_j7": 0.0004768165347333782}
+{"name": "long/03-long3", "prompt_tokens": 12547, "rows": 88, "agree": 86, "kl_mean": 0.0005769640050125439, "kl_p99": 0.0022805556654930115, "kl_max": 0.005898244678974152, "kl_mean_j0": 0.001178827169309474, "kl_mean_j7": 0.0007177407289976724}
+{"all_rows": 848, "kl_mean": 0.00032626904590110254, "kl_p99": 0.0029999902471899986, "kl_max": 0.005898244678974152}
+### check_verify long+agent prefill
+{"name": "agent/00-marshmallow-code__apispe-think", "prompt_tokens": 7260, "rows": 128, "agree": 128, "kl_mean": 0.00028569231944193725, "kl_p99": 0.0021269237622618675, "kl_max": 0.0023994240909814835, "kl_mean_j0": 0.00036983343594137325, "kl_mean_j7": 0.000537890123827725}
+{"name": "agent/01-pytest-dev__iniconfig", "prompt_tokens": 5404, "rows": 136, "agree": 136, "kl_mean": 0.0001204072033812747, "kl_p99": 0.001925513963215053, "kl_max": 0.001959601417183876, "kl_mean_j0": 0.00014026835172444181, "kl_mean_j7": 6.26999851191615e-05}
+{"name": "agent/02-buriy__python-readabilit-think", "prompt_tokens": 4545, "rows": 96, "agree": 96, "kl_mean": 0.0003407430874974836, "kl_p99": 0.0019314964301884174, "kl_max": 0.0033272160217165947, "kl_mean_j0": 0.0002781210683470148, "kl_mean_j7": 0.0002763662084377394}
+{"name": "agent/03-pyupio__safety", "prompt_tokens": 6911, "rows": 104, "agree": 104, "kl_mean": 7.021443071890826e-05, "kl_p99": 0.0016638077795505524, "kl_max": 0.0017151683568954468, "kl_mean_j0": 0.0001287300864168523, "kl_mean_j7": 0.0001911237364550148}
+{"name": "long/00-long0-think", "prompt_tokens": 8078, "rows": 96, "agree": 95, "kl_mean": 0.0009132230431083908, "kl_p99": 0.0091177336871624, "kl_max": 0.012678667902946472, "kl_mean_j0": 0.0006106483143923924, "kl_mean_j7": 0.0015922413505577067}
+{"name": "long/01-long1", "prompt_tokens": 9552, "rows": 104, "agree": 104, "kl_mean": 0.0005521595931626053, "kl_p99": 0.0026658233255147934, "kl_max": 0.006484441924840212, "kl_mean_j0": 0.0004012436674288941, "kl_mean_j7": 0.00035617237718864856}
+{"name": "long/02-long2-think", "prompt_tokens": 11085, "rows": 96, "agree": 94, "kl_mean": 0.0004703267398712685, "kl_p99": 0.003612348809838295, "kl_max": 0.0037000318989157677, "kl_mean_j0": 0.00023906889281496055, "kl_mean_j7": 0.0003658047241164771}
+{"name": "long/03-long3", "prompt_tokens": 12547, "rows": 88, "agree": 85, "kl_mean": 0.000606669523973066, "kl_p99": 0.003988149110227823, "kl_max": 0.0073247067630290985, "kl_mean_j0": 0.0006583634728990585, "kl_mean_j7": 0.00042827054359657006}
+{"all_rows": 848, "kl_mean": 0.0003969220857400168, "kl_p99": 0.003926093690097332, "kl_max": 0.012678667902946472}
+canary 26.7 TFLOP/s

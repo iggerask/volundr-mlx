@@ -1,0 +1,11 @@
+### 2026-10-20 03:15:58 zsh -c cd spec && VOLUNDR_LMHEAD8=64 $PY specdec.py check --cats coding,agent,json,math --per-cat 1 --new 96 --nax --drafter-bits 4 --head-bits 4 --lookup --out runs/spec-accept_default_check.jsonl
+load: 3.04 3.03 3.21; swap: total = 12288.00M  used = 10739.88M  free = 1548.12M  (encrypted)
+canary 28.0 TFLOP/s
+{"name": "coding/00-12623519-think", "category": "coding", "split": "tune", "prompt_tokens": 197, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "target_head_q8": 64, "config": null, "loop": {}, "fused": true, "views": true, "bcsa_verify": "8q", "match": false, "first_diverge": 89, "n_ref": 96, "n_spec": 96, "margin_at_div": 0.0, "min_margin": 0.0, "mean_acc": 3.167}
+{"name": "json/00-boolq2-think", "category": "json", "split": "tune", "prompt_tokens": 463, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "target_head_q8": 64, "config": null, "loop": {}, "fused": true, "views": true, "bcsa_verify": "8q", "match": false, "first_diverge": 18, "n_ref": 96, "n_spec": 96, "margin_at_div": 0.0, "min_margin": 0.0, "mean_acc": 2.879}
+{"name": "math/00-14afaf18-think", "category": "math", "split": "tune", "prompt_tokens": 171, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "target_head_q8": 64, "config": null, "loop": {}, "fused": true, "views": true, "bcsa_verify": "8q", "match": true, "first_diverge": null, "n_ref": 96, "n_spec": 96, "margin_at_div": null, "min_margin": 0.0, "mean_acc": 3.654}
+{"name": "agent/00-marshmallow-code__apispe-think", "category": "agent", "split": "tune", "prompt_tokens": 7260, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "target_head_q8": 64, "config": null, "loop": {}, "fused": true, "views": true, "bcsa_verify": "8q", "match": true, "first_diverge": null, "n_ref": 96, "n_spec": 96, "margin_at_div": null, "min_margin": 0.0, "mean_acc": 3.846}
+exit 0
+canary 28.7 TFLOP/s
+load: 4.48 3.61 3.42; swap: total = 16384.00M  used = 15339.38M  free = 1044.62M  (encrypted)
+### done 2026-10-20 03:17:39

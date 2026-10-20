@@ -1,0 +1,20 @@
+### 2026-10-19 04:54:54 /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/dumps1.sh
+canary 26.0 TFLOP/s
+chat-nothink: 49 prompt tokens, teacher-forced top-1 agreement 47/48
+code-think: 80 prompt tokens, teacher-forced top-1 agreement 48/48
+zh-nothink: 36 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-6k: 6064 prompt tokens, teacher-forced top-1 agreement 47/48
+long-code-14k: 14064 prompt tokens, teacher-forced top-1 agreement 48/48
+chat-nothink: 49 prompt tokens, teacher-forced top-1 agreement 47/48
+code-think: 80 prompt tokens, teacher-forced top-1 agreement 48/48
+zh-nothink: 36 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-6k: 6064 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-14k: 14064 prompt tokens, teacher-forced top-1 agreement 48/48
+chat-nothink: 49 prompt tokens, teacher-forced top-1 agreement 47/48
+code-think: 80 prompt tokens, teacher-forced top-1 agreement 48/48
+zh-nothink: 36 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-6k: 6064 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-14k: 14064 prompt tokens, teacher-forced top-1 agreement 48/48
+exit 0
+canary 24.1 TFLOP/s
+### done 2026-10-19 04:58:54

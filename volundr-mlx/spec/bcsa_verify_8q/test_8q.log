@@ -1,0 +1,8 @@
+canary 28.5 TFLOP/s
+### test 8q Mon Oct 19 07:27:37 CEST 2026
+canary 26.9 TFLOP/s
+{"name": "long/08-long8-think", "category": "long", "split": "test", "prompt_tokens": 19096, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 256, "prefill_s": 45.858, "decode_s": 8.586, "wait_s": 7.732, "seg_s": [0.14285295642912388, 0.09766350127756596, 0.6125943753868341], "steps": 82, "mean_acc": 3.122, "tok_s": 29.699}
+{"name": "long/09-long9", "category": "long", "split": "test", "prompt_tokens": 21545, "T": 8, "drafter_bits": 4, "head_bits": 4, "nax": true, "lookup": true, "generated": 256, "prefill_s": 52.021, "decode_s": 14.887, "wait_s": 12.987, "seg_s": [0.3386117788031697, 0.2609061747789383, 1.2983175846748054], "steps": 131, "mean_acc": 1.947, "tok_s": 17.129}
+canary 23.1 TFLOP/s
+### done 8q Mon Oct 19 07:45:39 CEST 2026
+canary 23.1 TFLOP/s

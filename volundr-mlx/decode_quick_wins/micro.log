@@ -1,0 +1,16 @@
+### 2026-10-19 04:45:47 /Users/ingemarrask/personal-dev/llms/.venv/bin/python /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/micro.py
+canary 23.5 TFLOP/s
+add      n=  100:    0.36 ms total,  3.55 us per kernel
+add      n=  500:    1.00 ms total,  1.99 us per kernel
+add      n= 1000:    1.80 ms total,  1.80 us per kernel
+astype2  n=  100:    0.43 ms total,  2.16 us per kernel
+astype2  n=  500:    1.83 ms total,  1.83 us per kernel
+astype2  n= 1000:    3.56 ms total,  1.78 us per kernel
+norm     n=  100:    0.45 ms total,  4.46 us per kernel
+norm     n=  500:    1.46 ms total,  2.93 us per kernel
+norm     n= 1000:    2.75 ms total,  2.75 us per kernel
+indep add n=500: 1.20 ms, 2.39 us per kernel
+indep add n=1000: 2.26 ms, 2.26 us per kernel
+exit 0
+canary 23.1 TFLOP/s
+### done 2026-10-19 04:45:49

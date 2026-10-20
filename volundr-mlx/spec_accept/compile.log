@@ -1,0 +1,62 @@
+### 2026-10-20 01:08:09 zsh -c VOLUNDR_LMHEAD8=64 $PY spec_accept/check_compile.py
+load: 3.69 4.10 4.91; swap: total = 14336.00M  used = 13309.00M  free = 1027.00M  (encrypted)
+canary 28.6 TFLOP/s
+{"T": 8, "name": "coding/00-12623519-think", "prompt_tokens": 197, "steps": 24, "bit_identical": true, "build_ms_eager": 5.8, "build_ms_compiled": 3.21}
+{"T": 8, "name": "agent/00-marshmallow-code__apispe-think", "prompt_tokens": 7260, "steps": 24, "bit_identical": true, "build_ms_eager": 6.14, "build_ms_compiled": 3.51}
+{"T": 8, "name": "long/03-long3", "prompt_tokens": 12547, "steps": 24, "bit_identical": true, "build_ms_eager": 6.15, "build_ms_compiled": 3.61}
+{"T": 16, "name": "coding/00-12623519-think", "prompt_tokens": 197, "steps": 24, "bit_identical": true, "build_ms_eager": 5.95, "build_ms_compiled": 3.4}
+{"T": 16, "name": "agent/00-marshmallow-code__apispe-think", "prompt_tokens": 7260, "steps": 13, "bit_identical": true, "build_ms_eager": 6.21, "build_ms_compiled": 3.69}
+{"T": 16, "name": "long/03-long3", "prompt_tokens": 12547, "steps": 24, "bit_identical": true, "build_ms_eager": 6.17, "build_ms_compiled": 3.63}
+ALL BIT-IDENTICAL
+exit 0
+canary 28.1 TFLOP/s
+load: 3.37 3.71 4.54; swap: total = 14336.00M  used = 13269.00M  free = 1067.00M  (encrypted)
+### done 2026-10-20 01:12:08
+### 2026-10-20 01:12:08 zsh -c cd spec && VOLUNDR_LMHEAD8=64 $PY prof_vbuild.py --reps 20
+load: 3.37 3.71 4.54; swap: total = 14336.00M  used = 13269.00M  free = 1067.00M  (encrypted)
+canary 29.0 TFLOP/s
+verify build T=8, GPU idle: median 7.26 ms (of 20)
+verify build T=8, GPU busy: median 6.26 ms (of 20)
+         278000 function calls in 0.143 seconds
+
+   Ordered by: internal time
+   List reduced from 51 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    11160    0.029    0.000    0.029    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/agens-mlx-bench/smallm/qmm_nax.py:128(qmm_nax_prepped)
+    11160    0.017    0.000    0.067    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec/nax_hook.py:23(__call__)
+     6840    0.013    0.000    0.014    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/agens-mlx-bench/smallm/prep_nax.py:113(_run)
+     1080    0.010    0.000    0.055    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec/verify.py:33(_kda)
+     4320    0.010    0.000    0.010    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/kernels.py:285(rms_norm)
+    86500    0.007    0.000    0.012    0.000 /Users/ingemarrask/personal-dev/llms/.venv/lib/python3.12/site-packages/mlx/nn/layers/base.py:99(__getattr__)
+     1440    0.005    0.000    0.005    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/decode_fused.py:230(mix_norm)
+    86520    0.005    0.000    0.005    0.000 {method 'get' of 'dict' objects}
+      340    0.004    0.000    0.004    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/bcsa_verify.py:278(attend)
+     1440    0.004    0.000    0.016    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/volundr.py:302(mix)
+     1080    0.004    0.000    0.004    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/kernels.py:446(gated_delta_vec)
+      360    0.003    0.000    0.023    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec/verify.py:103(_attn)
+     1440    0.003    0.000    0.003    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/kernels.py:194(mhc_combine)
+     1440    0.003    0.000    0.118    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec/verify.py:123(_layer)
+     1080    0.003    0.000    0.003    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/kernels.py:874(kda_conv_qk4)
+     1440    0.003    0.000    0.006    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/volundr.py:319(combine)
+     2940    0.002    0.000    0.002    0.000 /Users/ingemarrask/personal-dev/llms/.venv/lib/python3.12/site-packages/mlx/nn/layers/linear.py:70(__call__)
+     1440    0.002    0.000    0.029    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/volundr.py:184(__call__)
+     1100    0.002    0.000    0.002    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/decode_fused.py:533(rms_norm_mlx)
+       20    0.002    0.000    0.142    0.007 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec/verify.py:160(forward)
+     1080    0.002    0.000    0.002    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/kernels.py:918(gated_norm)
+     6840    0.001    0.000    0.015    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/agens-mlx-bench/smallm/prep_nax.py:123(prep)
+      340    0.001    0.000    0.007    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec/verify.py:56(_bcsa_verify)
+     2560    0.001    0.000    0.001    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/decode_fused.py:39(active)
+     3220    0.001    0.000    0.001    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/volundr.py:27(use_kernels)
+    11160    0.001    0.000    0.001    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/agens-mlx-bench/smallm/qmm_nax.py:92(_kernel)
+      720    0.001    0.000    0.001    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/volundr.py:658(_rope)
+     1080    0.001    0.000    0.004    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/volundr.py:136(__call__)
+     1700    0.001    0.000    0.001    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/spec/verify.py:69(<lambda>)
+     1120    0.001    0.000    0.003    0.000 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-af7e4848a9651c921/volundr-mlx/volundr.py:140(_rms_norm_f32)
+
+
+exit 0
+canary 28.1 TFLOP/s
+load: 3.87 3.81 4.55; swap: total = 14336.00M  used = 13261.00M  free = 1075.00M  (encrypted)
+### done 2026-10-20 01:12:27
+next2 done 01:34:03

@@ -1,0 +1,82 @@
+### 2026-10-19 22:10:57 /Users/ingemarrask/personal-dev/llms/.venv/bin/python tests/test_volundr.py
+load: 11.61 21.14 19.54
+canary 25.6 TFLOP/s
+PASS test_engram_hash (0.0 s)
+PASS test_sinkhorn_kernel (0.0 s)
+PASS test_gated_delta_vec_kernel (0.0 s)
+  t: scales do not repeat over g128; keeping the stored g64
+PASS test_convert_linear (0.0 s)
+PASS test_topk_tie_order (0.0 s)
+PASS test_kernels_match_ops (0.1 s)
+PASS test_model_matches_reference_cpu_fp32 (0.5 s)
+    gpu fp32 full: max rel err 2.60e-03
+    gpu fp32 chunked: max rel err 2.60e-03
+    gpu fp32 decode: max rel err 1.77e-03
+PASS test_model_gpu_fp32_kernels (0.1 s)
+    gpu bf16 full: max rel err 6.62e-02 (cpu bf16 floor 6.71e-02), argmax agreement 93.33%
+    gpu bf16 chunked: max rel err 7.23e-02 (cpu bf16 floor 6.54e-02), argmax agreement 91.67%
+    gpu bf16 decode: max rel err 6.71e-02 (cpu bf16 floor 6.79e-02), argmax agreement 93.33%
+PASS test_model_gpu_bf16 (0.5 s)
+    converted (quantized matmuls) vs dequantized dense, fp32 CPU: max rel 2.32e-06
+PASS test_convert_end_to_end (0.4 s)
+10/10 passed
+exit 0
+canary 26.0 TFLOP/s
+load: 11.40 20.94 19.48
+### done 2026-10-19 22:11:01
+### 2026-10-19 22:11:01 /Users/ingemarrask/personal-dev/llms/.venv/bin/python tests/test_decode_fused.py
+load: 11.40 20.94 19.48
+canary 25.6 TFLOP/s
+PASS test_mix_norm (0.3 s)
+PASS test_combine_norm (0.1 s)
+PASS test_kda_conv_gates (0.0 s)
+PASS test_gated_delta_bf16_out (0.0 s)
+PASS test_rms_norm_mlx (0.0 s)
+PASS test_rms_norm_unrolled_equals_strided (0.0 s)
+PASS test_bcsa_views_equal_integer_index (0.0 s)
+PASS test_tiny_model_fused_equals_unfused (0.2 s)
+8/8 passed
+exit 0
+canary 25.2 TFLOP/s
+load: 11.40 20.94 19.48
+### done 2026-10-19 22:11:03
+### 2026-10-19 22:11:03 /Users/ingemarrask/personal-dev/llms/.venv/bin/python tests/test_bcsa_verify.py
+load: 11.40 20.94 19.48
+canary 25.7 TFLOP/s
+    (24, 4, 256, 8, 500, 128, 4, 200, 16) ntg=None: vs prefill kernels max |diff| 0.00391, 8.15% of outputs differ
+    (24, 4, 256, 8, 500, 128, 4, 200, 16) ntg=3: vs prefill kernels max |diff| 0.00781, 6.75% of outputs differ
+    (24, 4, 256, 8, 300, 128, 4, 50, 64) ntg=None: vs prefill kernels max |diff| 0.00781, 8.22% of outputs differ
+    (24, 4, 256, 8, 300, 128, 4, 50, 64) ntg=3: vs prefill kernels max |diff| 0.00781, 8.86% of outputs differ
+    (24, 4, 256, 8, 90, 128, 4, 8, 16) ntg=None: vs prefill kernels max |diff| 0.00781, 6.38% of outputs differ
+    (24, 4, 256, 8, 90, 128, 4, 8, 16) ntg=3: vs prefill kernels max |diff| 0.00391, 4.30% of outputs differ
+    (24, 4, 256, 8, 124, 128, 4, 8, 16) ntg=None: vs prefill kernels max |diff| 0.00781, 7.08% of outputs differ
+    (24, 4, 256, 8, 124, 128, 4, 8, 16) ntg=3: vs prefill kernels max |diff| 0.00391, 5.30% of outputs differ
+    (24, 4, 256, 1, 1000, 128, 4, 300, 32) ntg=None: vs prefill kernels max |diff| 0.00781, 7.16% of outputs differ
+    (24, 4, 256, 1, 1000, 128, 4, 300, 32) ntg=3: vs prefill kernels max |diff| 0.00391, 7.29% of outputs differ
+    (24, 4, 256, 3, 1000, 128, 4, 300, 32) ntg=None: vs prefill kernels max |diff| 0.00781, 8.68% of outputs differ
+    (24, 4, 256, 3, 1000, 128, 4, 300, 32) ntg=3: vs prefill kernels max |diff| 0.00391, 7.22% of outputs differ
+    (24, 4, 256, 16, 777, 256, 4, 200, 24) ntg=None: vs prefill kernels max |diff| 0.00391, 8.72% of outputs differ
+    (24, 4, 256, 16, 777, 256, 4, 200, 24) ntg=3: vs prefill kernels max |diff| 0.00781, 7.91% of outputs differ
+    (8, 2, 64, 8, 5000, 512, 4, 1200, 128) ntg=None: vs prefill kernels max |diff| 0.00391, 9.23% of outputs differ
+    (8, 2, 64, 8, 5000, 512, 4, 1200, 128) ntg=3: vs prefill kernels max |diff| 0.00391, 8.74% of outputs differ
+    (8, 2, 64, 5, 40, 64, 4, 4, 8) ntg=None: vs prefill kernels max |diff| 0.00391, 3.75% of outputs differ
+    (8, 2, 64, 5, 40, 64, 4, 4, 8) ntg=3: vs prefill kernels max |diff| 0.00781, 4.53% of outputs differ
+ok
+exit 0
+canary 25.8 TFLOP/s
+load: 11.40 20.94 19.48
+### done 2026-10-19 22:11:04
+### 2026-10-19 22:11:04 zsh -c $PY dump_logits.py --model models/volundr-int4-mlx --prompts parity/prompts.json --out parity/combined-test_default.bin --tokens-out parity/combined-test_default.json && cmp parity/combined-test_default.bin parity/mlx.bin && echo "DEFAULT DUMP == parity/mlx.bin (bit-identical)"
+load: 11.40 20.94 19.48
+canary 25.3 TFLOP/s
+chat-nothink: 49 prompt tokens, teacher-forced top-1 agreement 47/48
+code-think: 80 prompt tokens, teacher-forced top-1 agreement 48/48
+zh-nothink: 36 prompt tokens, teacher-forced top-1 agreement 48/48
+long-code-6k: 6064 prompt tokens, teacher-forced top-1 agreement 47/48
+long-code-14k: 14064 prompt tokens, teacher-forced top-1 agreement 48/48
+DEFAULT DUMP == parity/mlx.bin (bit-identical)
+exit 0
+canary 24.0 TFLOP/s
+load: 13.70 18.57 18.67
+### done 2026-10-19 22:12:33
+gates chain done 22:21:13

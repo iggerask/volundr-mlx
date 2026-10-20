@@ -1,0 +1,28 @@
+### 2026-10-19 08:45:52 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-ae877536cb39838a7/volundr-mlx/decode_quick_wins/run11.sh
+canary 25.2 TFLOP/s
+prompt 23520 tokens; 48 timed tokens after 8; configs ['main', 'fused+copyidx', 'fused', 'fused+q8g64']
+prefill 59.3 s
+rep 1 main                       86.95 ms/token (11.50 tok/s) at 23805 positions
+rep 1 fused+copyidx              87.36 ms/token (11.45 tok/s) at 23862 positions
+rep 1 fused                     114.45 ms/token ( 8.74 tok/s) at 23919 positions
+rep 1 fused+q8g64               123.41 ms/token ( 8.10 tok/s) at 23976 positions
+rep 2 main                      121.10 ms/token ( 8.26 tok/s) at 24033 positions
+rep 2 fused+copyidx              88.93 ms/token (11.24 tok/s) at 24090 positions
+rep 2 fused                      98.51 ms/token (10.15 tok/s) at 24147 positions
+rep 2 fused+q8g64                76.83 ms/token (13.02 tok/s) at 24204 positions
+rep 3 main                       87.47 ms/token (11.43 tok/s) at 24261 positions
+rep 3 fused+copyidx              84.86 ms/token (11.78 tok/s) at 24318 positions
+rep 3 fused                      75.31 ms/token (13.28 tok/s) at 24375 positions
+rep 3 fused+q8g64                70.65 ms/token (14.15 tok/s) at 24432 positions
+rep 4 main                       90.39 ms/token (11.06 tok/s) at 24489 positions
+rep 4 fused+copyidx              80.64 ms/token (12.40 tok/s) at 24546 positions
+rep 4 fused                      78.25 ms/token (12.78 tok/s) at 24603 positions
+rep 4 fused+q8g64                73.96 ms/token (13.52 tok/s) at 24660 positions
+summary (ms/token):
+  main                     best   86.95  median   88.93  (11.50 tok/s)    +0.0% vs main
+  fused+copyidx            best   80.64  median   86.11  (12.40 tok/s)    -7.3% vs main
+  fused                    best   75.31  median   88.38  (13.28 tok/s)   -13.4% vs main
+  fused+q8g64              best   70.65  median   75.39  (14.15 tok/s)   -18.7% vs main
+exit 0
+canary 25.7 TFLOP/s
+### done 2026-10-19 08:48:48

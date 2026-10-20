@@ -1,0 +1,46 @@
+### 2026-10-19 05:10:08 /Users/ingemarrask/personal-dev/llms/.venv/bin/python /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/ablate.py all real 3
+canary 25.9 TFLOP/s
+rep 0 base         72.48 ms/step
+rep 0 params       72.73 ms/step
+rep 0 mix          77.87 ms/step
+rep 0 combine      22.12 ms/step
+rep 0 rmsnorm      60.10 ms/step
+rep 0 conv         74.84 ms/step
+rep 0 gdn          75.82 ms/step
+rep 0 gnorm        74.63 ms/step
+rep 0 gates        78.25 ms/step
+rep 0 fused        75.99 ms/step
+rep 1 base         75.36 ms/step
+rep 1 params       75.85 ms/step
+rep 1 mix          72.27 ms/step
+rep 1 combine      22.28 ms/step
+rep 1 rmsnorm      58.78 ms/step
+rep 1 conv         73.13 ms/step
+rep 1 gdn          70.47 ms/step
+rep 1 gnorm        75.46 ms/step
+rep 1 gates        78.26 ms/step
+rep 1 fused        74.39 ms/step
+rep 2 base         74.33 ms/step
+rep 2 params       73.55 ms/step
+rep 2 mix          74.03 ms/step
+rep 2 combine      23.26 ms/step
+rep 2 rmsnorm      64.93 ms/step
+rep 2 conv         74.83 ms/step
+rep 2 gdn          75.36 ms/step
+rep 2 gnorm        74.46 ms/step
+rep 2 gates        74.97 ms/step
+rep 2 fused        75.77 ms/step
+best:
+  base         72.48 ms/step  delta  +0.00
+  params       72.73 ms/step  delta  -0.25
+  mix          72.27 ms/step  delta  +0.21
+  combine      22.12 ms/step  delta +50.36
+  rmsnorm      58.78 ms/step  delta +13.70
+  conv         73.13 ms/step  delta  -0.65
+  gdn          70.47 ms/step  delta  +2.01
+  gnorm        74.46 ms/step  delta  -1.98
+  gates        74.97 ms/step  delta  -2.49
+  fused        74.39 ms/step  delta  -1.91
+exit 0
+canary 26.2 TFLOP/s
+### done 2026-10-19 05:11:51

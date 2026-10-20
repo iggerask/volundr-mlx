@@ -1,0 +1,368 @@
+### 2026-10-19 22:21:30 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats coding,humanities,json,math,multilingual,qa,rag --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 29.44 22.36 19.17
+canary 26.5 TFLOP/s
+spec: 28 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "coding/00-12623519-think", "config": "baseline", "generated": 256, "decode_s": 9.248, "steps": 90, "mean_acc": 2.844, "tok_s": 27.574}
+{"name": "coding/00-12623519-think", "config": "exact", "generated": 256, "decode_s": 9.438, "steps": 94, "mean_acc": 2.745, "tok_s": 27.02}
+{"name": "coding/00-12623519-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.784, "steps": 92, "mean_acc": 2.783, "tok_s": 29.031}
+{"name": "coding/01-91ec6537", "config": "baseline", "generated": 256, "decode_s": 5.714, "steps": 57, "mean_acc": 4.509, "tok_s": 44.625}
+{"name": "coding/01-91ec6537", "config": "exact", "generated": 256, "decode_s": 5.635, "steps": 57, "mean_acc": 4.509, "tok_s": 45.257}
+{"name": "coding/01-91ec6537", "config": "exact+q8g64", "generated": 256, "decode_s": 5.49, "steps": 57, "mean_acc": 4.509, "tok_s": 46.449}
+{"name": "coding/02-b9ec7a3c-think", "config": "baseline", "generated": 256, "decode_s": 10.122, "steps": 98, "mean_acc": 2.602, "tok_s": 25.192}
+{"name": "coding/02-b9ec7a3c-think", "config": "exact", "generated": 256, "decode_s": 9.887, "steps": 99, "mean_acc": 2.576, "tok_s": 25.793}
+{"name": "coding/02-b9ec7a3c-think", "config": "exact+q8g64", "generated": 256, "decode_s": 9.454, "steps": 98, "mean_acc": 2.602, "tok_s": 26.974}
+{"name": "coding/03-97f49a2c", "config": "baseline", "generated": 256, "decode_s": 9.343, "steps": 91, "mean_acc": 2.846, "tok_s": 27.294}
+{"name": "coding/03-97f49a2c", "config": "exact", "generated": 256, "decode_s": 9.674, "steps": 97, "mean_acc": 2.639, "tok_s": 26.359}
+{"name": "coding/03-97f49a2c", "config": "exact+q8g64", "generated": 256, "decode_s": 8.761, "steps": 89, "mean_acc": 2.865, "tok_s": 29.106}
+{"name": "humanities/00-69d831e1-think", "config": "baseline", "generated": 256, "decode_s": 11.049, "steps": 109, "mean_acc": 2.339, "tok_s": 23.079}
+{"name": "humanities/00-69d831e1-think", "config": "exact", "generated": 256, "decode_s": 11.127, "steps": 111, "mean_acc": 2.297, "tok_s": 22.918}
+{"name": "humanities/00-69d831e1-think", "config": "exact+q8g64", "generated": 256, "decode_s": 11.294, "steps": 111, "mean_acc": 2.297, "tok_s": 22.579}
+{"name": "humanities/01-7f06f76a", "config": "baseline", "generated": 256, "decode_s": 13.412, "steps": 128, "mean_acc": 1.992, "tok_s": 19.013}
+{"name": "humanities/01-7f06f76a", "config": "exact", "generated": 256, "decode_s": 12.644, "steps": 125, "mean_acc": 2.04, "tok_s": 20.167}
+{"name": "humanities/01-7f06f76a", "config": "exact+q8g64", "generated": 256, "decode_s": 12.291, "steps": 125, "mean_acc": 2.04, "tok_s": 20.748}
+{"name": "humanities/02-mmlu-prehistory-think", "config": "baseline", "generated": 256, "decode_s": 10.162, "steps": 94, "mean_acc": 2.723, "tok_s": 25.095}
+{"name": "humanities/02-mmlu-prehistory-think", "config": "exact", "generated": 256, "decode_s": 9.546, "steps": 95, "mean_acc": 2.695, "tok_s": 26.714}
+{"name": "humanities/02-mmlu-prehistory-think", "config": "exact+q8g64", "generated": 256, "decode_s": 9.505, "steps": 95, "mean_acc": 2.695, "tok_s": 26.828}
+{"name": "humanities/03-mmlu-high_schoo", "config": "baseline", "generated": 256, "decode_s": 11.79, "steps": 113, "mean_acc": 2.265, "tok_s": 21.628}
+{"name": "humanities/03-mmlu-high_schoo", "config": "exact", "generated": 256, "decode_s": 11.567, "steps": 115, "mean_acc": 2.226, "tok_s": 22.045}
+{"name": "humanities/03-mmlu-high_schoo", "config": "exact+q8g64", "generated": 256, "decode_s": 11.707, "steps": 116, "mean_acc": 2.198, "tok_s": 21.782}
+{"name": "json/00-boolq2-think", "config": "baseline", "generated": 256, "decode_s": 9.682, "steps": 92, "mean_acc": 2.783, "tok_s": 26.337}
+{"name": "json/00-boolq2-think", "config": "exact", "generated": 256, "decode_s": 9.088, "steps": 90, "mean_acc": 2.889, "tok_s": 28.06}
+{"name": "json/00-boolq2-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.862, "steps": 91, "mean_acc": 2.879, "tok_s": 28.773}
+{"name": "json/01-boolq9", "config": "baseline", "generated": 246, "decode_s": 6.599, "steps": 65, "mean_acc": 3.785, "tok_s": 37.126}
+{"name": "json/01-boolq9", "config": "exact", "generated": 239, "decode_s": 6.614, "steps": 67, "mean_acc": 3.567, "tok_s": 35.984}
+{"name": "json/01-boolq9", "config": "exact+q8g64", "generated": 246, "decode_s": 6.249, "steps": 66, "mean_acc": 3.727, "tok_s": 39.205}
+{"name": "json/02-boolq5-think", "config": "baseline", "generated": 256, "decode_s": 4.307, "steps": 43, "mean_acc": 6.0, "tok_s": 59.2}
+{"name": "json/02-boolq5-think", "config": "exact", "generated": 256, "decode_s": 4.052, "steps": 42, "mean_acc": 6.143, "tok_s": 62.936}
+{"name": "json/02-boolq5-think", "config": "exact+q8g64", "generated": 256, "decode_s": 4.028, "steps": 42, "mean_acc": 6.143, "tok_s": 63.305}
+{"name": "json/03-boolq1", "config": "baseline", "generated": 256, "decode_s": 6.812, "steps": 55, "mean_acc": 4.655, "tok_s": 37.432}
+{"name": "json/03-boolq1", "config": "exact", "generated": 256, "decode_s": 6.319, "steps": 53, "mean_acc": 4.83, "tok_s": 40.353}
+{"name": "json/03-boolq1", "config": "exact+q8g64", "generated": 256, "decode_s": 5.75, "steps": 55, "mean_acc": 4.655, "tok_s": 44.349}
+{"name": "math/00-14afaf18-think", "config": "baseline", "generated": 181, "decode_s": 4.24, "steps": 41, "mean_acc": 4.39, "tok_s": 42.458}
+{"name": "math/00-14afaf18-think", "config": "exact", "generated": 181, "decode_s": 3.926, "steps": 39, "mean_acc": 4.615, "tok_s": 45.848}
+{"name": "math/00-14afaf18-think", "config": "exact+q8g64", "generated": 181, "decode_s": 3.89, "steps": 40, "mean_acc": 4.5, "tok_s": 46.27}
+{"name": "math/01-bd5b0d97", "config": "baseline", "generated": 188, "decode_s": 3.522, "steps": 35, "mean_acc": 5.371, "tok_s": 53.1}
+{"name": "math/01-bd5b0d97", "config": "exact", "generated": 188, "decode_s": 3.422, "steps": 35, "mean_acc": 5.371, "tok_s": 54.649}
+{"name": "math/01-bd5b0d97", "config": "exact+q8g64", "generated": 188, "decode_s": 3.304, "steps": 35, "mean_acc": 5.371, "tok_s": 56.601}
+{"name": "math/02-4b193822-think", "config": "baseline", "generated": 256, "decode_s": 8.372, "steps": 83, "mean_acc": 3.072, "tok_s": 30.459}
+{"name": "math/02-4b193822-think", "config": "exact", "generated": 256, "decode_s": 9.767, "steps": 94, "mean_acc": 2.734, "tok_s": 26.108}
+{"name": "math/02-4b193822-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.227, "steps": 84, "mean_acc": 3.036, "tok_s": 30.994}
+{"name": "math/03-36dd5592", "config": "baseline", "generated": 256, "decode_s": 6.256, "steps": 62, "mean_acc": 4.161, "tok_s": 40.764}
+{"name": "math/03-36dd5592", "config": "exact", "generated": 256, "decode_s": 5.863, "steps": 61, "mean_acc": 4.295, "tok_s": 43.49}
+{"name": "math/03-36dd5592", "config": "exact+q8g64", "generated": 256, "decode_s": 5.634, "steps": 60, "mean_acc": 4.3, "tok_s": 45.258}
+{"name": "multilingual/00-37507e6a-think", "config": "baseline", "generated": 256, "decode_s": 9.294, "steps": 95, "mean_acc": 2.705, "tok_s": 27.438}
+{"name": "multilingual/00-37507e6a-think", "config": "exact", "generated": 256, "decode_s": 9.264, "steps": 97, "mean_acc": 2.629, "tok_s": 27.525}
+{"name": "multilingual/00-37507e6a-think", "config": "exact+q8g64", "generated": 256, "decode_s": 9.006, "steps": 97, "mean_acc": 2.629, "tok_s": 28.313}
+{"name": "multilingual/01-2f5322fd", "config": "baseline", "generated": 256, "decode_s": 15.484, "steps": 155, "mean_acc": 1.658, "tok_s": 16.468}
+{"name": "multilingual/01-2f5322fd", "config": "exact", "generated": 256, "decode_s": 15.002, "steps": 155, "mean_acc": 1.652, "tok_s": 16.997}
+{"name": "multilingual/01-2f5322fd", "config": "exact+q8g64", "generated": 256, "decode_s": 14.254, "steps": 155, "mean_acc": 1.652, "tok_s": 17.89}
+{"name": "multilingual/02-2ca502cd-think", "config": "baseline", "generated": 256, "decode_s": 7.798, "steps": 79, "mean_acc": 3.304, "tok_s": 32.701}
+{"name": "multilingual/02-2ca502cd-think", "config": "exact", "generated": 256, "decode_s": 7.944, "steps": 81, "mean_acc": 3.222, "tok_s": 32.1}
+{"name": "multilingual/02-2ca502cd-think", "config": "exact+q8g64", "generated": 256, "decode_s": 7.619, "steps": 81, "mean_acc": 3.222, "tok_s": 33.471}
+{"name": "multilingual/03-62d39190", "config": "baseline", "generated": 256, "decode_s": 12.567, "steps": 127, "mean_acc": 2.008, "tok_s": 20.291}
+{"name": "multilingual/03-62d39190", "config": "exact", "generated": 256, "decode_s": 11.356, "steps": 119, "mean_acc": 2.168, "tok_s": 22.456}
+{"name": "multilingual/03-62d39190", "config": "exact+q8g64", "generated": 256, "decode_s": 10.952, "steps": 119, "mean_acc": 2.168, "tok_s": 23.283}
+{"name": "qa/00-adc5ed5f-think", "config": "baseline", "generated": 238, "decode_s": 10.522, "steps": 107, "mean_acc": 2.224, "tok_s": 22.524}
+{"name": "qa/00-adc5ed5f-think", "config": "exact", "generated": 240, "decode_s": 9.775, "steps": 103, "mean_acc": 2.33, "tok_s": 24.449}
+{"name": "qa/00-adc5ed5f-think", "config": "exact+q8g64", "generated": 240, "decode_s": 9.482, "steps": 103, "mean_acc": 2.33, "tok_s": 25.207}
+{"name": "qa/01-121692a7", "config": "baseline", "generated": 251, "decode_s": 13.462, "steps": 137, "mean_acc": 1.832, "tok_s": 18.571}
+{"name": "qa/01-121692a7", "config": "exact", "generated": 256, "decode_s": 13.859, "steps": 145, "mean_acc": 1.759, "tok_s": 18.399}
+{"name": "qa/01-121692a7", "config": "exact+q8g64", "generated": 256, "decode_s": 13.454, "steps": 145, "mean_acc": 1.759, "tok_s": 18.954}
+{"name": "qa/02-c7fa9dac-think", "config": "baseline", "generated": 256, "decode_s": 11.037, "steps": 112, "mean_acc": 2.295, "tok_s": 23.105}
+{"name": "qa/02-c7fa9dac-think", "config": "exact", "generated": 256, "decode_s": 10.569, "steps": 110, "mean_acc": 2.336, "tok_s": 24.127}
+{"name": "qa/02-c7fa9dac-think", "config": "exact+q8g64", "generated": 256, "decode_s": 9.543, "steps": 103, "mean_acc": 2.485, "tok_s": 26.722}
+{"name": "qa/03-2b9de4e5", "config": "baseline", "generated": 256, "decode_s": 12.382, "steps": 125, "mean_acc": 2.056, "tok_s": 20.595}
+{"name": "qa/03-2b9de4e5", "config": "exact", "generated": 256, "decode_s": 11.934, "steps": 124, "mean_acc": 2.056, "tok_s": 21.367}
+{"name": "qa/03-2b9de4e5", "config": "exact+q8g64", "generated": 256, "decode_s": 11.681, "steps": 125, "mean_acc": 2.072, "tok_s": 21.83}
+{"name": "rag/00-330006df-think", "config": "baseline", "generated": 256, "decode_s": 12.243, "steps": 121, "mean_acc": 2.107, "tok_s": 20.828}
+{"name": "rag/00-330006df-think", "config": "exact", "generated": 256, "decode_s": 11.795, "steps": 122, "mean_acc": 2.123, "tok_s": 21.62}
+{"name": "rag/00-330006df-think", "config": "exact+q8g64", "generated": 256, "decode_s": 11.655, "steps": 122, "mean_acc": 2.123, "tok_s": 21.879}
+{"name": "rag/01-a66255bd", "config": "baseline", "generated": 164, "decode_s": 7.448, "steps": 58, "mean_acc": 2.828, "tok_s": 21.885}
+{"name": "rag/01-a66255bd", "config": "exact", "generated": 164, "decode_s": 6.061, "steps": 56, "mean_acc": 2.929, "tok_s": 26.893}
+{"name": "rag/01-a66255bd", "config": "exact+q8g64", "generated": 165, "decode_s": 5.301, "steps": 53, "mean_acc": 3.113, "tok_s": 30.94}
+{"name": "rag/02-b3ddda1e-think", "config": "baseline", "generated": 256, "decode_s": 13.779, "steps": 134, "mean_acc": 1.903, "tok_s": 18.506}
+{"name": "rag/02-b3ddda1e-think", "config": "exact", "generated": 256, "decode_s": 13.139, "steps": 136, "mean_acc": 1.882, "tok_s": 19.409}
+{"name": "rag/02-b3ddda1e-think", "config": "exact+q8g64", "generated": 256, "decode_s": 12.267, "steps": 129, "mean_acc": 1.977, "tok_s": 20.788}
+{"name": "rag/03-85c384e4", "config": "baseline", "generated": 151, "decode_s": 4.843, "steps": 48, "mean_acc": 3.146, "tok_s": 30.969}
+{"name": "rag/03-85c384e4", "config": "exact", "generated": 151, "decode_s": 4.899, "steps": 51, "mean_acc": 2.961, "tok_s": 30.622}
+{"name": "rag/03-85c384e4", "config": "exact+q8g64", "generated": 151, "decode_s": 4.771, "steps": 51, "mean_acc": 2.961, "tok_s": 31.441}
+done in 845 s
+exit 0
+canary 27.7 TFLOP/s
+load: 5.35 6.86 10.88
+### done 2026-10-19 22:35:37
+### 2026-10-19 22:35:37 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats reasoning,roleplay,stem,summarization,writing --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 5.35 6.86 10.88
+canary 28.2 TFLOP/s
+spec: 20 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "reasoning/00-mmlu-logical_fa-think", "config": "baseline", "generated": 256, "decode_s": 6.179, "steps": 63, "mean_acc": 4.079, "tok_s": 41.268}
+{"name": "reasoning/00-mmlu-logical_fa-think", "config": "exact", "generated": 256, "decode_s": 5.977, "steps": 63, "mean_acc": 4.079, "tok_s": 42.666}
+{"name": "reasoning/00-mmlu-logical_fa-think", "config": "exact+q8g64", "generated": 256, "decode_s": 5.785, "steps": 63, "mean_acc": 4.079, "tok_s": 44.08}
+{"name": "reasoning/01-7a9f9338", "config": "baseline", "generated": 157, "decode_s": 6.108, "steps": 62, "mean_acc": 2.532, "tok_s": 25.542}
+{"name": "reasoning/01-7a9f9338", "config": "exact", "generated": 121, "decode_s": 4.006, "steps": 42, "mean_acc": 2.881, "tok_s": 29.953}
+{"name": "reasoning/01-7a9f9338", "config": "exact+q8g64", "generated": 121, "decode_s": 3.951, "steps": 42, "mean_acc": 2.881, "tok_s": 30.369}
+{"name": "reasoning/02-arc-400887-think", "config": "baseline", "generated": 256, "decode_s": 7.042, "steps": 57, "mean_acc": 4.544, "tok_s": 36.212}
+{"name": "reasoning/02-arc-400887-think", "config": "exact", "generated": 256, "decode_s": 5.855, "steps": 55, "mean_acc": 4.655, "tok_s": 43.551}
+{"name": "reasoning/02-arc-400887-think", "config": "exact+q8g64", "generated": 256, "decode_s": 5.432, "steps": 55, "mean_acc": 4.655, "tok_s": 46.948}
+{"name": "reasoning/03-mmlu-moral_disp", "config": "baseline", "generated": 256, "decode_s": 12.913, "steps": 130, "mean_acc": 1.969, "tok_s": 19.747}
+{"name": "reasoning/03-mmlu-moral_disp", "config": "exact", "generated": 256, "decode_s": 12.537, "steps": 131, "mean_acc": 1.947, "tok_s": 20.34}
+{"name": "reasoning/03-mmlu-moral_disp", "config": "exact+q8g64", "generated": 256, "decode_s": 12.048, "steps": 131, "mean_acc": 1.947, "tok_s": 21.166}
+{"name": "roleplay/00-cbd7ad2d-think", "config": "baseline", "generated": 256, "decode_s": 9.258, "steps": 94, "mean_acc": 2.723, "tok_s": 27.545}
+{"name": "roleplay/00-cbd7ad2d-think", "config": "exact", "generated": 256, "decode_s": 8.946, "steps": 94, "mean_acc": 2.723, "tok_s": 28.504}
+{"name": "roleplay/00-cbd7ad2d-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.652, "steps": 94, "mean_acc": 2.723, "tok_s": 29.471}
+{"name": "roleplay/01-f5a6890f", "config": "baseline", "generated": 256, "decode_s": 12.939, "steps": 131, "mean_acc": 1.947, "tok_s": 19.708}
+{"name": "roleplay/01-f5a6890f", "config": "exact", "generated": 256, "decode_s": 11.96, "steps": 119, "mean_acc": 2.143, "tok_s": 21.322}
+{"name": "roleplay/01-f5a6890f", "config": "exact+q8g64", "generated": 256, "decode_s": 12.192, "steps": 131, "mean_acc": 1.969, "tok_s": 20.916}
+{"name": "roleplay/02-7c1045fd-think", "config": "baseline", "generated": 256, "decode_s": 6.087, "steps": 62, "mean_acc": 4.129, "tok_s": 41.892}
+{"name": "roleplay/02-7c1045fd-think", "config": "exact", "generated": 256, "decode_s": 5.824, "steps": 61, "mean_acc": 4.197, "tok_s": 43.784}
+{"name": "roleplay/02-7c1045fd-think", "config": "exact+q8g64", "generated": 256, "decode_s": 5.641, "steps": 61, "mean_acc": 4.197, "tok_s": 45.201}
+{"name": "roleplay/03-2121a48e", "config": "baseline", "generated": 256, "decode_s": 13.338, "steps": 136, "mean_acc": 1.882, "tok_s": 19.119}
+{"name": "roleplay/03-2121a48e", "config": "exact", "generated": 256, "decode_s": 14.0, "steps": 146, "mean_acc": 1.747, "tok_s": 18.214}
+{"name": "roleplay/03-2121a48e", "config": "exact+q8g64", "generated": 256, "decode_s": 13.52, "steps": 146, "mean_acc": 1.747, "tok_s": 18.861}
+{"name": "stem/00-8624cf28-think", "config": "baseline", "generated": 256, "decode_s": 9.749, "steps": 99, "mean_acc": 2.596, "tok_s": 26.156}
+{"name": "stem/00-8624cf28-think", "config": "exact", "generated": 256, "decode_s": 8.244, "steps": 87, "mean_acc": 2.931, "tok_s": 30.932}
+{"name": "stem/00-8624cf28-think", "config": "exact+q8g64", "generated": 256, "decode_s": 7.973, "steps": 87, "mean_acc": 2.931, "tok_s": 31.981}
+{"name": "stem/01-mmlu-astronomy", "config": "baseline", "generated": 256, "decode_s": 11.505, "steps": 117, "mean_acc": 2.179, "tok_s": 22.164}
+{"name": "stem/01-mmlu-astronomy", "config": "exact", "generated": 256, "decode_s": 10.704, "steps": 112, "mean_acc": 2.286, "tok_s": 23.822}
+{"name": "stem/01-mmlu-astronomy", "config": "exact+q8g64", "generated": 256, "decode_s": 10.261, "steps": 111, "mean_acc": 2.306, "tok_s": 24.852}
+{"name": "stem/02-e1f686c4-think", "config": "baseline", "generated": 256, "decode_s": 13.948, "steps": 140, "mean_acc": 1.85, "tok_s": 18.283}
+{"name": "stem/02-e1f686c4-think", "config": "exact", "generated": 256, "decode_s": 14.521, "steps": 136, "mean_acc": 1.875, "tok_s": 17.561}
+{"name": "stem/02-e1f686c4-think", "config": "exact+q8g64", "generated": 256, "decode_s": 13.749, "steps": 136, "mean_acc": 1.875, "tok_s": 18.547}
+{"name": "stem/03-f6e63ee7", "config": "baseline", "generated": 256, "decode_s": 10.212, "steps": 98, "mean_acc": 2.612, "tok_s": 24.972}
+{"name": "stem/03-f6e63ee7", "config": "exact", "generated": 256, "decode_s": 9.625, "steps": 95, "mean_acc": 2.684, "tok_s": 26.494}
+{"name": "stem/03-f6e63ee7", "config": "exact+q8g64", "generated": 256, "decode_s": 8.917, "steps": 96, "mean_acc": 2.667, "tok_s": 28.598}
+{"name": "summarization/00-boolq6-think", "config": "baseline", "generated": 256, "decode_s": 9.121, "steps": 91, "mean_acc": 2.824, "tok_s": 27.956}
+{"name": "summarization/00-boolq6-think", "config": "exact", "generated": 256, "decode_s": 8.892, "steps": 92, "mean_acc": 2.793, "tok_s": 28.678}
+{"name": "summarization/00-boolq6-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.567, "steps": 92, "mean_acc": 2.793, "tok_s": 29.765}
+{"name": "summarization/01-boolq9", "config": "baseline", "generated": 138, "decode_s": 7.467, "steps": 74, "mean_acc": 1.865, "tok_s": 18.347}
+{"name": "summarization/01-boolq9", "config": "exact", "generated": 138, "decode_s": 7.331, "steps": 76, "mean_acc": 1.816, "tok_s": 18.687}
+{"name": "summarization/01-boolq9", "config": "exact+q8g64", "generated": 138, "decode_s": 6.99, "steps": 75, "mean_acc": 1.84, "tok_s": 19.598}
+{"name": "summarization/02-boolq5-think", "config": "baseline", "generated": 256, "decode_s": 8.639, "steps": 87, "mean_acc": 2.989, "tok_s": 29.519}
+{"name": "summarization/02-boolq5-think", "config": "exact", "generated": 256, "decode_s": 8.3, "steps": 85, "mean_acc": 3.059, "tok_s": 30.725}
+{"name": "summarization/02-boolq5-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.226, "steps": 87, "mean_acc": 2.989, "tok_s": 30.999}
+{"name": "summarization/03-boolq2", "config": "baseline", "generated": 127, "decode_s": 5.091, "steps": 51, "mean_acc": 2.49, "tok_s": 24.748}
+{"name": "summarization/03-boolq2", "config": "exact", "generated": 127, "decode_s": 5.022, "steps": 51, "mean_acc": 2.49, "tok_s": 25.09}
+{"name": "summarization/03-boolq2", "config": "exact+q8g64", "generated": 127, "decode_s": 4.758, "steps": 51, "mean_acc": 2.49, "tok_s": 26.483}
+{"name": "writing/00-6ce4d69d-think", "config": "baseline", "generated": 256, "decode_s": 8.985, "steps": 90, "mean_acc": 2.856, "tok_s": 28.38}
+{"name": "writing/00-6ce4d69d-think", "config": "exact", "generated": 256, "decode_s": 8.665, "steps": 90, "mean_acc": 2.856, "tok_s": 29.428}
+{"name": "writing/00-6ce4d69d-think", "config": "exact+q8g64", "generated": 256, "decode_s": 8.518, "steps": 90, "mean_acc": 2.856, "tok_s": 29.936}
+{"name": "writing/01-adc7fcea", "config": "baseline", "generated": 256, "decode_s": 10.879, "steps": 107, "mean_acc": 2.393, "tok_s": 23.441}
+{"name": "writing/01-adc7fcea", "config": "exact", "generated": 256, "decode_s": 10.598, "steps": 108, "mean_acc": 2.361, "tok_s": 24.062}
+{"name": "writing/01-adc7fcea", "config": "exact+q8g64", "generated": 256, "decode_s": 10.719, "steps": 111, "mean_acc": 2.297, "tok_s": 23.789}
+{"name": "writing/02-ea9178c2-think", "config": "baseline", "generated": 256, "decode_s": 10.518, "steps": 104, "mean_acc": 2.462, "tok_s": 24.244}
+{"name": "writing/02-ea9178c2-think", "config": "exact", "generated": 256, "decode_s": 10.151, "steps": 106, "mean_acc": 2.406, "tok_s": 25.122}
+{"name": "writing/02-ea9178c2-think", "config": "exact+q8g64", "generated": 256, "decode_s": 9.947, "steps": 107, "mean_acc": 2.383, "tok_s": 25.635}
+{"name": "writing/03-a5d11560", "config": "baseline", "generated": 256, "decode_s": 11.444, "steps": 116, "mean_acc": 2.198, "tok_s": 22.282}
+{"name": "writing/03-a5d11560", "config": "exact", "generated": 256, "decode_s": 10.818, "steps": 112, "mean_acc": 2.286, "tok_s": 23.572}
+{"name": "writing/03-a5d11560", "config": "exact+q8g64", "generated": 256, "decode_s": 10.446, "steps": 112, "mean_acc": 2.286, "tok_s": 24.41}
+done in 608 s
+exit 0
+canary 28.2 TFLOP/s
+load: 3.83 4.90 7.74
+### done 2026-10-19 22:45:47
+### 2026-10-19 22:45:47 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent,long --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 3.83 4.90 7.74
+canary 27.5 TFLOP/s
+spec: 8 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "baseline", "generated": 131, "decode_s": 4.212, "steps": 35, "mean_acc": 3.857, "tok_s": 30.864}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact", "generated": 131, "decode_s": 3.605, "steps": 35, "mean_acc": 3.857, "tok_s": 36.061}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact+q8g64", "generated": 131, "decode_s": 3.405, "steps": 35, "mean_acc": 3.857, "tok_s": 38.177}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 106, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 88, in main
+    got, r = SD.spec_generate(model, drafter, e["ids"], args.new, 8, eos, lookup=looks[c])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 81, in spec_generate
+    last = spec_prefill(model, drafter, cache, dcache, ids, chunk)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 68, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 26.6 TFLOP/s
+load: 5.74 5.32 7.61
+### done 2026-10-19 22:47:25
+tune chain done 22:47:25
+### 2026-10-19 22:49:38 group 3 aborted by a Metal OOM in agent/01's prefill (swap 15.0 of 16 GB used, fseventsd RSS 13.5 GB); its agent/00 records moved to spec/runs/combined-test_tune_spec_*_g3_oom_partial.jsonl; rerunning group 3 from scratch (fresh Lookup), ab_suite now records peak_gb
+### 2026-10-19 22:49:39 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent,long --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 4.68 5.00 7.14
+canary 26.8 TFLOP/s
+spec: 8 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "baseline", "generated": 131, "decode_s": 4.281, "steps": 35, "mean_acc": 3.857, "tok_s": 30.368, "peak_gb": 57.07}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact", "generated": 131, "decode_s": 3.559, "steps": 35, "mean_acc": 3.857, "tok_s": 36.528, "peak_gb": 58.54}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "exact+q8g64", "generated": 131, "decode_s": 3.456, "steps": 35, "mean_acc": 3.857, "tok_s": 37.617, "peak_gb": 58.54}
+{"name": "agent/01-pytest-dev__iniconfig", "config": "baseline", "generated": 46, "decode_s": 1.325, "steps": 11, "mean_acc": 4.364, "tok_s": 33.95, "peak_gb": 57.23}
+{"name": "agent/01-pytest-dev__iniconfig", "config": "exact", "generated": 46, "decode_s": 1.102, "steps": 11, "mean_acc": 4.364, "tok_s": 40.85, "peak_gb": 58.61}
+{"name": "agent/01-pytest-dev__iniconfig", "config": "exact+q8g64", "generated": 46, "decode_s": 1.059, "steps": 11, "mean_acc": 4.364, "tok_s": 42.492, "peak_gb": 58.61}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 108, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 88, in main
+    got, r = SD.spec_generate(model, drafter, e["ids"], args.new, 8, eos, lookup=looks[c])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 81, in spec_generate
+    last = spec_prefill(model, drafter, cache, dcache, ids, chunk)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 68, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 27.7 TFLOP/s
+load: 4.06 4.71 6.69
+### done 2026-10-19 22:52:01
+tune chain done 22:52:01
+### 2026-10-19 23:00:39 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent,long --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 4.11 4.37 5.58
+canary 28.3 TFLOP/s
+spec: 8 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "agent/02-buriy__python-readabilit-think", "config": "baseline", "generated": 256, "decode_s": 7.225, "steps": 61, "mean_acc": 4.18, "tok_s": 35.296, "peak_gb": 57.23}
+{"name": "agent/02-buriy__python-readabilit-think", "config": "exact", "generated": 256, "decode_s": 7.407, "steps": 61, "mean_acc": 4.18, "tok_s": 34.429, "peak_gb": 58.61}
+{"name": "agent/02-buriy__python-readabilit-think", "config": "exact+q8g64", "generated": 256, "decode_s": 7.848, "steps": 61, "mean_acc": 4.18, "tok_s": 32.49, "peak_gb": 52.93}
+{"name": "agent/03-pyupio__safety", "config": "baseline", "generated": 80, "decode_s": 1.984, "steps": 15, "mean_acc": 5.333, "tok_s": 39.815, "peak_gb": 57.07}
+{"name": "agent/03-pyupio__safety", "config": "exact", "generated": 80, "decode_s": 1.634, "steps": 16, "mean_acc": 5.188, "tok_s": 48.345, "peak_gb": 58.54}
+{"name": "agent/03-pyupio__safety", "config": "exact+q8g64", "generated": 80, "decode_s": 1.814, "steps": 16, "mean_acc": 5.188, "tok_s": 43.539, "peak_gb": 58.54}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 117, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 97, in main
+    got, r = SD.spec_generate(model, drafter, e["ids"], args.new, 8, eos, lookup=looks[c])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 82, in spec_generate
+    last = spec_prefill(model, drafter, cache, dcache, ids, chunk)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 69, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 27.7 TFLOP/s
+load: 12.19 9.04 7.35
+### done 2026-10-19 23:03:09
+tune chain done 23:03:09
+### 2026-10-19 23:03:09 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent,long --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 12.19 9.04 7.35
+canary 27.5 TFLOP/s
+spec: 8 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "long/00-long0-think", "config": "baseline", "generated": 256, "decode_s": 14.992, "steps": 126, "mean_acc": 2.024, "tok_s": 17.01, "peak_gb": 57.07}
+{"name": "long/00-long0-think", "config": "exact", "generated": 256, "decode_s": 11.513, "steps": 114, "mean_acc": 2.246, "tok_s": 22.149, "peak_gb": 58.54}
+{"name": "long/00-long0-think", "config": "exact+q8g64", "generated": 256, "decode_s": 11.582, "steps": 118, "mean_acc": 2.161, "tok_s": 22.017, "peak_gb": 58.54}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 117, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 97, in main
+    got, r = SD.spec_generate(model, drafter, e["ids"], args.new, 8, eos, lookup=looks[c])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 82, in spec_generate
+    last = spec_prefill(model, drafter, cache, dcache, ids, chunk)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 69, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 28.2 TFLOP/s
+load: 4.40 7.13 6.81
+### done 2026-10-19 23:05:09
+tune chain done 23:05:09
+### 2026-10-19 23:05:09 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent,long --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 4.40 7.13 6.81
+canary 27.8 TFLOP/s
+spec: 8 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "long/01-long1", "config": "baseline", "generated": 256, "decode_s": 15.655, "steps": 131, "mean_acc": 1.947, "tok_s": 16.289, "peak_gb": 57.07}
+{"name": "long/01-long1", "config": "exact", "generated": 256, "decode_s": 13.244, "steps": 128, "mean_acc": 2.016, "tok_s": 19.254, "peak_gb": 58.54}
+{"name": "long/01-long1", "config": "exact+q8g64", "generated": 256, "decode_s": 12.518, "steps": 125, "mean_acc": 2.064, "tok_s": 20.371, "peak_gb": 58.54}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 117, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 97, in main
+    got, r = SD.spec_generate(model, drafter, e["ids"], args.new, 8, eos, lookup=looks[c])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 82, in spec_generate
+    last = spec_prefill(model, drafter, cache, dcache, ids, chunk)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 69, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 27.8 TFLOP/s
+load: 4.22 6.05 6.41
+### done 2026-10-19 23:07:24
+tune chain done 23:07:24
+### 2026-10-19 23:07:24 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent,long --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 4.22 6.05 6.41
+canary 27.6 TFLOP/s
+spec: 8 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "long/02-long2-think", "config": "baseline", "generated": 256, "decode_s": 16.168, "steps": 134, "mean_acc": 1.91, "tok_s": 15.772, "peak_gb": 57.07}
+{"name": "long/02-long2-think", "config": "exact", "generated": 256, "decode_s": 11.477, "steps": 113, "mean_acc": 2.265, "tok_s": 22.218, "peak_gb": 58.54}
+{"name": "long/02-long2-think", "config": "exact+q8g64", "generated": 256, "decode_s": 10.936, "steps": 110, "mean_acc": 2.318, "tok_s": 23.318, "peak_gb": 58.54}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 117, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 97, in main
+    got, r = SD.spec_generate(model, drafter, e["ids"], args.new, 8, eos, lookup=looks[c])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 82, in spec_generate
+    last = spec_prefill(model, drafter, cache, dcache, ids, chunk)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 69, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 28.3 TFLOP/s
+load: 3.83 5.19 6.01
+### done 2026-10-19 23:09:47
+tune chain done 23:09:47
+### 2026-10-19 23:09:47 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent,long --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 3.83 5.19 6.01
+canary 27.8 TFLOP/s
+spec: 8 prompts x ['baseline', 'exact', 'exact+q8g64']
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 117, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 97, in main
+    got, r = SD.spec_generate(model, drafter, e["ids"], args.new, 8, eos, lookup=looks[c])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 82, in spec_generate
+    last = spec_prefill(model, drafter, cache, dcache, ids, chunk)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 69, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 27.5 TFLOP/s
+load: 3.88 5.11 5.96
+### done 2026-10-19 23:10:09
+tune chain done 23:10:09
+### 2026-10-19 23:10:09 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent,long --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 3.88 5.11 5.96
+canary 27.9 TFLOP/s
+spec: 8 prompts x ['baseline', 'exact', 'exact+q8g64']
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 117, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/ab_suite.py", line 97, in main
+    got, r = SD.spec_generate(model, drafter, e["ids"], args.new, 8, eos, lookup=looks[c])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 82, in spec_generate
+    last = spec_prefill(model, drafter, cache, dcache, ids, chunk)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/spec/specdec.py", line 69, in spec_prefill
+    mx.eval(logits, [c.state for c in cache], dcache.state)
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+exit 1
+canary 28.5 TFLOP/s
+load: 3.47 4.94 5.88
+### done 2026-10-19 23:10:30
+tune chain done 23:10:30
+### 2026-10-19 23:10:30 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent,long --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec --resume
+load: 3.47 4.94 5.88
+canary 28.2 TFLOP/s
+spec: 8 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "long/03-long3", "config": "baseline", "generated": 256, "decode_s": 18.698, "steps": 155, "mean_acc": 1.645, "tok_s": 13.638, "peak_gb": 57.07}
+{"name": "long/03-long3", "config": "exact", "generated": 256, "decode_s": 14.227, "steps": 136, "mean_acc": 1.882, "tok_s": 17.924, "peak_gb": 58.54}
+{"name": "long/03-long3", "config": "exact+q8g64", "generated": 256, "decode_s": 13.71, "steps": 138, "mean_acc": 1.855, "tok_s": 18.6, "peak_gb": 58.54}
+done in 160 s
+exit 0
+canary 27.2 TFLOP/s
+load: 3.52 4.39 5.48
+### done 2026-10-19 23:13:12
+tune chain done 23:13:12

@@ -1,0 +1,23 @@
+spec/runs/combined-test_test: 18 prompts in all of ['baseline', 'exact+q8g64']
+  baseline: (fused, views, bcsa_verify) = [(False, False, 'prefill')]
+  exact+q8g64: (fused, views, bcsa_verify) = [(True, True, '8q')]
+
+| group | prompts | config | tok/s | x baseline | median ms/step | pooled ms/step | tokens/step |
+|---|---|---|---|---|---|---|---|
+| all | 18 | baseline | 24.67 | 1.000 | 117.7 | 115.2 | 2.88 |
+| all | 18 | exact+q8g64 | 27.79 | 1.126 | 97.8 | 98.8 | 2.77 |
+| short (<4K) | 8 | baseline | 32.14 | 1.000 | 101.9 | 102.1 | 3.32 |
+| short (<4K) | 8 | exact+q8g64 | 33.13 | 1.031 | 95.0 | 95.2 | 3.18 |
+| long+agent | 12 | baseline | 21.54 | 1.000 | 122.2 | 122.8 | 2.68 |
+| long+agent | 12 | exact+q8g64 | 25.46 | 1.182 | 99.9 | 100.9 | 2.60 |
+| long | 6 | baseline | 18.96 | 1.000 | 123.5 | 123.8 | 2.36 |
+| long | 6 | exact+q8g64 | 22.40 | 1.182 | 101.2 | 101.5 | 2.28 |
+| agent | 6 | baseline | 34.65 | 1.000 | 117.7 | 118.0 | 4.24 |
+| agent | 6 | exact+q8g64 | 40.94 | 1.182 | 97.8 | 97.9 | 4.15 |
+
+  exact+q8g64 vs baseline: tokens identical on 9/18, per-step acceptance identical on 5/18; first divergences at [2, 7, 25, 71, 80, 98, 99, 140, 214]
+  exact+q8g64 vs baseline, short (<4K): tokens identical on 5/8
+  exact+q8g64 vs baseline, long+agent: tokens identical on 6/12
+  baseline vs spec/runs/test_frozen.jsonl: tokens identical on 16/18, per-step acceptance identical on 14/18
+  baseline vs spec/runs/test_frozen_r2.jsonl: tokens identical on 16/18, per-step acceptance identical on 14/18
+  exact+q8g64 vs spec/runs/bcsa-verify-8q_test_8q.jsonl: tokens identical on 14/18, per-step acceptance identical on 11/18

@@ -1,0 +1,8 @@
+baseline     agent/02-buriy__python-r tokens equal True, acc equal True; ms/step A/B 118.4 repeat 117.8
+baseline     agent/03-pyupio__safety  tokens equal True, acc equal True; ms/step A/B 132.3 repeat 119.3
+exact        agent/02-buriy__python-r tokens equal True, acc equal True; ms/step A/B 121.4 repeat 101.2
+exact        agent/03-pyupio__safety  tokens equal True, acc equal True; ms/step A/B 102.1 repeat 101.7
+exact+q8g64  agent/02-buriy__python-r tokens equal True, acc equal True; ms/step A/B 128.7 repeat 98.2
+exact+q8g64  agent/03-pyupio__safety  tokens equal True, acc equal True; ms/step A/B 113.4 repeat 112.4
+agent with the repeat substituted: baseline 34.91 tok/s (x1.000), exact 40.85 tok/s (x1.170), exact+q8g64 41.37 tok/s (x1.185)
+long+agent with the repeat substituted: baseline 19.09 tok/s (x1.000), exact 24.30 tok/s (x1.273), exact+q8g64 25.05 tok/s (x1.312)

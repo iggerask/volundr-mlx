@@ -17,13 +17,17 @@ Unofficial; not affiliated with Blockway.
 
 | | |
 |---|---|
-| Decode, greedy | ~13.5 tok/s |
-| Decode, DFlash2 speculative (greedy, 84 held-out prompts) | 24.0 tok/s (1.77×), 2.63 tokens per verify step |
+| Decode, greedy | 13.8 tok/s on the tune split (13.5 at the first release); 14.7 with the opt-in 8-bit lm_head (`VOLUNDR_LMHEAD8=64`) |
+| Decode, greedy at 19K context | 78.5 → 73.4 ms/token after the decode fusion (69.0 with the 8-bit lm_head) |
+| Decode, DFlash2 speculative, first release (84 held-out prompts) | 24.0 tok/s (1.77× greedy), 2.63 tokens per verify step |
+| Decode, DFlash2 speculative, now (56 tune prompts) | 24.5 → 27.6 tok/s against the first release's code (+13%, of which +4% is the opt-in 8-bit lm_head); +31% on long and agent prompts |
 | Prefill, exact | 374 tok/s on a 19K-token prompt |
 | Prefill, opt-in W4A8 (`VOLUNDR_W4A8=1`) | 490–509 tok/s at 20K, +25–32% |
-| Peak memory | ~25 GB short context, ~29 GB at 19K |
+| Peak memory | ~25 GB short context, ~29 GB at 19K; speculative ~28 GB on a 12.5K-token prompt (was ~56 GB) |
 
-Per-category speculative results, methods and caveats are in the linked NOTES files.
+The speculative gains come from two same-session A/Bs multiplied together; their shared baseline matched within 0.1%.
+Per-category results, methods and caveats are in the linked NOTES files: start at
+[`NOTES_COMBINED.md`](volundr-mlx/NOTES_COMBINED.md) and [`NOTES_SPEC_ACCEPT.md`](volundr-mlx/NOTES_SPEC_ACCEPT.md).
 
 ## Setup
 

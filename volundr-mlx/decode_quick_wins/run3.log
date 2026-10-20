@@ -1,0 +1,38 @@
+### 2026-10-19 05:08:30 /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/run3.sh
+canary 24.2 TFLOP/s
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-ae877536cb39838a7/volundr-mlx/tests/test_decode_fused.py", line 189, in main
+    f()
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-ae877536cb39838a7/volundr-mlx/tests/test_decode_fused.py", line 152, in test_rms_norm_mlx
+    same(DF.rms_norm_mlx(xt, w32, 1e-5), mx.fast.rms_norm(xt, w32, 1e-5).astype(BF), "rms transposed")
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: [rms_norm] (*weight) must have the same size as the last dimension of x but has 64 elements.
+PASS test_gated_delta_norm (0.5 s)
+FAIL test_rms_norm_mlx
+1/2 passed
+vec+astype+gnorm       32.9 us per layer (  191 GB/s state r+w)
+vec(bf16)+gnorm        31.8 us per layer (  198 GB/s state r+w)
+vec only               30.2 us per layer (  209 GB/s state r+w)
+fused gdn_norm         33.1 us per layer (  190 GB/s state r+w)
+fused == vec + gnorm: True True
+rep 0 base          8.00 ms/step
+rep 0 fused         6.46 ms/step
+rep 1 base          7.95 ms/step
+rep 1 fused         6.64 ms/step
+rep 2 base          7.96 ms/step
+rep 2 fused         6.24 ms/step
+best:
+  base          7.95 ms/step  delta  +0.00
+  fused         6.24 ms/step  delta  +1.71
+rep 0 base         69.69 ms/step
+rep 0 fused        69.17 ms/step
+rep 1 base         69.98 ms/step
+rep 1 fused        68.99 ms/step
+rep 2 base         68.98 ms/step
+rep 2 fused        68.20 ms/step
+best:
+  base         68.98 ms/step  delta  +0.00
+  fused        68.20 ms/step  delta  +0.78
+exit 0
+canary 25.2 TFLOP/s
+### done 2026-10-19 05:09:04

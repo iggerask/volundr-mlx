@@ -21,6 +21,7 @@ __pycache__/
 # (regenerate with volundr-mlx/spec/make_suite.py)
 /volundr-mlx/spec/suite.json
 /volundr-mlx/spec/runs
+/volundr-mlx/spec/*/*.jsonl
 
 # Local agent session notes
 .claude/

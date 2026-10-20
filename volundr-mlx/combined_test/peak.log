@@ -1,0 +1,167 @@
+### 2026-10-19 23:18:57 zsh -c VOLUNDR_LMHEAD8=64 $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label combined-exact+q8g64 --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx
+load: 3.22 4.00 4.98
+canary 28.1 TFLOP/s
+PEAK {"label": "combined-exact+q8g64", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "64", "prompt_tokens": 12547, "target_head_q8": 64, "active_after_load_gb": 24.84, "peak_load_gb": 28.95, "prefill_s": 31.54, "prefill_peak_gb": 52.82, "active_after_prefill_gb": 25.78, "tok_s": 15.41, "generate_peak_gb": 53.8}
+exit 0
+canary 27.2 TFLOP/s
+load: 21.80 9.51 6.94
+### done 2026-10-19 23:20:41
+### 2026-10-19 23:20:41 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label combined-baseline --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx --config baseline
+load: 21.80 9.51 6.94
+canary 27.1 TFLOP/s
+PEAK {"label": "combined-baseline", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": "baseline", "modes": null, "lmhead8": "", "prompt_tokens": 12547, "switched": {"fused": false, "views": false, "bcsa_verify": "prefill"}, "target_head_q8": 0, "active_after_load_gb": 26.04, "peak_load_gb": 28.95, "prefill_s": 31.97, "prefill_peak_gb": 55.71, "active_after_prefill_gb": 27.25, "tok_s": 13.6, "generate_peak_gb": 55.71}
+exit 0
+canary 28.2 TFLOP/s
+load: 6.95 7.81 6.54
+### done 2026-10-19 23:22:11
+### 2026-10-19 23:22:11 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label combined-exact --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx
+load: 6.95 7.81 6.54
+canary 28.2 TFLOP/s
+PEAK {"label": "combined-exact", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "", "prompt_tokens": 12547, "target_head_q8": 0, "active_after_load_gb": 26.04, "peak_load_gb": 28.95, "prefill_s": 31.65, "prefill_peak_gb": 57.19, "active_after_prefill_gb": 26.97, "tok_s": 18.14, "generate_peak_gb": 57.19}
+exit 0
+canary 25.8 TFLOP/s
+load: 4.42 6.80 6.27
+### done 2026-10-19 23:23:36
+### 2026-10-19 23:23:36 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label main --tree /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx
+load: 4.42 6.80 6.27
+canary 28.2 TFLOP/s
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py", line 51, in <module>
+    model, drafter, tok = SD.load(drafter_bits=4, lm_head_bits=4, nax=True)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx/spec/specdec.py", line 47, in load
+    import nax_hook
+  File "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx/spec/nax_hook.py", line 16, in <module>
+    import prep_nax  # noqa: E402
+    ^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'prep_nax'
+exit 1
+canary 27.9 TFLOP/s
+load: 4.38 6.75 6.26
+### done 2026-10-19 23:23:41
+### 2026-10-19 23:23:41 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label bcsa-verify-8q --tree /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/bcsa/volundr-mlx
+load: 4.38 6.75 6.26
+canary 27.4 TFLOP/s
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py", line 51, in <module>
+    model, drafter, tok = SD.load(drafter_bits=4, lm_head_bits=4, nax=True)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/bcsa/volundr-mlx/spec/specdec.py", line 47, in load
+    import nax_hook
+  File "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/bcsa/volundr-mlx/spec/nax_hook.py", line 16, in <module>
+    import prep_nax  # noqa: E402
+    ^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'prep_nax'
+exit 1
+canary 27.5 TFLOP/s
+load: 4.02 6.60 6.21
+### done 2026-10-19 23:23:47
+### 2026-10-19 23:23:48 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label decode-quick-wins --tree /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/dqw/volundr-mlx
+load: 4.02 6.60 6.21
+canary 27.4 TFLOP/s
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py", line 51, in <module>
+    model, drafter, tok = SD.load(drafter_bits=4, lm_head_bits=4, nax=True)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/dqw/volundr-mlx/spec/specdec.py", line 50, in load
+    import nax_hook
+  File "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/dqw/volundr-mlx/spec/nax_hook.py", line 16, in <module>
+    import prep_nax  # noqa: E402
+    ^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'prep_nax'
+exit 1
+canary 27.8 TFLOP/s
+load: 4.42 6.64 6.23
+### done 2026-10-19 23:23:55
+### 2026-10-19 23:23:55 zsh -c VOLUNDR_LMHEAD8=64 $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label combined-exact+q8g64-defaultbufs --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx --bufs default
+load: 4.42 6.64 6.23
+canary 27.3 TFLOP/s
+PEAK {"label": "combined-exact+q8g64-defaultbufs", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx", "mode": "spec", "bufs": "default", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "64", "prompt_tokens": 12547, "target_head_q8": 64, "active_after_load_gb": 24.84, "peak_load_gb": 27.39, "prefill_s": 30.5, "prefill_peak_gb": 27.07, "active_after_prefill_gb": 25.78, "tok_s": 17.59, "generate_peak_gb": 27.07}
+exit 0
+canary 27.6 TFLOP/s
+load: 4.58 6.06 6.04
+### done 2026-10-19 23:25:21
+### 2026-10-19 23:25:21 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label main-defaultbufs --tree /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx --bufs default
+load: 4.58 6.06 6.04
+canary 28.1 TFLOP/s
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py", line 51, in <module>
+    model, drafter, tok = SD.load(drafter_bits=4, lm_head_bits=4, nax=True)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx/spec/specdec.py", line 47, in load
+    import nax_hook
+  File "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx/spec/nax_hook.py", line 16, in <module>
+    import prep_nax  # noqa: E402
+    ^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'prep_nax'
+exit 1
+canary 27.5 TFLOP/s
+load: 4.61 5.99 6.01
+### done 2026-10-19 23:25:34
+### 2026-10-19 23:25:34 zsh -c VOLUNDR_LMHEAD8=64 $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label combined-greedy-exact+q8g64 --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx --mode greedy --bufs default
+load: 4.61 5.99 6.01
+canary 26.8 TFLOP/s
+PEAK {"label": "combined-greedy-exact+q8g64", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx", "mode": "greedy", "bufs": "default", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "64", "prompt_tokens": 12547, "target_head_q8": 64, "active_after_load_gb": 22.96, "peak_load_gb": 25.5, "prefill_s": 30.51, "prefill_peak_gb": 25.04, "active_after_prefill_gb": 23.81, "tok_s": 13.96, "generate_peak_gb": 25.04}
+exit 0
+canary 27.5 TFLOP/s
+load: 5.56 5.93 5.98
+### done 2026-10-19 23:27:04
+peak chain done 23:27:04
+### 2026-10-19 23:28:37 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label main --tree /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx
+load: 6.17 5.99 6.00
+canary 28.2 TFLOP/s
+PEAK {"label": "main", "tree": "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "", "prompt_tokens": 12547, "target_head_q8": 0, "active_after_load_gb": 26.04, "peak_load_gb": 28.95, "prefill_s": 31.43, "prefill_peak_gb": 55.26, "active_after_prefill_gb": 27.25, "tok_s": 13.54, "generate_peak_gb": 55.71}
+exit 0
+canary 27.4 TFLOP/s
+load: 5.05 5.83 5.95
+### done 2026-10-19 23:30:17
+### 2026-10-19 23:30:17 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label bcsa-verify-8q --tree /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/bcsa/volundr-mlx
+load: 5.05 5.83 5.95
+canary 27.4 TFLOP/s
+PEAK {"label": "bcsa-verify-8q", "tree": "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/bcsa/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "", "prompt_tokens": 12547, "target_head_q8": 0, "active_after_load_gb": 26.04, "peak_load_gb": 28.95, "prefill_s": 31.2, "prefill_peak_gb": 55.71, "active_after_prefill_gb": 27.25, "tok_s": 17.46, "generate_peak_gb": 55.71}
+exit 0
+canary 27.9 TFLOP/s
+load: 6.59 5.98 5.98
+### done 2026-10-19 23:31:43
+### 2026-10-19 23:31:43 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label decode-quick-wins --tree /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/dqw/volundr-mlx
+load: 6.59 5.98 5.98
+canary 27.1 TFLOP/s
+PEAK {"label": "decode-quick-wins", "tree": "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/dqw/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "", "prompt_tokens": 12547, "target_head_q8": 0, "active_after_load_gb": 26.04, "peak_load_gb": 28.95, "prefill_s": 31.11, "prefill_peak_gb": 57.19, "active_after_prefill_gb": 26.97, "tok_s": 13.78, "generate_peak_gb": 57.19}
+exit 0
+canary 27.1 TFLOP/s
+load: 5.22 5.85 5.94
+### done 2026-10-19 23:33:11
+### 2026-10-19 23:33:11 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label main-defaultbufs --tree /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx --bufs default
+load: 5.22 5.85 5.94
+canary 27.8 TFLOP/s
+PEAK {"label": "main-defaultbufs", "tree": "/private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/trees/main/volundr-mlx", "mode": "spec", "bufs": "default", "name": "long/03-long3", "config": null, "modes": null, "lmhead8": "", "prompt_tokens": 12547, "target_head_q8": 0, "active_after_load_gb": 26.04, "peak_load_gb": 27.09, "prefill_s": 30.81, "prefill_peak_gb": 30.5, "active_after_prefill_gb": 27.25, "tok_s": 12.72, "generate_peak_gb": 30.5}
+exit 0
+canary 28.0 TFLOP/s
+load: 5.62 5.81 5.91
+### done 2026-10-19 23:34:41
+### 2026-10-19 23:34:41 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label combined-ab_suite-setup-exact+q8g64 --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx --modes baseline,exact,exact+q8g64 --config exact+q8g64
+load: 5.62 5.81 5.91
+canary 28.1 TFLOP/s
+PEAK {"label": "combined-ab_suite-setup-exact+q8g64", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": "exact+q8g64", "modes": "baseline,exact,exact+q8g64", "lmhead8": "", "prompt_tokens": 12547, "switched": {"fused": true, "views": true, "bcsa_verify": "8q"}, "target_head_q8": 64, "active_after_load_gb": 27.39, "peak_load_gb": 28.95, "prefill_s": 31.2, "prefill_peak_gb": 57.06, "active_after_prefill_gb": 28.32, "tok_s": 18.67, "generate_peak_gb": 58.54}
+exit 0
+canary 27.7 TFLOP/s
+load: 4.16 5.24 5.68
+### done 2026-10-19 23:36:15
+peak chain2 done 23:36:15
+### 2026-10-19 23:58:41 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label combined-unfused --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx --config unfused
+load: 3.45 3.38 3.98
+canary 28.2 TFLOP/s
+PEAK {"label": "combined-unfused", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": "unfused", "modes": null, "lmhead8": "", "prompt_tokens": 12547, "switched": {"fused": false, "views": true, "bcsa_verify": "8q"}, "target_head_q8": 0, "active_after_load_gb": 26.04, "peak_load_gb": 28.95, "error": "[METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).", "peak_at_error_gb": 56.81}
+exit 0
+canary 28.4 TFLOP/s
+load: 3.38 3.37 3.96
+### done 2026-10-19 23:58:59
+### 2026-10-19 23:59:00 zsh -c  $PY /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx/combined_test/peak_probe.py --label combined-fused+copyidx --tree /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx --config fused+copyidx
+load: 3.38 3.37 3.96
+canary 27.6 TFLOP/s
+PEAK {"label": "combined-fused+copyidx", "tree": "/Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-a7157c0891991d4d6/volundr-mlx", "mode": "spec", "bufs": "spec", "name": "long/03-long3", "config": "fused+copyidx", "modes": null, "lmhead8": "", "prompt_tokens": 12547, "switched": {"fused": true, "views": false, "bcsa_verify": "8q"}, "target_head_q8": 0, "active_after_load_gb": 26.04, "peak_load_gb": 28.95, "prefill_s": 31.98, "prefill_peak_gb": 56.64, "active_after_prefill_gb": 26.97, "tok_s": 17.99, "generate_peak_gb": 56.64}
+exit 0
+canary 27.4 TFLOP/s
+load: 3.29 3.35 3.89
+### done 2026-10-20 00:00:26
+peak chain3 done 00:00:26

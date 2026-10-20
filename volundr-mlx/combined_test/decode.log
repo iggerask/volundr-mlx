@@ -1,0 +1,44 @@
+### 2026-10-19 23:13:49 zsh -c $PY bench_decode.py --model models/volundr-int4-mlx --configs baseline,exact,exact+q8g64 --reps 3 --tokens 128
+load: 4.67 4.55 5.49
+canary 28.0 TFLOP/s
+prompt 85 tokens; 128 timed tokens after 8; configs ['baseline', 'exact', 'exact+q8g64']
+rep 1 baseline           73.03 ms/token (13.69 tok/s), prefill   0.36 s, tokens == baseline: True
+rep 1 exact              70.82 ms/token (14.12 tok/s), prefill   0.36 s, tokens == baseline: True
+rep 1 exact+q8g64        65.84 ms/token (15.19 tok/s), prefill   0.35 s, tokens == baseline: True
+rep 2 baseline           72.09 ms/token (13.87 tok/s), prefill   0.36 s, tokens == baseline: True
+rep 2 exact              70.09 ms/token (14.27 tok/s), prefill   0.36 s, tokens == baseline: True
+rep 2 exact+q8g64        65.91 ms/token (15.17 tok/s), prefill   0.35 s, tokens == baseline: True
+rep 3 baseline           72.21 ms/token (13.85 tok/s), prefill   0.36 s, tokens == baseline: True
+rep 3 exact              70.27 ms/token (14.23 tok/s), prefill   0.36 s, tokens == baseline: True
+rep 3 exact+q8g64        66.04 ms/token (15.14 tok/s), prefill   0.35 s, tokens == baseline: True
+summary (ms/token):
+  baseline         best   72.09  median   72.21  (13.87 tok/s)    +0.0% vs baseline; greedy tokens vs baseline: identical
+  exact            best   70.09  median   70.27  (14.27 tok/s)    -2.8% vs baseline; greedy tokens vs baseline: identical
+  exact+q8g64      best   65.84  median   65.91  (15.19 tok/s)    -8.7% vs baseline; greedy tokens vs baseline: identical
+exit 0
+canary 27.3 TFLOP/s
+load: 4.35 4.50 5.33
+### done 2026-10-19 23:15:59
+### 2026-10-19 23:15:59 zsh -c $PY bench_decode.py --model models/volundr-int4-mlx --prompt-file bench/long_prompt.txt --no-think --shared-cache --configs baseline,exact,exact+q8g64 --reps 3 --tokens 48
+load: 4.35 4.50 5.33
+canary 28.0 TFLOP/s
+prompt 19045 tokens; 48 timed tokens after 8; configs ['baseline', 'exact', 'exact+q8g64']
+prefill 47.9 s
+rep 1 baseline                   78.45 ms/token (12.75 tok/s) at 19273 positions
+rep 1 exact                      73.39 ms/token (13.63 tok/s) at 19330 positions
+rep 1 exact+q8g64                69.04 ms/token (14.48 tok/s) at 19387 positions
+rep 2 baseline                   79.90 ms/token (12.52 tok/s) at 19444 positions
+rep 2 exact                      73.56 ms/token (13.59 tok/s) at 19501 positions
+rep 2 exact+q8g64                69.96 ms/token (14.29 tok/s) at 19558 positions
+rep 3 baseline                   79.17 ms/token (12.63 tok/s) at 19615 positions
+rep 3 exact                      73.89 ms/token (13.53 tok/s) at 19672 positions
+rep 3 exact+q8g64                69.26 ms/token (14.44 tok/s) at 19729 positions
+summary (ms/token):
+  baseline                 best   78.45  median   79.17  (12.75 tok/s)    +0.0% vs baseline
+  exact                    best   73.39  median   73.56  (13.63 tok/s)    -6.4% vs baseline
+  exact+q8g64              best   69.04  median   69.26  (14.48 tok/s)   -12.0% vs baseline
+exit 0
+canary 28.1 TFLOP/s
+load: 3.60 4.23 5.13
+### done 2026-10-19 23:17:51
+decode chain done 23:17:51

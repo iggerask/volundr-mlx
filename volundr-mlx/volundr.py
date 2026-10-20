@@ -18,6 +18,7 @@ from mlx_lm.models.base import BaseModelArgs
 from mlx_lm.models.cache import ArraysCache, KVCache, _BaseCache
 from mlx_lm.models.gated_delta import compute_g, gated_delta_update, normalize_qk
 
+import decode_fused as DF
 import kernels
 
 F32, BF16 = mx.float32, mx.bfloat16
@@ -43,6 +44,21 @@ def enable_w4a8(model) -> int:
     import w4a8_hook
 
     return w4a8_hook.enable(model)
+
+
+# Opt-in 8-bit lm_head (VOLUNDR_LMHEAD8=1 or 64: affine 8-bit, group 64; =128: group 128). The release keeps the head in
+# bf16, so every decode / verify step streams 2.54 GB for it; the 8-bit copy is 1.35 / 1.31 GB. Quantized at load time
+# (Model.quantize_lm_head). It changes the logits, so it is off by default; see NOTES_decode.md for KL, token agreement
+# and speculative acceptance against the bf16 head.
+def lm_head_q_group() -> int:
+    """Group size of the opt-in 8-bit lm_head from VOLUNDR_LMHEAD8, or 0 (bf16 head)."""
+    v = os.environ.get("VOLUNDR_LMHEAD8", "").strip()
+    if v in ("", "0"):
+        return 0
+    g = 64 if v == "1" else int(v)
+    if g not in (32, 64, 128):
+        raise ValueError(f"VOLUNDR_LMHEAD8={v!r}: use 1 (= 64), 64 or 128")
+    return g
 
 
 ENGRAM_PRIMES = (1000003, 1000033, 1000037, 1000039, 1000081)
@@ -93,6 +109,21 @@ class ModelArgs(BaseModelArgs):
 
 
 # ----------------------------------------------------------------------------- norms / small ops
+class _F32Weight:
+    """The fp32 norm weight (1 + w for the offset norms), built once per weight array instead of two small kernels on
+    every call. Not a parameter: nn.Module keeps plain objects out of parameters()."""
+
+    __slots__ = ("src", "val")
+
+    def __init__(self):
+        self.src = self.val = None
+
+    def get(self, w, offset):
+        if self.src is not w:
+            self.src, self.val = w, (1.0 + w.astype(F32)) if offset else w.astype(F32)
+        return self.val
+
+
 class OffsetRMSNorm(nn.Module):
     """Qwen3.5 (Gemma-style) RMSNorm: x * rsqrt(mean(x^2) + eps) * (1 + w) in fp32, rounded once to x's dtype."""
 
@@ -100,9 +131,18 @@ class OffsetRMSNorm(nn.Module):
         super().__init__()
         self.weight = mx.zeros((dims,))
         self.eps = eps
+        self._wf = _F32Weight()
 
     def __call__(self, x):
-        return mx.fast.rms_norm(x, 1.0 + self.weight.astype(F32), self.eps).astype(x.dtype)
+        return _rms_norm_f32(x, self._wf.get(self.weight, True), self.eps)
+
+
+def _rms_norm_f32(x, wf, eps):
+    # decode / verify sizes on the GPU: decode_fused's one-dispatch copy of MLX's rms kernel (no strided copy, no casts);
+    # the same values bit for bit. Prefill keeps the MLX path.
+    if DF.active(x) and x.shape[-1] <= 4096 and x.size <= 512 * x.shape[-1]:
+        return DF.rms_norm_mlx(x, wf, eps)
+    return mx.fast.rms_norm(x, wf, eps).astype(x.dtype)
 
 
 class RMSNorm(nn.Module):
@@ -112,9 +152,10 @@ class RMSNorm(nn.Module):
         super().__init__()
         self.weight = mx.ones((dims,))
         self.eps = eps
+        self._wf = _F32Weight()
 
     def __call__(self, x):
-        return mx.fast.rms_norm(x, self.weight.astype(F32), self.eps).astype(x.dtype)
+        return _rms_norm_f32(x, self._wf.get(self.weight, False), self.eps)
 
 
 @partial(mx.compile, shapeless=True)
@@ -262,10 +303,14 @@ class MHC(nn.Module):
         B, L, n, D = H.shape
         if use_kernels() and H.dtype == BF16:
             _, hn = kernels.rms_norm(hmean, self.norm.weight, self.norm.eps, offset=False)
-            pre, post, res = kernels.mhc_params(self.dyn(hn).reshape(B * L, -1), self.pre_static, self.post_static,
-                                                self.res_static, self.iters)
-            x_in = kernels.mhc_mix(H.reshape(B * L, n, D), pre).reshape(B, L, D)
-            return x_in, post.reshape(B, L, n), res.reshape(B, L, n, n)
+            d = self.dyn(hn).reshape(B * L, -1)
+            if DF.active(H):  # pre/post/Sinkhorn + mix in one kernel, the Sinkhorn on 16 lanes (same arithmetic)
+                x_in, _, post, res = DF.mix_norm(d, self.pre_static, self.post_static, self.res_static,
+                                                 H.reshape(B * L, n, D), self.iters)
+            else:
+                pre, post, res = kernels.mhc_params(d, self.pre_static, self.post_static, self.res_static, self.iters)
+                x_in = kernels.mhc_mix(H.reshape(B * L, n, D), pre)
+            return x_in.reshape(B, L, D), post.reshape(B, L, n), res.reshape(B, L, n, n)
         d = self.dyn(self.norm(hmean))
         pre, post, logits = _mhc_params(d, self.pre_static, self.post_static, self.res_static)
         res = sinkhorn(logits, self.iters).astype(H.dtype)
@@ -279,6 +324,22 @@ class MHC(nn.Module):
             return Hn.reshape(B, L, n, D), mean.reshape(B, L, D)
         mixed = res @ H  # [B, L, 4, 4] @ [B, L, 4, D], bf16 out (fp32 accumulation), torch's bmm
         return _mhc_combine(mixed, post, y, x_in)
+
+    # Fused path (decode_fused.py, GPU bf16): the caller carries the mHC norm of the stream mean (hn) instead of the
+    # mean, mix_norm also returns the layer's input norm, and combine_norm takes the layer's unsummed residual parts and
+    # returns the next layer's hn. Same values as mix / layer / combine, bit for bit.
+    def mix_norm(self, H, hn, w_in, eps):
+        B, L, n, D = H.shape
+        x_in, h, post, res = DF.mix_norm(self.dyn(hn).reshape(B * L, -1), self.pre_static, self.post_static,
+                                         self.res_static, H.reshape(B * L, n, D), self.iters, w=w_in, eps=eps)
+        return x_in.reshape(B, L, D), h.reshape(B, L, D), post.reshape(B, L, n), res.reshape(B, L, n, n)
+
+    def combine_norm(self, H, post, res, y, x_in, w_next):
+        B, L, n, D = H.shape
+        y = tuple(t.reshape(B * L, D) for t in y) if isinstance(y, tuple) else y.reshape(B * L, D)
+        Hn, hn = DF.combine_norm(H.reshape(B * L, n, D), res.reshape(B * L, n, n), post.reshape(B * L, n), y,
+                                 x_in.reshape(B * L, D), w_next, self.norm.eps)
+        return Hn.reshape(B, L, n, D), (None if hn is None else hn.reshape(B, L, D))
 
 
 # ----------------------------------------------------------------------------- KDA
@@ -330,6 +391,18 @@ class KDA(nn.Module):
         if conv_state is None:
             conv_state = mx.zeros((B, self.kernel - 1, self.conv_dim), dtype=qkv.dtype)
         fused = use_kernels() and qkv.dtype == BF16
+        if fused and DF.active(qkv) and self.K == 128 and self.V == 128:
+            # conv + SiLU + q/k l2 norm + the new conv state + decay g and beta in one kernel (decode_fused.py); the
+            # recurrence writes bf16 directly (= its fp32 output cast); then the gated norm. Same values bit for bit.
+            q, k, v, cache[0], g, beta = DF.kda_conv_gates(qkv, conv_state, self.conv1d.weight[:, :, 0], self.key_dim,
+                                                            self.A_log, a.reshape(B, L, -1), self.dt_bias, b)
+            q, k = q.reshape(B, L, self.H, self.K), k.reshape(B, L, self.H, self.K)
+            v = v.reshape(B, L, self.HV, self.V)
+            state = cache[1] if cache[1] is not None else mx.zeros((B, self.HV, self.V, self.K), dtype=F32)
+            rec = kernels.gated_delta_tg if L >= 64 else kernels.gated_delta_vec
+            out, cache[1] = rec(q, k, v, g.reshape(B, L, self.HV, self.K), beta, state, out_dtype=x.dtype)
+            out = kernels.gated_norm(out, self.norm.weight, z, self.eps)
+            return self.out_proj(out.reshape(B, L, self.value_dim))
         if fused:  # conv + SiLU + q/k l2 norm in one kernel; packed recurrence with the per-channel decay
             conv = kernels.kda_conv_qk4 if self.K == 128 else kernels.kda_conv_qk
             q, k, v = conv(qkv, conv_state, self.conv1d.weight[:, :, 0], self.key_dim, self.K)
@@ -540,10 +613,17 @@ def _topk_blocks(s, k):
     return mx.argpartition(0xFFFFFFFF - key, k - 1, axis=-1)[..., :k].astype(mx.int32)
 
 
+def _first(x):
+    """x[0] as a view. In MLX 0.32 an integer index (x[0], p[b]) goes through take and copies the whole array (the
+    pooled K/V: ~10 MB per BCSA layer at 23K); squeeze of a one-row slice does not."""
+    return x[0:1].squeeze(0)
+
+
 def _gather_blocks(p, idx):
     """p [B, KVH, cap, D], idx [B, ...] int32 -> [B, KVH, ..., D]."""
     B, KVH, _, D = p.shape
-    out = [mx.take(p[b], idx[b].reshape(-1), axis=1).reshape(KVH, *idx.shape[1:], D) for b in range(B)]
+    out = [mx.take(p[b : b + 1].squeeze(0), idx[b : b + 1].reshape(-1), axis=1).reshape(KVH, *idx.shape[1:], D)
+           for b in range(B)]
     return out[0][None] if B == 1 else mx.stack(out)
 
 
@@ -606,7 +686,7 @@ class Attention(nn.Module):
         Scores as torch rounds them (bf16 einsum, head mean, scale); selection in the radix-select kernel."""
         qi = self._index_q(x)
         if self.ID == 128 and qi.dtype == BF16:  # fused NAX scoring, same rounding points, no per-head scores
-            s = kernels.bcsa_scores(qi[0], cache.bk[0], nv_max, self.ID**-0.5)
+            s = kernels.bcsa_scores(_first(qi), _first(cache.bk), nv_max, self.ID**-0.5)
             return kernels.bcsa_topk(s, p0, self.W, self.C, self.topk)
         bk = cache.bk[:, :nv_max]
         sel, rows = [], self.select_rows
@@ -654,7 +734,7 @@ class Attention(nn.Module):
             if nprev == 0 and L <= W:
                 return mx.fast.scaled_dot_product_attention(q, keys, vals, scale=self.scale, mask="causal")
             if use_kernels() and B == 1:
-                return kernels.bcsa_window(q[0], keys[0], vals[0], self.scale, nprev, W)[None]
+                return kernels.bcsa_window(_first(q), _first(keys), _first(vals), self.scale, nprev, W)[None]
             qp = mx.arange(P, P + L)[:, None]
             kp = mx.arange(kpos0, P + L)[None]
             mask = (kp <= qp) & (kp > qp - W)
@@ -671,8 +751,8 @@ class Attention(nn.Module):
         # top-k far blocks per query; then one NAX flash-attention pass per 32-query block: the union of the block's
         # selected far blocks (each query masked to its own), then its sliding window, in one joint softmax
         sel = self._select(x, cache, P, nv_max)
-        return kernels.bcsa_attend(q[0], keys[0], vals[0], cache.pk[0], cache.pv[0], sel, nv_max, self.scale, nprev,
-                                   W)[None]
+        return kernels.bcsa_attend(_first(q), _first(keys), _first(vals), _first(cache.pk), _first(cache.pv), sel,
+                                   nv_max, self.scale, nprev, W)[None]
 
     def _bcsa_tile(self, q, qi, keys, vals, cache, p0, p1, kpos0):
         """Queries at positions [p0, p1): local window keys shared by the tile, per-query top-k far blocks,
@@ -732,17 +812,23 @@ class DecoderLayer(nn.Module):
         if idx in args.engram_layers:
             self.engram = Engram(args)
 
-    def __call__(self, x, cache, rows):
+    def __call__(self, x, cache, rows, h=None, split=False):
+        """h: the input norm of x when the caller already computed it (decode_fused.mix_norm). split: return the two
+        residual parts (h + r, mlp) unsummed for decode_fused.combine_norm, which adds them (Engram layers return y)."""
         fused = use_kernels() and x.dtype == BF16
         eps = self.input_layernorm.eps
-        h = kernels.rms_norm(x, self.input_layernorm.weight, eps, offset=True)[1] if fused else self.input_layernorm(x)
+        if h is None:
+            h = kernels.rms_norm(x, self.input_layernorm.weight, eps, offset=True)[1] if fused else self.input_layernorm(x)
         r = self.linear_attn(h, cache) if self.mixer == "kda" else self.self_attn(h, cache)
         if fused:  # residual add and the post-attention norm in one kernel
             h, hn = kernels.rms_norm(x, self.post_attention_layernorm.weight, eps, offset=True, r=r)
         else:
             h = x + r
             hn = self.post_attention_layernorm(h)
-        y = h + self.mlp(hn)
+        m = self.mlp(hn)
+        if split and "engram" not in self:
+            return h, m
+        y = h + m
         if "engram" in self:
             y = self.engram(y, rows)
         return y
@@ -770,10 +856,24 @@ class VolundrModel(nn.Module):
             rows = [engram_rows(full, n, L, a.engram_rows) for n in a.engram_orders]
         H = mx.broadcast_to(x[:, :, None, :], (B, L, a.mhc_streams, a.hidden_size))
         hmean = x  # the mean of identical streams
+        if use_kernels() and DF.active(x):
+            return self._fused_layers(H, hmean, cache, rows)
         for layer, mhc, c in zip(self.layers, self.mhc, cache):
             x_in, post, res = mhc.mix(H, hmean)
             y = layer(x_in, c, rows)
             H, hmean = mhc.combine(H, post, res, y, x_in)
+        return self.norm(H[:, :, 0])  # stream 0 feeds the head
+
+    def _fused_layers(self, H, hmean, cache, rows):
+        """The layer loop on decode_fused.py's kernels: per layer combine_norm (residual add + mHC combine + the next
+        layer's mHC norm) -> dyn -> mix_norm (Sinkhorn + mix + input norm) -> mixer -> post norm -> MLP. Same values
+        as the loop above, bit for bit."""
+        n = len(self.layers)
+        hn = kernels.rms_norm(hmean, self.mhc[0].norm.weight, self.mhc[0].norm.eps, offset=False)[1]
+        for i, (layer, mhc, c) in enumerate(zip(self.layers, self.mhc, cache)):
+            x_in, h, post, res = mhc.mix_norm(H, hn, layer.input_layernorm.weight, layer.input_layernorm.eps)
+            y = layer(x_in, c, rows, h=h, split=True)
+            H, hn = mhc.combine_norm(H, post, res, y, x_in, self.mhc[i + 1].norm.weight if i + 1 < n else None)
         return self.norm(H[:, :, 0])  # stream 0 feeds the head
 
 
@@ -794,6 +894,15 @@ class Model(nn.Module):
         if last_only:
             h = h[:, -1:]
         return self.lm_head(h)
+
+    def quantize_lm_head(self, group_size: int = 64, bits: int = 8) -> bool:
+        """Replace the bf16 lm_head with an affine-quantized copy (the opt-in VOLUNDR_LMHEAD8 mode; changes the
+        logits). Returns False if the head is already quantized."""
+        if "scales" in self.lm_head:
+            return False
+        self.lm_head = nn.QuantizedLinear.from_linear(self.lm_head, group_size, bits)
+        mx.eval(self.lm_head.parameters())
+        return True
 
     @property
     def layers(self):

@@ -15,14 +15,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import volundr  # noqa: E402
 
 
-def load(path):
+def load(path, lm_head_q=True):
+    """Model and tokenizer. lm_head_q: apply the opt-in 8-bit lm_head now if VOLUNDR_LMHEAD8 asks for it (callers that
+    first copy the bf16 head, like the speculative drafter, pass False and call apply_lm_head_q afterwards)."""
     from mlx_lm.utils import load_model, load_tokenizer
 
     path = Path(path)
     model, config = load_model(path, get_model_classes=lambda config: (volundr.Model, volundr.ModelArgs))
     eos = config.get("eos_token_id")
     tok = load_tokenizer(path, eos_token_ids=eos if isinstance(eos, list) else [eos])
+    if lm_head_q:
+        apply_lm_head_q(model)
     return model, tok
+
+
+def apply_lm_head_q(model) -> int:
+    """VOLUNDR_LMHEAD8 -> 8-bit affine lm_head with that group size (0 = bf16 head kept). Returns the group size."""
+    g = volundr.lm_head_q_group()
+    if g:
+        model.quantize_lm_head(group_size=g, bits=8)
+    return g
 
 
 def set_wired_limit():
@@ -131,6 +143,7 @@ def main():
         "decode_tok_s": round(n_dec / dec_s, 2) if n_dec > 0 else None,
         "decode_ms_per_tok": round(1000 * dec_s / n_dec, 2) if n_dec > 0 else None,
         "peak_gb": round(mx.get_peak_memory() / 1e9, 2),
+        "lm_head_q8_group": volundr.lm_head_q_group(),
     }
     print("\n" + json.dumps(rec), file=sys.stderr)
     if args.json:

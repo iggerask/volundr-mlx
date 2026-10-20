@@ -1,0 +1,42 @@
+### 2026-10-19 08:21:23 /Users/ingemarrask/personal-dev/llms/.claude/worktrees/agent-ae877536cb39838a7/volundr-mlx/decode_quick_wins/run7.sh
+canary 28.3 TFLOP/s
+PASS test_mix_norm (0.9 s)
+PASS test_combine_norm (0.6 s)
+PASS test_kda_conv_gates (0.0 s)
+PASS test_gated_delta_bf16_out (0.0 s)
+PASS test_gated_delta_norm (0.0 s)
+PASS test_rms_norm_mlx (0.0 s)
+PASS test_rms_norm_unrolled_equals_strided (0.6 s)
+PASS test_tiny_model_fused_equals_unfused (0.4 s)
+8/8 passed
+PASS test_engram_hash (0.0 s)
+PASS test_sinkhorn_kernel (0.0 s)
+PASS test_gated_delta_vec_kernel (0.0 s)
+  t: scales do not repeat over g128; keeping the stored g64
+PASS test_convert_linear (0.0 s)
+PASS test_topk_tie_order (0.0 s)
+PASS test_kernels_match_ops (0.2 s)
+PASS test_model_matches_reference_cpu_fp32 (0.4 s)
+    gpu fp32 full: max rel err 2.60e-03
+    gpu fp32 chunked: max rel err 2.60e-03
+    gpu fp32 decode: max rel err 1.77e-03
+PASS test_model_gpu_fp32_kernels (0.1 s)
+    gpu bf16 full: max rel err 6.62e-02 (cpu bf16 floor 6.71e-02), argmax agreement 93.33%
+    gpu bf16 chunked: max rel err 7.23e-02 (cpu bf16 floor 6.54e-02), argmax agreement 91.67%
+    gpu bf16 decode: max rel err 6.71e-02 (cpu bf16 floor 6.79e-02), argmax agreement 93.33%
+PASS test_model_gpu_bf16 (0.5 s)
+    converted (quantized matmuls) vs dequantized dense, fp32 CPU: max rel 2.32e-06
+PASS test_convert_end_to_end (0.3 s)
+10/10 passed
+2 single-TG norms (strided loop)        22.0 us per layer
+mhc old (6 kernels/layer)               35.1 us per layer
+mhc fused (3 kernels/layer)             30.8 us per layer
+2 single-TG norms (unrolled)            15.5 us per layer
+serial Sinkhorn + concat                15.4 us per layer
+parallel Sinkhorn (mix) + concat        10.3 us per layer
+concat only                              5.4 us per layer
+kda old                                 42.2 us per layer
+kda fused                               41.6 us per layer
+exit 0
+canary 26.8 TFLOP/s
+### done 2026-10-19 08:21:31

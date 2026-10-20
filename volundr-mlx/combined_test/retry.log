@@ -1,0 +1,33 @@
+### retry.sh tune attempt 1/8 23:00:39; swap: total = 15360.00M  used = 14175.75M  free = 1184.25M  (encrypted)
+combined-test_tune_spec_baseline.jsonl: 52/56
+combined-test_tune_spec_exact.jsonl: 52/56
+combined-test_tune_spec_exact+q8g64.jsonl: 52/56
+### retry.sh tune attempt 2/8 23:03:09; swap: total = 25600.00M  used = 23876.75M  free = 1723.25M  (encrypted)
+combined-test_tune_spec_baseline.jsonl: 53/56
+combined-test_tune_spec_exact.jsonl: 53/56
+combined-test_tune_spec_exact+q8g64.jsonl: 53/56
+### retry.sh tune attempt 3/8 23:05:09; swap: total = 26624.00M  used = 24535.50M  free = 2088.50M  (encrypted)
+combined-test_tune_spec_baseline.jsonl: 54/56
+combined-test_tune_spec_exact.jsonl: 54/56
+combined-test_tune_spec_exact+q8g64.jsonl: 54/56
+### retry.sh tune attempt 4/8 23:07:24; swap: total = 26624.00M  used = 24532.44M  free = 2091.56M  (encrypted)
+combined-test_tune_spec_baseline.jsonl: 55/56
+combined-test_tune_spec_exact.jsonl: 55/56
+combined-test_tune_spec_exact+q8g64.jsonl: 55/56
+### retry.sh tune attempt 5/8 23:09:47; swap: total = 26624.00M  used = 24827.19M  free = 1796.81M  (encrypted)
+combined-test_tune_spec_baseline.jsonl: 55/56
+combined-test_tune_spec_exact.jsonl: 55/56
+combined-test_tune_spec_exact+q8g64.jsonl: 55/56
+### retry.sh tune attempt 6/8 23:10:09; swap: total = 26624.00M  used = 24822.88M  free = 1801.12M  (encrypted)
+combined-test_tune_spec_baseline.jsonl: 55/56
+combined-test_tune_spec_exact.jsonl: 55/56
+combined-test_tune_spec_exact+q8g64.jsonl: 55/56
+### retry.sh tune attempt 7/8 23:10:30; swap: total = 26624.00M  used = 25145.06M  free = 1478.94M  (encrypted)
+combined-test_tune_spec_baseline.jsonl: 56/56
+combined-test_tune_spec_exact.jsonl: 56/56
+combined-test_tune_spec_exact+q8g64.jsonl: 56/56
+### retry.sh tune complete after attempt 7 23:13:12
+### retry.sh test attempt 1/10 23:36:54; swap: total = 16384.00M  used = 15068.44M  free = 1315.56M  (encrypted)
+combined-test_test_baseline.jsonl: 18/18
+combined-test_test_exact+q8g64.jsonl: 18/18
+### retry.sh test complete after attempt 1 23:53:20

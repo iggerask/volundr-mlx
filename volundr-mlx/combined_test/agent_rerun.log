@@ -1,0 +1,15 @@
+### 2026-10-19 23:54:08 zsh -c cd spec && $PY ab_suite.py spec --split tune --cats agent --configs baseline,exact,exact+q8g64 --out runs/combined-test_tune_spec_agentrerun --resume
+load: 3.23 3.52 4.26
+canary 28.1 TFLOP/s
+spec: 4 prompts x ['baseline', 'exact', 'exact+q8g64']
+{"name": "agent/02-buriy__python-readabilit-think", "config": "baseline", "generated": 256, "decode_s": 7.183, "steps": 61, "mean_acc": 4.18, "tok_s": 35.502, "peak_gb": 57.23}
+{"name": "agent/02-buriy__python-readabilit-think", "config": "exact", "generated": 256, "decode_s": 6.171, "steps": 61, "mean_acc": 4.18, "tok_s": 41.319, "peak_gb": 58.61}
+{"name": "agent/02-buriy__python-readabilit-think", "config": "exact+q8g64", "generated": 256, "decode_s": 5.989, "steps": 61, "mean_acc": 4.18, "tok_s": 42.576, "peak_gb": 58.61}
+{"name": "agent/03-pyupio__safety", "config": "baseline", "generated": 80, "decode_s": 1.79, "steps": 15, "mean_acc": 5.333, "tok_s": 44.14, "peak_gb": 57.07}
+{"name": "agent/03-pyupio__safety", "config": "exact", "generated": 80, "decode_s": 1.627, "steps": 16, "mean_acc": 5.188, "tok_s": 48.548, "peak_gb": 58.54}
+{"name": "agent/03-pyupio__safety", "config": "exact+q8g64", "generated": 80, "decode_s": 1.798, "steps": 16, "mean_acc": 5.188, "tok_s": 43.927, "peak_gb": 58.54}
+done in 127 s
+exit 0
+canary 27.8 TFLOP/s
+load: 3.00 3.39 4.10
+### done 2026-10-19 23:56:17
