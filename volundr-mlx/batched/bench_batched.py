@@ -192,6 +192,7 @@ def main():
     ap.add_argument("--warm", type=int, default=4, help="untimed steps first (the snapshot copy, Metal JIT)")
     ap.add_argument("--refs", type=int, default=1, help="run the B = 1 reference of every prompt")
     ap.add_argument("--reps", type=int, default=1, help="repeats of the whole B x NAX grid")
+    ap.add_argument("--selects", default="kernel", help="volundr.BATCH_SELECT values to run (B > 1 far selection)")
     ap.add_argument("--chunk", type=int, default=2048)
     ap.add_argument("--out", required=True)
     ap.add_argument("--distinct", type=int, default=0,
@@ -271,25 +272,27 @@ def main():
             log({"kind": "ref", "stream": i, "ms_step": round(1e3 * dt, 2), "peak_gb": round(peak, 2),
                  "min_margin": min(marg[0]), "tokens": toks[0], "margins": marg[0]})
 
-    for rep in range(args.reps):
-        for B in batches:
-            for nax in naxes:
-                if B == 1 and nax and 0 in naxes:
-                    continue  # NAX only takes 2..16 rows: B = 1 is the stock path either way
-                est = weights_gb + snap_gb + B * per_stream / 1e9 + 1.0
-                if est > args.max_gb:
-                    log({"kind": "skip", "B": B, "nax": nax, "est_gb": round(est, 1)})
-                    continue
-                toks, marg, dt, peak = run(B, nax)
-                rec = {"kind": "batch", "rep": rep, "B": B, "nax": nax, "prompt_tokens": args.tokens, "distinct": min(B, nd),
-                       "steps": args.steps, "ms_step": round(1e3 * dt, 2), "agg_tok_s": round(B / dt, 2),
-                       "stream_tok_s": round(1 / dt, 2), "peak_gb": round(peak, 2),
-                       "peak_less_snapshot_gb": round(peak - snap_gb, 2), "tokens": toks, "margins": marg}
-                if refs:
-                    cmp = [compare(*refs[i % nd], toks[i], marg[i]) for i in range(B)]
-                    rec["identical"] = sum(c["diverge_at"] is None for c in cmp)
-                    rec["diverged"] = [dict(stream=i, **c) for i, c in enumerate(cmp) if c["diverge_at"] is not None]
-                log(rec)
+    grid = [(rep, B, nax, sel) for rep in range(args.reps) for B in batches for nax in naxes
+            for sel in args.selects.split(",")]
+    for rep, B, nax, sel in grid:
+        V.BATCH_SELECT = sel
+        if B == 1 and (nax and 0 in naxes or sel != args.selects.split(",")[0]):
+            continue  # NAX only takes 2..16 rows and B = 1 always selects with the kernels
+        est = weights_gb + snap_gb + B * per_stream / 1e9 + 1.0
+        if est > args.max_gb:
+            log({"kind": "skip", "B": B, "nax": nax, "est_gb": round(est, 1)})
+            continue
+        toks, marg, dt, peak = run(B, nax)
+        rec = {"kind": "batch", "rep": rep, "B": B, "nax": nax, "select": sel, "prompt_tokens": args.tokens,
+               "distinct": min(B, nd),
+               "steps": args.steps, "ms_step": round(1e3 * dt, 2), "agg_tok_s": round(B / dt, 2),
+               "stream_tok_s": round(1 / dt, 2), "peak_gb": round(peak, 2),
+               "peak_less_snapshot_gb": round(peak - snap_gb, 2), "tokens": toks, "margins": marg}
+        if refs:
+            cmp = [compare(*refs[i % nd], toks[i], marg[i]) for i in range(B)]
+            rec["identical"] = sum(c["diverge_at"] is None for c in cmp)
+            rec["diverged"] = [dict(stream=i, **c) for i, c in enumerate(cmp) if c["diverge_at"] is not None]
+        log(rec)
     outf.close()
 
 

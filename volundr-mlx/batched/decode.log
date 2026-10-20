@@ -1,0 +1,50 @@
+### 2026-10-20 05:42:11 /Users/ingemarrask/personal-dev/llms/.venv/bin/python batched/bench_batched.py --tokens 200 --batches 1,2,4,8,16 --distinct 8 --steps 128 --out spec/runs/batched-bench_decode_200.jsonl
+load: 4.14 4.33 4.10; swap: total = 13312.00M  used = 11885.06M  free = 1426.94M  (encrypted)
+canary 28.3 TFLOP/s
+{"kind": "setup", "prompt_tokens": 200, "prompts": 8, "prefill_s": 5.2, "weights_gb": 24.15, "cache_gb_per_stream": 0.571, "snapshot_gb": 4.57, "active_gb": 28.72, "lmhead8": 0, "batch_select": "kernel"}
+{"kind": "ref", "stream": 0, "ms_step": 70.29, "peak_gb": 29.34, "min_margin": 0.125}
+{"kind": "ref", "stream": 1, "ms_step": 70.53, "peak_gb": 29.34, "min_margin": 0.125}
+{"kind": "ref", "stream": 2, "ms_step": 71.05, "peak_gb": 29.34, "min_margin": 0.0}
+{"kind": "ref", "stream": 3, "ms_step": 70.58, "peak_gb": 29.34, "min_margin": 0.0}
+{"kind": "ref", "stream": 4, "ms_step": 69.89, "peak_gb": 29.34, "min_margin": 0.0}
+{"kind": "ref", "stream": 5, "ms_step": 71.54, "peak_gb": 29.34, "min_margin": 0.0}
+{"kind": "ref", "stream": 6, "ms_step": 70.68, "peak_gb": 29.34, "min_margin": 0.125}
+{"kind": "ref", "stream": 7, "ms_step": 70.24, "peak_gb": 29.34, "min_margin": 0.0}
+{"kind": "batch", "rep": 0, "B": 1, "nax": 0, "prompt_tokens": 200, "distinct": 1, "steps": 128, "ms_step": 70.27, "agg_tok_s": 14.23, "stream_tok_s": 14.23, "peak_gb": 29.34, "peak_less_snapshot_gb": 24.77, "identical": 1, "diverged": []}
+{"kind": "batch", "rep": 0, "B": 2, "nax": 0, "prompt_tokens": 200, "distinct": 2, "steps": 128, "ms_step": 78.71, "agg_tok_s": 25.41, "stream_tok_s": 12.7, "peak_gb": 29.95, "peak_less_snapshot_gb": 25.39, "identical": 2, "diverged": []}
+{"kind": "batch", "rep": 0, "B": 2, "nax": 1, "prompt_tokens": 200, "distinct": 2, "steps": 128, "ms_step": 83.44, "agg_tok_s": 23.97, "stream_tok_s": 11.98, "peak_gb": 29.96, "peak_less_snapshot_gb": 25.4, "identical": 2, "diverged": []}
+{"kind": "batch", "rep": 0, "B": 4, "nax": 0, "prompt_tokens": 200, "distinct": 4, "steps": 128, "ms_step": 91.28, "agg_tok_s": 43.82, "stream_tok_s": 10.96, "peak_gb": 31.18, "peak_less_snapshot_gb": 26.62, "identical": 4, "diverged": []}
+{"kind": "batch", "rep": 0, "B": 4, "nax": 1, "prompt_tokens": 200, "distinct": 4, "steps": 128, "ms_step": 87.56, "agg_tok_s": 45.68, "stream_tok_s": 11.42, "peak_gb": 31.19, "peak_less_snapshot_gb": 26.63, "identical": 4, "diverged": []}
+{"kind": "batch", "rep": 0, "B": 8, "nax": 0, "prompt_tokens": 200, "distinct": 8, "steps": 128, "ms_step": 155.02, "agg_tok_s": 51.61, "stream_tok_s": 6.45, "peak_gb": 33.59, "peak_less_snapshot_gb": 29.02, "identical": 6, "diverged": [{"stream": 4, "diverge_at": 41, "ref_margin": 0.125, "margin": 0.0}, {"stream": 5, "diverge_at": 28, "ref_margin": 0.0, "margin": 0.125}]}
+{"kind": "batch", "rep": 0, "B": 8, "nax": 1, "prompt_tokens": 200, "distinct": 8, "steps": 128, "ms_step": 95.65, "agg_tok_s": 83.64, "stream_tok_s": 10.45, "peak_gb": 33.59, "peak_less_snapshot_gb": 29.03, "identical": 8, "diverged": []}
+{"kind": "batch", "rep": 0, "B": 16, "nax": 0, "prompt_tokens": 200, "distinct": 8, "steps": 128, "ms_step": 229.86, "agg_tok_s": 69.61, "stream_tok_s": 4.35, "peak_gb": 38.42, "peak_less_snapshot_gb": 33.85, "identical": 10, "diverged": [{"stream": 1, "diverge_at": 76, "ref_margin": 0.25, "margin": 0.0}, {"stream": 4, "diverge_at": 52, "ref_margin": 0.125, "margin": 0.125}, {"stream": 5, "diverge_at": 28, "ref_margin": 0.0, "margin": 0.125}, {"stream": 9, "diverge_at": 76, "ref_margin": 0.25, "margin": 0.0}, {"stream": 12, "diverge_at": 52, "ref_margin": 0.125, "margin": 0.125}, {"stream": 13, "diverge_at": 28, "ref_margin": 0.0, "margin": 0.125}]}
+{"kind": "batch", "rep": 0, "B": 16, "nax": 1, "prompt_tokens": 200, "distinct": 8, "steps": 128, "ms_step": 120.14, "agg_tok_s": 133.17, "stream_tok_s": 8.32, "peak_gb": 38.41, "peak_less_snapshot_gb": 33.84, "identical": 12, "diverged": [{"stream": 2, "diverge_at": 5, "ref_margin": 0.0, "margin": 0.125}, {"stream": 5, "diverge_at": 28, "ref_margin": 0.0, "margin": 0.125}, {"stream": 10, "diverge_at": 5, "ref_margin": 0.0, "margin": 0.125}, {"stream": 13, "diverge_at": 28, "ref_margin": 0.0, "margin": 0.125}]}
+exit 0
+canary 26.1 TFLOP/s
+load: 6.12 5.10 4.47; swap: total = 15360.00M  used = 14463.44M  free = 896.56M  (encrypted)
+### done 2026-10-20 05:46:03
+### 2026-10-20 05:46:03 /Users/ingemarrask/personal-dev/llms/.venv/bin/python batched/bench_batched.py --tokens 8192 --batches 1,2,4,8,16 --distinct 8 --steps 128 --out spec/runs/batched-bench_decode_8192.jsonl
+load: 6.12 5.10 4.47; swap: total = 15360.00M  used = 14455.44M  free = 904.56M  (encrypted)
+canary 27.3 TFLOP/s
+{"kind": "setup", "prompt_tokens": 8192, "prompts": 8, "prefill_s": 173.7, "weights_gb": 24.15, "cache_gb_per_stream": 0.679, "snapshot_gb": 5.43, "active_gb": 29.58, "lmhead8": 0, "batch_select": "kernel"}
+{"kind": "ref", "stream": 0, "ms_step": 77.12, "peak_gb": 30.44, "min_margin": 0.0}
+{"kind": "ref", "stream": 1, "ms_step": 79.57, "peak_gb": 30.44, "min_margin": 0.125}
+{"kind": "ref", "stream": 2, "ms_step": 77.97, "peak_gb": 30.44, "min_margin": 0.0}
+{"kind": "ref", "stream": 3, "ms_step": 79.32, "peak_gb": 30.44, "min_margin": 0.0}
+{"kind": "ref", "stream": 4, "ms_step": 77.97, "peak_gb": 30.44, "min_margin": 0.0}
+{"kind": "ref", "stream": 5, "ms_step": 77.13, "peak_gb": 30.44, "min_margin": 0.0}
+{"kind": "ref", "stream": 6, "ms_step": 77.91, "peak_gb": 30.44, "min_margin": 0.0}
+{"kind": "ref", "stream": 7, "ms_step": 76.0, "peak_gb": 30.44, "min_margin": 0.0}
+{"kind": "batch", "rep": 0, "B": 1, "nax": 0, "prompt_tokens": 8192, "distinct": 1, "steps": 128, "ms_step": 77.21, "agg_tok_s": 12.95, "stream_tok_s": 12.95, "peak_gb": 30.44, "peak_less_snapshot_gb": 25.01, "identical": 1, "diverged": []}
+{"kind": "batch", "rep": 0, "B": 2, "nax": 0, "prompt_tokens": 8192, "distinct": 2, "steps": 128, "ms_step": 90.06, "agg_tok_s": 22.21, "stream_tok_s": 11.1, "peak_gb": 31.3, "peak_less_snapshot_gb": 25.87, "identical": 1, "diverged": [{"stream": 0, "diverge_at": 70, "ref_margin": 0.0, "margin": 0.125}]}
+{"kind": "batch", "rep": 0, "B": 2, "nax": 1, "prompt_tokens": 8192, "distinct": 2, "steps": 128, "ms_step": 92.88, "agg_tok_s": 21.53, "stream_tok_s": 10.77, "peak_gb": 31.31, "peak_less_snapshot_gb": 25.88, "identical": 2, "diverged": []}
+{"kind": "batch", "rep": 0, "B": 4, "nax": 0, "prompt_tokens": 8192, "distinct": 4, "steps": 128, "ms_step": 107.87, "agg_tok_s": 37.08, "stream_tok_s": 9.27, "peak_gb": 32.95, "peak_less_snapshot_gb": 27.52, "identical": 1, "diverged": [{"stream": 0, "diverge_at": 70, "ref_margin": 0.0, "margin": 0.125}, {"stream": 2, "diverge_at": 78, "ref_margin": 0.0, "margin": 0.125}, {"stream": 3, "diverge_at": 21, "ref_margin": 0.125, "margin": 0.0}]}
+{"kind": "batch", "rep": 0, "B": 4, "nax": 1, "prompt_tokens": 8192, "distinct": 4, "steps": 128, "ms_step": 103.29, "agg_tok_s": 38.73, "stream_tok_s": 9.68, "peak_gb": 32.95, "peak_less_snapshot_gb": 27.52, "identical": 3, "diverged": [{"stream": 2, "diverge_at": 29, "ref_margin": 0.125, "margin": 0.0}]}
+{"kind": "batch", "rep": 0, "B": 8, "nax": 0, "prompt_tokens": 8192, "distinct": 8, "steps": 128, "ms_step": 188.0, "agg_tok_s": 42.55, "stream_tok_s": 5.32, "peak_gb": 36.14, "peak_less_snapshot_gb": 30.71, "identical": 5, "diverged": [{"stream": 0, "diverge_at": 70, "ref_margin": 0.0, "margin": 0.125}, {"stream": 2, "diverge_at": 78, "ref_margin": 0.0, "margin": 0.125}, {"stream": 7, "diverge_at": 71, "ref_margin": 0.125, "margin": 0.0}]}
+{"kind": "batch", "rep": 0, "B": 8, "nax": 1, "prompt_tokens": 8192, "distinct": 8, "steps": 128, "ms_step": 128.06, "agg_tok_s": 62.47, "stream_tok_s": 7.81, "peak_gb": 36.17, "peak_less_snapshot_gb": 30.74, "identical": 5, "diverged": [{"stream": 2, "diverge_at": 29, "ref_margin": 0.125, "margin": 0.0}, {"stream": 5, "diverge_at": 60, "ref_margin": 0.0, "margin": 0.125}, {"stream": 7, "diverge_at": 71, "ref_margin": 0.125, "margin": 0.0}]}
+{"kind": "batch", "rep": 0, "B": 16, "nax": 0, "prompt_tokens": 8192, "distinct": 8, "steps": 128, "ms_step": 298.63, "agg_tok_s": 53.58, "stream_tok_s": 3.35, "peak_gb": 42.34, "peak_less_snapshot_gb": 36.91, "identical": 4, "diverged": [{"stream": 0, "diverge_at": 70, "ref_margin": 0.0, "margin": 0.125}, {"stream": 1, "diverge_at": 84, "ref_margin": 0.125, "margin": 0.125}, {"stream": 2, "diverge_at": 78, "ref_margin": 0.0, "margin": 0.125}, {"stream": 3, "diverge_at": 21, "ref_margin": 0.125, "margin": 0.0}, {"stream": 5, "diverge_at": 60, "ref_margin": 0.0, "margin": 0.125}, {"stream": 6, "diverge_at": 80, "ref_margin": 0.0, "margin": 0.125}, {"stream": 8, "diverge_at": 70, "ref_margin": 0.0, "margin": 0.125}, {"stream": 9, "diverge_at": 84, "ref_margin": 0.125, "margin": 0.125}, {"stream": 10, "diverge_at": 78, "ref_margin": 0.0, "margin": 0.125}, {"stream": 11, "diverge_at": 21, "ref_margin": 0.125, "margin": 0.0}, {"stream": 13, "diverge_at": 60, "ref_margin": 0.0, "margin": 0.125}, {"stream": 14, "diverge_at": 80, "ref_margin": 0.0, "margin": 0.125}]}
+{"kind": "batch", "rep": 0, "B": 16, "nax": 1, "prompt_tokens": 8192, "distinct": 8, "steps": 128, "ms_step": 178.53, "agg_tok_s": 89.62, "stream_tok_s": 5.6, "peak_gb": 42.34, "peak_less_snapshot_gb": 36.91, "identical": 10, "diverged": [{"stream": 3, "diverge_at": 21, "ref_margin": 0.125, "margin": 0.0}, {"stream": 5, "diverge_at": 121, "ref_margin": 0.125, "margin": 0.0}, {"stream": 7, "diverge_at": 71, "ref_margin": 0.125, "margin": 0.0}, {"stream": 11, "diverge_at": 21, "ref_margin": 0.125, "margin": 0.0}, {"stream": 13, "diverge_at": 121, "ref_margin": 0.125, "margin": 0.0}, {"stream": 15, "diverge_at": 71, "ref_margin": 0.125, "margin": 0.0}]}
+exit 0
+canary 26.9 TFLOP/s
+load: 10.29 7.67 5.88; swap: total = 22528.00M  used = 21489.31M  free = 1038.69M  (encrypted)
+### done 2026-10-20 05:53:21
