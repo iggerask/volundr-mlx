@@ -63,6 +63,11 @@ def lm_head_q_group() -> int:
 
 ENGRAM_PRIMES = (1000003, 1000033, 1000037, 1000039, 1000081)
 
+# Far-block selection of a BCSA decode step with B > 1 rows (batched decode, NOTES_BATCHED.md): "kernel" runs the B = 1
+# kernels once per row; "ops" is the ops path (same scores and blocks, but argpartition's order of them). B = 1 always
+# takes the kernels.
+BATCH_SELECT = os.environ.get("VOLUNDR_BATCH_SELECT", "kernel")
+
 
 @dataclass
 class ModelArgs(BaseModelArgs):
@@ -706,6 +711,14 @@ class Attention(nn.Module):
         if nv > self.topk:
             if use_kernels() and x.shape[0] == 1:
                 sel = self._select(x, cache, P, nv)  # [L = 1, topk] doubles as [B = 1, topk]
+            elif use_kernels() and BATCH_SELECT == "kernel" and self.ID == 128 and x.dtype == BF16:
+                # B > 1 (batched decode; every row at the same offset): the B = 1 scoring and radix-select kernels row
+                # by row, so each row selects its blocks in the same order as at B = 1 (NOTES_BATCHED.md)
+                qi = self._index_q(x)
+                sel = mx.concatenate([kernels.bcsa_topk(kernels.bcsa_scores(qi[b : b + 1].squeeze(0),
+                                                                            cache.bk[b : b + 1].squeeze(0), nv,
+                                                                            self.ID**-0.5), P, W, self.C, self.topk)
+                                      for b in range(x.shape[0])], axis=0)
             else:
                 s = _block_scores(self._index_q(x), cache.bk[:, :nv], self.ID**-0.5)
                 sel = _topk_blocks(s[:, 0], self.topk)
