@@ -221,22 +221,43 @@ def _spec_loop_early(model, drafter, ids, max_new, T, eos, chunk, lookup, stream
        runs it while the CPU builds the verify.
     GPU order is unchanged (materialize, draft, commit, verify); only when the CPU submits each part changes.
     long: see spec_generate (changes the drafts, so not the same tokens as the base loop)."""
-    assert 2 <= T <= BLOCK and long in (0,) + tuple(range(T + 1, 17))
-    vv = model.args.vocab_valid
     cache, dcache = model.make_cache(), drafter.make_cache()
     t0 = time.perf_counter()
     last = spec_prefill(model, drafter, cache, dcache, ids, chunk)
+    return spec_decode(model, drafter, cache, dcache, ids, last, max_new, T, eos, lookup, stream2, long, long_cap,
+                       long_gate, compiled, t0=t0)
+
+
+def spec_decode(model, drafter, cache, dcache, ids, last, max_new, T=BLOCK, eos=(), lookup=None, stream2=False, long=0,
+                long_cap=False, long_gate=0, compiled=None, t0=None, emit=None, finalize=False):
+    """The early loop (_spec_loop_early) from a prefilled state: cache holds ids, dcache the drafter context of their
+    last WINDOW positions, last = the logits of the last position (spec_prefill's return value). Used by the session
+    cache (../session.py), which starts it from a restored snapshot. With emit=None and finalize=False it runs exactly
+    the ops of _spec_loop_early.
+    - emit(tokens): called with the first token, then with each step's new tokens (cut at an eos and at max_new);
+      returning False stops after that step (cancellation).
+    - finalize: on return the caches hold exactly ids + out[:-1]: the last step's commit and drafter-context update are
+      applied for the tokens kept (the loop otherwise leaves them pending). rec gets "P" (that length) and
+      "last_logits" (the logits that picked out[-1]), so the state can be snapshotted or continued."""
+    assert 2 <= T <= BLOCK and long in (0,) + tuple(range(T + 1, 17))
+    if compiled is None:
+        compiled = COMPILED
+    vv = model.args.vocab_valid
+    if t0 is None:
+        t0 = time.perf_counter()
     bonus = mx.argmax(last[:vv]).astype(mx.int32)
     out = [bonus.item()]
     t1 = time.perf_counter()
+    stopped = emit is not None and emit(out[:1]) is False
     P, acc, src = len(ids), [], []
     t_wait = 0.0
     seg, te = [0.0, 0.0, 0.0], time.perf_counter()  # CPU: bookkeeping + draft build, async_eval + commit build, verify
     if lookup is not None:
         lookup.reset(list(ids) + out)
     pend = None  # (rec, n): the last step's target commit, built once the next draft is submitted
+    last_step = None  # (rec, cap, P, logits, len(out) before the step): the step whose commit finalize applies
     s2 = _stream2() if stream2 else None
-    while len(out) < max_new and out[-1] not in eos:
+    while len(out) < max_new and out[-1] not in eos and not stopped:
         hint = (lookup.propose(long - 1) if long else lookup.propose()) if lookup is not None else []
         full = len(hint) >= T - 1
         if full:  # (a long copy keeps up to long - 1 tokens)
@@ -274,11 +295,17 @@ def _spec_loop_early(model, drafter, ids, max_new, T, eos, chunk, lookup, stream
         emitted = inp[0, 1:n].tolist() + [tok[n - 1].item()]
         acc.append(n)
         src.append(len(hint))
+        last_step = (rec, cap, P, logits, len(out))
         stop = next((i for i, t in enumerate(emitted) if t in eos), None)
         if stop is not None:  # an eos inside the accepted run ends the reply there
             out += emitted[: stop + 1]
+            if emit is not None:
+                emit(emitted[: stop + 1][: max(0, max_new - last_step[4])])
             break
         out += emitted
+        if emit is not None and emit(emitted[: max(0, max_new - last_step[4])]) is False:
+            stopped = True
+            break
         if len(out) < max_new:  # (the base loop builds these at the end too, but never runs them)
             drafter.materialize(dcache, cap[:n], P)
             mx.async_eval(dcache.state)
@@ -289,8 +316,22 @@ def _spec_loop_early(model, drafter, ids, max_new, T, eos, chunk, lookup, stream
         P += n
     t2 = time.perf_counter()
     out = out[:max_new]
-    return out, {"prefill_s": t1 - t0, "decode_s": t2 - t1, "wait_s": t_wait, "seg_s": seg, "steps": len(acc),
-                 "acc": acc, "src": src}
+    res = {"prefill_s": t1 - t0, "decode_s": t2 - t1, "wait_s": t_wait, "seg_s": seg, "steps": len(acc), "acc": acc,
+           "src": src}
+    if finalize:
+        res["last_logits"] = last
+        P_end = len(ids)
+        if last_step is not None:  # its commit (and the drafter-context update) is still pending: keep its tokens in out
+            rec, cap, P0, logits, m0 = last_step
+            kept = len(out) - m0
+            VF.commit(cache, rec, kept)
+            drafter.materialize(dcache, cap[:kept], P0)
+            mx.eval([c.state for c in cache], dcache.state)
+            res["last_logits"] = logits[kept - 1]
+            P_end = P0 + kept
+        assert P_end == len(ids) + len(out) - 1, (P_end, len(ids), len(out))
+        res["P"] = P_end
+    return out, res
 
 
 def warm_up(model, drafter, ids, T=BLOCK, **loop):

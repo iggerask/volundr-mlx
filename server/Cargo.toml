@@ -1,0 +1,23 @@
+[workspace]
+resolver = "3"
+members = ["volundr-server"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+rust-version = "1.87"
+
+[workspace.dependencies]
+# The official OpenAI front end (HTTP API, chat template, tool-call / reasoning parsers, sampling defaults, stop
+# strings), used as a library. MIT; see ../NOTICE.
+agens-server = { git = "https://github.com/BlockWayz/agens-engine", rev = "b0e9a95af45be93137202111375b6e8ccc57dce9" }
+anyhow = "1"
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync", "io-util", "time", "signal"] }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

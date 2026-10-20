@@ -7,8 +7,11 @@
 !/requirements.txt
 !/volundr-mlx/
 !/agens-mlx-bench/
+!/server/
+!/serve.sh
 
 __pycache__/
+/server/target/
 *.pyc
 .DS_Store
 

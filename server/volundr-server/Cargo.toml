@@ -1,0 +1,22 @@
+[package]
+name = "volundr-server"
+description = "agens-server (the official OpenAI-compatible front end) on the Volundr MLX worker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+rust-version.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "volundr-server"
+path = "src/main.rs"
+
+[dependencies]
+agens-server.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+axum.workspace = true
