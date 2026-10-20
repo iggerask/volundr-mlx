@@ -17,6 +17,7 @@ anyhow = "1"
 serde_json = "1"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync", "io-util", "time", "signal"] }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
 
 [profile.release]
 lto = "thin"

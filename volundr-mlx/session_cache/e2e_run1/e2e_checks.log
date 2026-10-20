@@ -1,0 +1,30 @@
+### 2026-10-20 04:44:15 session_cache/e2e.sh session_cache/e2e
+load: 3.64 3.76 3.81; swap: total = 14336.00M  used = 13323.19M  free = 1012.81M  (encrypted)
+canary 28.7 TFLOP/s
+### serve.sh 04:44:15
+worker: model loaded in 15.9 s; cache budget 12.0 GB, interval 4096
+worker: warm-up 13.6 s
+### checks 04:44:48
+{'type': 'budget', 'budget_bytes': 12000000000, 'bytes': 0} {'type': 'cleared'}
+interleaved: {"sequential": [{"session": "A", "turn": 0, "prompt": 1920, "cached": 0, "snapshot": null, "ttft_s": 4.899485040921718}, {"session": "B", "turn": 0, "prompt": 723, "cached": 0, "snapshot": null, "ttft_s": 1.8106780420057476}, {"session": "A", "turn": 1, "prompt": 1988, "cached": 1967, "snapshot": {"id": 2, "kind": "reply", "session": "A", "same_session": true}, "ttft_s": 0.2398425410501659}, {"session": "B", "turn": 1, "prompt": 792, "cached": 770, "snapshot": {"id": 4, "kind": "reply", "session": "B", "same_session": true}, "ttft_s": 0.22781241685152054}], "concurrent": [{"session": "A", "prompt": 2057, "cached": 2035, "snapshot": {"id": 6, "kind": "reply", "session": "A", "same_session": true}, "queue_s": 2.070888876914978e-05, "ttft_s": 0.24102820921689272}, {"session": "B", "prompt": 861, "cached": 839, "snapshot": {"id": 8, "kind": "reply", "session": "B", "same_session": true}, "queue_s": 0.6273257499560714, "ttft_s": 0.2274685832671821}], "pass": true}
+{'type': 'budget', 'budget_bytes': 2000000000, 'bytes': 1792531692}
+eviction: {"budget_gb": 2.0, "steps": [{"session": "C", "prompt": 4198, "cache_bytes": 1565128056, "snapshots": 4, "evicted": 9, "kept": [["B", "reply", 839], ["B", "prompt", 861], ["B", "reply", 908], ["C", "prompt", 4198]]}, {"session": "D", "prompt": 3570, "cache_bytes": 1416718796, "snapshots": 2, "evicted": 13, "kept": [["C", "reply", 4221], ["D", "prompt", 3570]]}, {"session": "E", "prompt": 4471, "cache_bytes": 1419867628, "snapshots": 2, "evicted": 16, "kept": [["E", "interval", 4096], ["E", "prompt", 4471]]}], "C_again": {"cached": 0, "prompt": 4241, "snapshot": null}, "E_again": {"cached": 4494, "prompt": 4514, "snapshot": {"id": 19, "kind": "reply", "session": "E", "same_session": true}}, "pass": true}
+{'type': 'budget', 'budget_bytes': 12000000000, 'bytes': 1495626996}
+cancellation: {"mid_stream": {"deltas_read": 30, "F_finish": "cancelled", "F_generated": 61, "G_queue_s": 0.31756774988025427, "G_ttft_client_s": 0.539945624768734, "pass": true}, "mid_prefill": {"H_prompt": 17218, "H_finish": "cancelled", "H_cancelled": null, "H_cancelled_at": null, "H_total_s": 42.54962558299303, "I_queue_s": 36.5641675000079, "I_ttft_after_close_s": 36.83028770890087, "interval_snapshots": 4, "pass": false}, "while_queued": {"J_finish": "length", "J_prompt": 11531, "K_finish": "cancelled", "K_cancelled": null, "K_queue_s": 27.04908424988389, "K_deltas": 0, "pass": false}}
+checks pass: False
+### report 04:47:14
+| turn | prompt tokens | cached / prefilled (snapshot) | TTFT cached | TTFT no cache | speed-up | decode tok/s cached / no cache | tokens/step | cache GB (snapshots) | peak GB | same reply |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 664 | 0 / 664 | 1.69 s | 1.66 s | 1.0x | 37.4 / 36.9 | 3.67 | 0.51 (2) | 27.5 | True |
+| 1 | 4493 | 773 / 3720 (reply) | 8.99 s | 10.71 s | 1.2x | 18.7 / 18.8 | 1.94 | 2.68 (5) | 29.3 | False |
+| 2 | 8894 | 4698 / 4196 (reply) | 11.09 s | 21.13 s | 1.9x | 34.1 / 35.0 | 3.62 | 5.13 (8) | 31.8 | True |
+| 3 | 12931 | 9277 / 3654 (reply) | 9.81 s | 31.11 s | 3.2x | 21.2 / 29.6 | 2.25 | 7.86 (11) | 34.5 | False |
+| 4 | 16748 | 13180 / 3568 (reply) | 9.33 s | 40.40 s | 4.3x | 18.7 / 19.4 | 2.00 | 10.86 (14) | 37.5 | False |
+| 5 | 18040 | 16844 / 1196 (reply) | 3.39 s | 43.54 s | 12.9x | 18.0 / 20.0 | 2.03 | 11.74 (13) | 39.6 | False |
+| 6 | 21717 | 18234 / 3483 (reply) | 9.06 s | 52.70 s | 5.8x | 17.1 / 17.0 | 1.88 | 11.93 (12) | 40.6 | True |
+worker process RSS (KB): 326176
+44
+exit 0
+canary 27.6 TFLOP/s
+load: 3.74 3.95 3.89; swap: total = 14336.00M  used = 13259.19M  free = 1076.81M  (encrypted)
+### done 2026-10-20 04:47:20

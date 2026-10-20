@@ -1102,6 +1102,7 @@ dependencies = [
  "agens-server",
  "anyhow",
  "axum",
+ "futures-util",
  "serde_json",
  "tokio",
 ]

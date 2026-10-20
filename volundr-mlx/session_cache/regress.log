@@ -1,0 +1,108 @@
+### 2026-10-20 04:47:41 /Users/ingemarrask/personal-dev/llms/.venv/bin/python tests/test_session.py
+load: 4.03 4.00 3.91; swap: total = 14336.00M  used = 13251.19M  free = 1084.81M  (encrypted)
+canary 28.4 TFLOP/s
+    cache kinds: ['ArraysCache', 'BCSACache', 'EngramState', 'KVCache']; snapshot at 64: 223240 bytes
+PASS test_restore_continues_bit_identically (1.0 s)
+PASS test_restore_from_restored (0.1 s)
+PASS test_inplace_writes_need_a_new_array_object (0.0 s)
+PASS test_conv_state_view_is_copied (0.0 s)
+PASS test_decode_step_matches_model (0.1 s)
+PASS test_lookup_prefix_session_and_logits (0.0 s)
+PASS test_lru_eviction_and_budget (0.0 s)
+PASS test_points (0.0 s)
+8/8 passed
+exit 0
+canary 28.3 TFLOP/s
+load: 4.03 4.00 3.91; swap: total = 14336.00M  used = 13235.19M  free = 1100.81M  (encrypted)
+### done 2026-10-20 04:47:44
+### 2026-10-20 04:47:44 /Users/ingemarrask/personal-dev/llms/.venv/bin/python tests/test_volundr.py
+load: 4.03 4.00 3.91; swap: total = 14336.00M  used = 13235.19M  free = 1100.81M  (encrypted)
+canary 28.1 TFLOP/s
+PASS test_engram_hash (0.0 s)
+PASS test_sinkhorn_kernel (0.0 s)
+PASS test_gated_delta_vec_kernel (0.0 s)
+  t: scales do not repeat over g128; keeping the stored g64
+PASS test_convert_linear (0.0 s)
+PASS test_topk_tie_order (0.0 s)
+PASS test_kernels_match_ops (0.1 s)
+PASS test_model_matches_reference_cpu_fp32 (0.4 s)
+    gpu fp32 full: max rel err 2.60e-03
+    gpu fp32 chunked: max rel err 2.60e-03
+    gpu fp32 decode: max rel err 1.77e-03
+PASS test_model_gpu_fp32_kernels (0.1 s)
+    gpu bf16 full: max rel err 6.62e-02 (cpu bf16 floor 6.71e-02), argmax agreement 93.33%
+    gpu bf16 chunked: max rel err 7.23e-02 (cpu bf16 floor 6.54e-02), argmax agreement 91.67%
+    gpu bf16 decode: max rel err 6.71e-02 (cpu bf16 floor 6.79e-02), argmax agreement 93.33%
+PASS test_model_gpu_bf16 (0.5 s)
+    converted (quantized matmuls) vs dequantized dense, fp32 CPU: max rel 2.32e-06
+PASS test_convert_end_to_end (0.4 s)
+10/10 passed
+exit 0
+canary 28.5 TFLOP/s
+load: 4.02 4.00 3.91; swap: total = 14336.00M  used = 13235.19M  free = 1100.81M  (encrypted)
+### done 2026-10-20 04:47:48
+### 2026-10-20 04:47:48 /Users/ingemarrask/personal-dev/llms/.venv/bin/python tests/test_decode_fused.py
+load: 4.02 4.00 3.91; swap: total = 14336.00M  used = 13235.19M  free = 1100.81M  (encrypted)
+canary 28.3 TFLOP/s
+PASS test_mix_norm (0.3 s)
+PASS test_combine_norm (0.1 s)
+PASS test_kda_conv_gates (0.0 s)
+PASS test_gated_delta_bf16_out (0.0 s)
+PASS test_rms_norm_mlx (0.0 s)
+PASS test_rms_norm_unrolled_equals_strided (0.0 s)
+PASS test_bcsa_views_equal_integer_index (0.0 s)
+PASS test_tiny_model_fused_equals_unfused (0.2 s)
+8/8 passed
+exit 0
+canary 28.1 TFLOP/s
+load: 4.02 4.00 3.91; swap: total = 14336.00M  used = 13235.19M  free = 1100.81M  (encrypted)
+### done 2026-10-20 04:47:50
+### 2026-10-20 04:47:50 /Users/ingemarrask/personal-dev/llms/.venv/bin/python tests/test_bcsa_verify.py
+load: 4.02 4.00 3.91; swap: total = 14336.00M  used = 13235.19M  free = 1100.81M  (encrypted)
+canary 27.3 TFLOP/s
+    (24, 4, 256, 8, 500, 128, 4, 200, 16) ntg=None: vs prefill kernels max |diff| 0.00391, 8.15% of outputs differ
+    (24, 4, 256, 8, 500, 128, 4, 200, 16) ntg=3: vs prefill kernels max |diff| 0.00781, 6.75% of outputs differ
+    (24, 4, 256, 8, 300, 128, 4, 50, 64) ntg=None: vs prefill kernels max |diff| 0.00781, 8.22% of outputs differ
+    (24, 4, 256, 8, 300, 128, 4, 50, 64) ntg=3: vs prefill kernels max |diff| 0.00781, 8.86% of outputs differ
+    (24, 4, 256, 8, 90, 128, 4, 8, 16) ntg=None: vs prefill kernels max |diff| 0.00781, 6.38% of outputs differ
+    (24, 4, 256, 8, 90, 128, 4, 8, 16) ntg=3: vs prefill kernels max |diff| 0.00391, 4.30% of outputs differ
+    (24, 4, 256, 8, 124, 128, 4, 8, 16) ntg=None: vs prefill kernels max |diff| 0.00781, 7.08% of outputs differ
+    (24, 4, 256, 8, 124, 128, 4, 8, 16) ntg=3: vs prefill kernels max |diff| 0.00391, 5.30% of outputs differ
+    (24, 4, 256, 1, 1000, 128, 4, 300, 32) ntg=None: vs prefill kernels max |diff| 0.00781, 7.16% of outputs differ
+    (24, 4, 256, 1, 1000, 128, 4, 300, 32) ntg=3: vs prefill kernels max |diff| 0.00391, 7.29% of outputs differ
+    (24, 4, 256, 3, 1000, 128, 4, 300, 32) ntg=None: vs prefill kernels max |diff| 0.00781, 8.68% of outputs differ
+    (24, 4, 256, 3, 1000, 128, 4, 300, 32) ntg=3: vs prefill kernels max |diff| 0.00391, 7.22% of outputs differ
+    (24, 4, 256, 16, 777, 256, 4, 200, 24) ntg=None: vs prefill kernels max |diff| 0.00391, 8.72% of outputs differ
+    (24, 4, 256, 16, 777, 256, 4, 200, 24) ntg=3: vs prefill kernels max |diff| 0.00781, 7.91% of outputs differ
+    (8, 2, 64, 8, 5000, 512, 4, 1200, 128) ntg=None: vs prefill kernels max |diff| 0.00391, 9.23% of outputs differ
+    (8, 2, 64, 8, 5000, 512, 4, 1200, 128) ntg=3: vs prefill kernels max |diff| 0.00391, 8.74% of outputs differ
+    (8, 2, 64, 5, 40, 64, 4, 4, 8) ntg=None: vs prefill kernels max |diff| 0.00391, 3.75% of outputs differ
+    (8, 2, 64, 5, 40, 64, 4, 4, 8) ntg=3: vs prefill kernels max |diff| 0.00781, 4.53% of outputs differ
+ok
+exit 0
+canary 28.6 TFLOP/s
+load: 3.94 3.98 3.91; swap: total = 14336.00M  used = 13235.19M  free = 1100.81M  (encrypted)
+### done 2026-10-20 04:47:51
+### 2026-10-20 04:47:51 /Users/ingemarrask/personal-dev/llms/.venv/bin/python spec/check_combined.py --ref spec/runs/combined-test_tune_spec_baseline.jsonl
+load: 3.94 3.98 3.91; swap: total = 14336.00M  used = 13235.19M  free = 1100.81M  (encrypted)
+canary 28.5 TFLOP/s
+{"name": "coding/00-12623519-think", "config": "main", "fused": false, "views": false, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "coding/00-12623519-think", "config": "main+v8q", "fused": false, "views": false, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "coding/00-12623519-think", "config": "fused+vprefill", "fused": true, "views": true, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "coding/00-12623519-think", "config": "fused", "fused": true, "views": true, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "coding/00-12623519-think", "prompt_tokens": 197, "rows": 192, "main+v8q == fused": true, "main == fused+vprefill": true, "kl_prefill_vs_8q_mean": 0.0003562009078450501, "kl_prefill_vs_8q_max": 0.007793279830366373, "argmax_agree": 188}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "main", "fused": false, "views": false, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "main+v8q", "fused": false, "views": false, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "fused+vprefill", "fused": true, "views": true, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "agent/00-marshmallow-code__apispe-think", "config": "fused", "fused": true, "views": true, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "agent/00-marshmallow-code__apispe-think", "prompt_tokens": 7260, "rows": 192, "main+v8q == fused": true, "main == fused+vprefill": true, "kl_prefill_vs_8q_mean": 0.0002375517215114087, "kl_prefill_vs_8q_max": 0.0020649265497922897, "argmax_agree": 191}
+{"name": "long/03-long3", "config": "main", "fused": false, "views": false, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "long/03-long3", "config": "main+v8q", "fused": false, "views": false, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "long/03-long3", "config": "fused+vprefill", "fused": true, "views": true, "bcsa_verify": "prefill", "verify_calls": 24}
+{"name": "long/03-long3", "config": "fused", "fused": true, "views": true, "bcsa_verify": "8q", "verify_calls": 24}
+{"name": "long/03-long3", "prompt_tokens": 12547, "rows": 192, "main+v8q == fused": true, "main == fused+vprefill": true, "kl_prefill_vs_8q_mean": 0.0007198032690212131, "kl_prefill_vs_8q_max": 0.005803719162940979, "argmax_agree": 190}
+ALL BIT-IDENTICAL
+exit 0
+canary 28.3 TFLOP/s
+load: 4.32 4.13 3.98; swap: total = 14336.00M  used = 13147.19M  free = 1188.81M  (encrypted)
+### done 2026-10-20 04:52:04

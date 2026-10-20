@@ -11,7 +11,7 @@ use axum::Router;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use volundr_server::{query, MlxBackend};
+use volundr_server::{cancel_on_disconnect, query, MlxBackend};
 
 const USAGE: &str = "usage:
   volundr-server --model-dir <dir> [--socket PATH] [--host 127.0.0.1] [--port 30000]
@@ -79,7 +79,8 @@ async fn main() -> Result<()> {
     }
     let model_name = state.model_name.clone();
     let app = router(Arc::new(state))
-        .merge(Router::new().route("/session_cache", get(session_cache)).with_state(Arc::new(socket)));
+        .merge(Router::new().route("/session_cache", get(session_cache)).with_state(Arc::new(socket)))
+        .layer(axum::middleware::from_fn(cancel_on_disconnect));
     let addr = format!("{host}:{port}");
     let listener = tokio::net::TcpListener::bind(&addr).await.with_context(|| format!("bind {addr}"))?;
     eprintln!("volundr-server: serving {model_name} on http://{addr}");

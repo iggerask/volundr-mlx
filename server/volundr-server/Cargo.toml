@@ -20,3 +20,4 @@ anyhow.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
 axum.workspace = true
+futures-util.workspace = true

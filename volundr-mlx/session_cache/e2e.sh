@@ -15,7 +15,7 @@ export VOLUNDR_WORKER_SOCKET=${TMPDIR:-/tmp}/vsc-e2e.sock
 export VOLUNDR_WORKER_SOCKET=${VOLUNDR_WORKER_SOCKET//\/\//\/}
 [[ ,${PHASES:-run}, == *,run,* ]] && rm -f $OUT/worker.jsonl
 echo "### serve.sh $(date '+%T')"
-$ROOT/serve.sh --port $PORT --cache-gb 12 --log $OUT/worker.jsonl > $OUT/serve.log 2>&1 &
+$ROOT/serve.sh --port $PORT --cache-gb 12 --log $OUT/worker.jsonl -- --log-tokens > $OUT/serve.log 2>&1 &
 SERVE=$!
 cleanup() {
   kill $SERVE 2>/dev/null; sleep 3

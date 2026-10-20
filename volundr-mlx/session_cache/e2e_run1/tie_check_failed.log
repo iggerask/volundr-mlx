@@ -1,0 +1,31 @@
+### 2026-10-20 04:47:20 /Users/ingemarrask/personal-dev/llms/.venv/bin/python session_cache/tie_check.py session_cache/e2e/cached.json session_cache/e2e/nocache.json --out session_cache/e2e/tie_check.json
+load: 3.74 3.95 3.89; swap: total = 14336.00M  used = 13259.19M  free = 1076.81M  (encrypted)
+canary 28.1 TFLOP/s
+{"turn": 0, "prompt_tokens": 607, "server_prompt_tokens": 664, "cached_tokens": 0, "same_tokens": true, "n_cached": 28, "n_nocache": 28, "served_same_reply": true, "reproduces_served_cached": false}
+Traceback (most recent call last):
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_cache/tie_check.py", line 111, in <module>
+    main()
+  File "/Users/ingemarrask/personal-dev/llms/volundr-mlx/ref/agens-engine/.claude/worktrees/agent-ab9a6f81b8d270d5c/volundr-mlx-session-cache/volundr-mlx/session_cache/tie_check.py", line 66, in main
+    ids = tok.apply_chat_template(body["messages"], **kw)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.venv/lib/python3.12/site-packages/mlx_lm/tokenizer_utils.py", line 404, in apply_chat_template
+    return self._tokenizer.apply_chat_template(*args, tokenize=tokenize, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.venv/lib/python3.12/site-packages/transformers/tokenization_utils_base.py", line 3145, in apply_chat_template
+    rendered_chat, generation_indices = render_jinja_template(
+                                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.venv/lib/python3.12/site-packages/transformers/utils/chat_template_utils.py", line 690, in render_jinja_template
+    rendered_chat = compiled_template.render(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ingemarrask/personal-dev/llms/.venv/lib/python3.12/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/Users/ingemarrask/personal-dev/llms/.venv/lib/python3.12/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "<template>", line 145, in top-level template code
+  File "/Users/ingemarrask/personal-dev/llms/.venv/lib/python3.12/site-packages/jinja2/filters.py", line 249, in do_items
+    raise TypeError("Can only get item pairs from a mapping.")
+TypeError: Can only get item pairs from a mapping.
+exit 1
+canary 28.3 TFLOP/s
+load: 4.03 4.00 3.91; swap: total = 14336.00M  used = 13251.19M  free = 1084.81M  (encrypted)
+### done 2026-10-20 04:47:41

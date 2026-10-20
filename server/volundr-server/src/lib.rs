@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::UnixStream;
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, watch};
 
 pub const PROTOCOL: u64 = 1;
 const MAX_FRAME: usize = 256 << 20;
@@ -124,34 +124,69 @@ impl MlxBackend {
     }
 }
 
-/// While no token has arrived (queued or prefilling, up to a minute at 20K tokens), an empty step goes to the server
-/// this often. agens-server's engine treats an empty step as "no new tokens" but still forwards an (empty) output,
-/// and that send is where it notices a client that went away and drops the stream; without it a disconnect during
-/// the prefill would only be seen at the first token.
-pub const HEARTBEAT: Duration = Duration::from_millis(1000);
+tokio::task_local! {
+    /// The HTTP request's disconnect signal, set by [`cancel_on_disconnect`] around each request: the sender lives
+    /// in the request future and, for a streamed answer, in its response body, so it is dropped when hyper drops
+    /// either (the client went away). `generate` runs inside that future and picks the receiver up.
+    static REQUEST_GONE: watch::Receiver<()>;
+}
 
-/// Drive one request: send it, forward each `tokens` frame, stop when the worker is done or the server drops the
-/// stream (dropping the connection is the cancellation).
+/// SSE comment sent when a streamed answer has had no data for this long (queued, or prefilling: about a minute at
+/// 20K new tokens). The write is how hyper finds out that a client disconnected; without it agens-server would only
+/// notice at the first token, after the whole prefill. Clients ignore SSE comments.
+pub const KEEPALIVE: Duration = Duration::from_secs(2);
+
+async fn gone(rx: &mut Option<watch::Receiver<()>>) {
+    match rx {
+        // nothing is ever sent: changed() returns an error only when the sender (the request) is dropped
+        Some(r) => while r.changed().await.is_ok() {},
+        None => std::future::pending::<()>().await,
+    }
+}
+
+/// axum middleware: run the request with a disconnect signal ([`REQUEST_GONE`]) and keep streamed (SSE) answers
+/// alive with comment lines while they have nothing to send. Dropping the request future or the response body (what
+/// hyper does when the client disconnects) cancels the backend request.
+pub async fn cancel_on_disconnect(req: axum::extract::Request, next: axum::middleware::Next) -> axum::response::Response {
+    use futures_util::StreamExt;
+    let (tx, rx) = watch::channel(());
+    let resp = REQUEST_GONE.scope(rx, next.run(req)).await;
+    let sse = resp
+        .headers()
+        .get(axum::http::header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .is_some_and(|v| v.starts_with("text/event-stream"));
+    if !sse {
+        return resp; // (the request is over: dropping tx is harmless)
+    }
+    let (parts, body) = resp.into_parts();
+    let stream = futures_util::stream::unfold((body.into_data_stream(), tx), |(mut s, tx)| async move {
+        tokio::select! {
+            item = s.next() => item.map(|b| (b, (s, tx))),
+            _ = tokio::time::sleep(KEEPALIVE) => {
+                Some((Ok(axum::body::Bytes::from_static(b": keep-alive\n\n")), (s, tx)))
+            }
+        }
+    });
+    axum::response::Response::from_parts(parts, axum::body::Body::from_stream(stream))
+}
+
+/// Drive one request: send it, forward each `tokens` frame, stop when the worker is done, the server drops the
+/// stream or the HTTP client disconnects (closing the worker connection is the cancellation).
 async fn run(
     socket: PathBuf,
     frame: Value,
     tx: &mpsc::Sender<Result<Vec<u32>, BackendError>>,
+    mut client_gone: Option<watch::Receiver<()>>,
 ) -> Result<(), String> {
     let mut s = UnixStream::connect(&socket).await.map_err(|e| format!("connect {}: {e}", socket.display()))?;
     write_frame(&mut s, &frame).await.map_err(|e| format!("send request: {e}"))?;
-    let mut tokens_seen = false;
-    let mut beat = tokio::time::interval_at(tokio::time::Instant::now() + HEARTBEAT, HEARTBEAT);
     loop {
         let msg = tokio::select! {
             biased;
             _ = tx.closed() => return Ok(()),
+            _ = gone(&mut client_gone) => return Ok(()),
             m = read_frame(&mut s) => m.map_err(|e| format!("worker stream: {e}"))?,
-            _ = beat.tick(), if !tokens_seen => {
-                if tx.send(Ok(Vec::new())).await.is_err() {
-                    return Ok(());
-                }
-                continue;
-            }
         };
         let Some(v) = msg else { return Err("worker closed the connection".into()) };
         match v["type"].as_str() {
@@ -160,11 +195,8 @@ async fn run(
                     .as_array()
                     .map(|a| a.iter().filter_map(|x| x.as_u64().map(|t| t as u32)).collect())
                     .unwrap_or_default();
-                if !ids.is_empty() {
-                    tokens_seen = true;
-                    if tx.send(Ok(ids)).await.is_err() {
-                        return Ok(());
-                    }
+                if !ids.is_empty() && tx.send(Ok(ids)).await.is_err() {
+                    return Ok(());
                 }
             }
             Some("done") => return Ok(()),
@@ -179,8 +211,9 @@ impl Backend for MlxBackend {
         let (tx, rx) = mpsc::channel(64);
         let frame = generate_frame(&prompt_ids, &sampling, session.as_ref());
         let socket = self.socket.clone();
+        let client_gone = REQUEST_GONE.try_with(|r| r.clone()).ok();
         tokio::spawn(async move {
-            if let Err(e) = run(socket, frame, &tx).await {
+            if let Err(e) = run(socket, frame, &tx, client_gone).await {
                 let _ = tx.send(Err(BackendError(e))).await;
             }
         });
@@ -268,16 +301,10 @@ mod tests {
         assert_eq!(b.context_length(), 4096);
         let mut rx = b.generate(vec![1, 2, 3], params(16), None);
         let mut got = Vec::new();
-        let mut beats = 0;
         while let Some(step) = rx.recv().await {
-            let step = step.unwrap();
-            if step.is_empty() {
-                beats += 1; // heartbeat while the fake worker "prefills"
-            }
-            got.extend(step);
+            got.extend(step.unwrap());
         }
         assert_eq!(got, vec![5, 6, 7, 9]);
-        assert!(beats >= 1, "no heartbeat during a 1.5 s prefill");
         assert!(worker.await.unwrap());
 
         // dropping the stream closes the connection: the worker's next write fails
@@ -290,6 +317,18 @@ mod tests {
         let t = Instant::now();
         assert!(tokio::time::timeout(Duration::from_secs(5), worker).await.unwrap().unwrap());
         assert!(t.elapsed() < Duration::from_secs(2));
+
+        // the HTTP request going away (its disconnect signal dropped) cancels a request that is still "prefilling"
+        let _ = std::fs::remove_file(&path);
+        let worker = fake_worker(path.clone(), vec![vec![1]], Duration::from_secs(30)).await;
+        let (gone_tx, gone_rx) = watch::channel(());
+        let mut rx = REQUEST_GONE.scope(gone_rx, async { b.generate(vec![1, 2, 3], params(16), None) }).await;
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        drop(gone_tx);
+        let t = Instant::now();
+        assert!(tokio::time::timeout(Duration::from_secs(5), rx.recv()).await.unwrap().is_none());
+        assert!(t.elapsed() < Duration::from_secs(1));
+        worker.abort();
         let _ = std::fs::remove_dir_all(&dir);
     }
 

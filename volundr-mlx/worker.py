@@ -295,7 +295,7 @@ class Worker:
             conn.send({"type": "error", "message": f"{type(e).__name__}: {e}"})
             mx.clear_cache()
             return
-        rec.pop("tokens", None)
+        out_tokens = rec.pop("tokens", None)
         rec["queue_s"] = queue_s
         rec["session_id"] = session
         rec["sampling"] = "greedy" if sp.greedy else "sampled"
@@ -305,6 +305,8 @@ class Worker:
         self.recent.append(rec)
         conn.send({"type": "done", "finish": rec.get("finish", "length"), "stats": rec})
         if self.log:
+            if self.args.log_tokens:  # (for offline checks: the exact ids the server sent and the worker emitted)
+                rec = {**rec, "prompt_ids": ids, "tokens": out_tokens}
             self.log.write(json.dumps(rec) + "\n")
             self.log.flush()
         snap = rec.get("snapshot")
@@ -330,6 +332,7 @@ def main():
     ap.add_argument("--loop", default="", help="spec loop flags (specdec.loop_options), default early@cv")
     ap.add_argument("--context-length", type=int, default=0, help="default: the model's max_position_embeddings")
     ap.add_argument("--log", default=None, help="append one JSON record per request")
+    ap.add_argument("--log-tokens", action="store_true", help="--log records include prompt_ids and output tokens")
     ap.add_argument("--no-warmup", action="store_true")
     ap.add_argument("--short-warmup", action="store_true", help="skip the 5K-token warm-up (far-block kernels)")
     args = ap.parse_args()
