@@ -1,0 +1,421 @@
+"""Continuous batching for the MLX worker (worker.py), after upstream agens-engine's server mode
+(crates/agens-cli/src/serve.rs): one engine thread owns the GPU, and each pass of its loop
+1. takes new requests and admits what fits (up to max_batch active requests, and a memory limit);
+2. runs prefill work for the oldest request still prefilling: one chunk when nothing is decoding, else layers of
+   its current chunk until `slice_ms` have passed (session.prefill_iter yields between layers, so a long prompt
+   never stalls the decoding streams for a whole chunk);
+3. runs ONE decode step for every decoding request together, and streams each request's tokens.
+
+Policy for the decode step:
+- one decoding request that is greedy (Sampling.speculative): one step of the speculative loop (specdec.SpecStepper:
+  DFlash2 + prompt lookup + NAX verify, the bs = 1 path, ~28 tok/s);
+- otherwise every decoding request is a row of the decode batch (batch.BatchCache: per-row positions, slot buffers)
+  and the step is one batched plain decode forward, NAX small-M matmuls from `nax_min_batch` rows (stock MLX is
+  faster at 2-3 rows). Greedy rows take the GPU argmax, sampled rows sampler.py on their logits row.
+A speculative stream that gets company is finalized (the pending commit applied) and joins the batch; the last one
+left in the batch, if greedy, leaves it and continues speculatively (its drafter context is filled from the features
+the batch captured for it).
+
+Sessions: the session cache (session.SessionCache) works as at bs = 1: a request restores the longest snapshot whose
+tokens prefix its prompt into its own B = 1 caches, prefills the rest there (interval and prompt snapshots), and at
+the end of its reply the caches (its batch row via BatchCache.capture_row, or its spec state) are snapshotted.
+"""
+import sys
+import time
+from collections import deque
+from pathlib import Path
+
+import mlx.core as mx
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE / "spec"))
+import batch as BT  # noqa: E402
+import session as SS  # noqa: E402
+
+FEATS_FLUSH = 64  # batch rows' drafter features are materialized into their drafter context every N tokens
+
+
+class Req:
+    """One request in the engine."""
+
+    def __init__(self, job, ids, sp: SS.Sampling, session):
+        self.job, self.ids, self.sp, self.session = job, ids, sp, session
+        self.n = len(ids)
+        self.ids_np = np.asarray(ids, dtype=np.int32)
+        self.out = []
+        self.phase = "prefill"  # -> "decode" -> "done"
+        self.mode = None  # decode: None (not started), "spec", "batch"
+        self.cache = self.dcache = None  # B = 1 caches while prefilling / speculative / about to join the batch
+        self.gen = None  # prefill generator
+        self.last = None  # logits of the last fed position (they chose out[-1])
+        self.feats, self.feat_p0 = [], 0  # batch mode: drafter features not yet in dcache, from position feat_p0
+        self.stepper = None
+        self.sampler = None
+        self.stop_ids = set() if sp.ignore_eos else set(sp.stop_token_ids)
+        self.finish = None
+        self.rec = {}
+        self.t_admit = time.perf_counter()
+        self.t_first = self.t_prefill = None
+        self.spec_steps = self.batch_steps = self.batch_rows = 0
+        self.switches = 0
+
+    @property
+    def cancelled(self):
+        return self.job.cancel.is_set()
+
+
+class BatchEngine:
+    def __init__(self, model, drafter, cache: SS.SessionCache, T=8, chunk=2048, lookup=True, loop="",
+                 think_ids=(None, None), max_batch=16, slice_ms=200.0, nax_min_batch=4, spec=True, max_gb=46.0,
+                 log=None):
+        import specdec
+
+        self.model, self.drafter, self.cache = model, drafter, cache
+        self.T, self.chunk, self.lookup = T, chunk, lookup
+        self.loop = specdec.loop_options([f for f in loop.split("@") if f])
+        assert self.loop.get("sched", specdec.SCHED) == "early", "the engine runs the early spec loop"
+        self.loop.pop("sched", None)
+        self.think_ids = think_ids
+        self.vv = model.args.vocab_valid
+        self.max_batch, self.slice_s, self.nax_min_batch = max_batch, slice_ms / 1e3, nax_min_batch
+        self.spec, self.max_gb = spec, max_gb
+        self.bc = BT.BatchCache(model)
+        self.waiting = deque()
+        self.active = []
+        self.requests = 0
+        self.log = log or (lambda s: print(s, file=sys.stderr, flush=True))
+        self.on_done = None  # callback(req, rec) when a request ends (the worker sends the done frame)
+        self.stats = {"steps_batch": 0, "steps_spec": 0, "rows_batch": 0, "prefill_slices": 0, "stall_s_max": 0.0}
+        self._last_decode = None  # time of the last decode step (stall measurement)
+
+    # ------------------------------------------------------------------ admission
+    def submit(self, job):
+        self.waiting.append(job)
+
+    @property
+    def busy(self):
+        return bool(self.active or self.waiting)
+
+    def _admit(self):
+        while self.waiting and len(self.active) < self.max_batch:
+            if self.active and mx.get_active_memory() / 1e9 > self.max_gb:
+                break  # memory: wait for a request to finish (one at a time always fits)
+            job = self.waiting.popleft()
+            if job.cancel.is_set():
+                rec = {"finish": "cancelled", "cancelled": "queued", "queue_s": time.perf_counter() - job.t_recv,
+                       "generated": 0, "prompt_tokens": len(job.msg.get("prompt_ids") or []),
+                       "session_id": job.msg.get("session_id"), "t": time.time()}
+                self.on_done(job, None, rec)
+                continue
+            try:
+                r = self._start(job)
+            except Exception as e:  # noqa: BLE001
+                self.on_done(job, None, {"error": f"{type(e).__name__}: {e}"})
+                continue
+            self.active.append(r)
+
+    def _start(self, job):
+        msg = job.msg
+        ids = [int(t) for t in msg["prompt_ids"]]
+        if not ids:
+            raise ValueError("empty prompt")
+        sp = SS.Sampling.from_dict(msg.get("sampling"))
+        ctx = job.context_length
+        if len(ids) + sp.max_new_tokens > ctx + 1:
+            sp.max_new_tokens = max(0, ctx - len(ids))
+        r = Req(job, ids, sp, msg.get("session_id"))
+        self.requests += 1
+        r.rid = self.requests
+        r.pure_greedy = sp.greedy and not sp.needs_logits(self.vv) and sp.reasoning_budget is None
+        r.spec_ok = self.spec and sp.speculative(self.vv)
+        if not r.pure_greedy:
+            from sampler import Sampler
+
+            r.sampler = Sampler(sp, prompt=ids, think_ids=self.think_ids, vocab_valid=self.vv, request_id=r.rid)
+        snap = self.cache.find(r.ids_np, r.session) if self.cache is not None else None
+        if snap is not None:
+            r.cache, r.dcache = SS.restore(snap.state)
+            start = snap.pos
+            r.last = SS._ref(snap.state.logits) if snap.pos == r.n else None
+        else:
+            r.cache, r.dcache = self.model.make_cache(), self.drafter.make_cache()
+            start = 0
+        if r.dcache is None:  # (a snapshot without drafter context: speculation still works, it just drafts worse)
+            r.dcache = self.drafter.make_cache()
+        r.rec = {"prompt_tokens": r.n, "cached_tokens": start, "prefilled_tokens": r.n - start,
+                 "snapshot": None if snap is None else {"id": snap.id, "kind": snap.kind, "session": snap.session,
+                                                        "same_session": snap.session == r.session},
+                 "queue_s": r.t_admit - job.t_recv}
+        r.n_points = 0
+        if start < r.n:
+            pts = self.cache.points(start, r.n) if self.cache is not None else []
+
+            def on_point(pos, logits, r=r):
+                if self._snap(r.session, "interval", r.ids_np[:pos], r.cache, r.dcache, logits) is not None:
+                    r.n_points += 1
+
+            r.gen = SS.prefill_iter(self.model, self.drafter, r.cache, r.dcache, ids, start, self.chunk, pts,
+                                    on_point, yield_layers=True)
+        return r
+
+    def _snap(self, session, kind, tokens, cache, dcache, logits):
+        if self.cache is None or not self.cache.enabled or self.cache.has(tokens):
+            return None
+        return self.cache.add(session, kind, tokens, SS.capture(cache, dcache, logits))
+
+    def _snap_state(self, session, kind, tokens, state):
+        if self.cache is None or not self.cache.enabled or self.cache.has(tokens):
+            return None
+        return self.cache.add(session, kind, tokens, state)
+
+    # ------------------------------------------------------------------ the loop
+    def tick(self):
+        """One pass: cancellations, admission, prefill work, one decode step."""
+        for r in list(self.active):
+            if r.cancelled and r.phase != "done":
+                self._finish(r, "cancelled")
+        self._admit()
+        decoding = [r for r in self.active if r.phase == "decode"]
+        pre = next((r for r in self.active if r.phase == "prefill"), None)
+        if pre is not None:
+            try:
+                self._prefill_work(pre, bool(decoding))
+            except Exception as e:  # noqa: BLE001
+                self._fail([pre], e)
+        decoding = [r for r in self.active if r.phase == "decode"]
+        if decoding:
+            try:
+                self._decode_step(decoding)
+            except Exception as e:  # noqa: BLE001
+                self._fail(decoding, e, reset_batch=True)
+        if not self.active:
+            self._last_decode = None
+
+    def _fail(self, reqs, e, reset_batch=False):
+        import traceback
+
+        traceback.print_exc()
+        for r in reqs:
+            r.finish = "error"
+            r.phase = "done"
+            if r in self.active:
+                self.active.remove(r)
+            self.on_done(r.job, r, {"error": f"{type(e).__name__}: {e}"})
+        if reset_batch:
+            self.bc = BT.BatchCache(self.model)
+            for r in self.active:
+                if r.mode == "batch":  # (every batch row was in reqs)
+                    r.mode = None
+        mx.clear_cache()
+
+    def _prefill_work(self, r, others):
+        """Advance r's prefill: to the end of its current chunk when nothing is decoding, else for slice_s."""
+        t0 = time.perf_counter()
+        self.stats["prefill_slices"] += 1
+        if r.gen is None:  # the snapshot covers the whole prompt (it carries the last logits)
+            return self._prefill_done(r, r.last)
+        try:
+            while True:
+                kind, _ = next(r.gen)
+                if r.cancelled:
+                    return self._finish(r, "cancelled")
+                if kind == "chunk" and not others:
+                    return
+                if others and time.perf_counter() - t0 >= self.slice_s:
+                    return
+        except StopIteration as e:
+            r.gen = None
+            self._prefill_done(r, e.value)
+
+    def _prefill_done(self, r, last):
+        r.last = last
+        if r.rec["prefilled_tokens"]:
+            self._snap(r.session, "prompt", r.ids_np, r.cache, r.dcache, last)
+        r.t_prefill = time.perf_counter()
+        r.rec.update(prefill_s=r.t_prefill - r.t_admit, interval_snapshots=r.n_points)
+        r.phase = "decode"
+        if r.sp.max_new_tokens <= 0:
+            return self._finish(r, "length")
+        t = int(mx.argmax(last[: self.vv]).item()) if r.pure_greedy else r.sampler.choose(last)
+        self._emit(r, [t])
+        if r.finish:
+            self._finish(r, r.finish)
+
+    def _emit(self, r, toks):
+        """Stream tokens (cut at max_new_tokens and after a stop id); sets r.finish when the reply is over."""
+        room = r.sp.max_new_tokens - len(r.out)
+        toks = list(toks[: max(0, room)])
+        stop = next((i for i, t in enumerate(toks) if t in r.stop_ids), None)
+        if stop is not None:
+            toks = toks[: stop + 1]
+        if not toks:
+            return True
+        if r.t_first is None:
+            r.t_first = time.perf_counter()
+        r.out += toks
+        ok = not r.cancelled and r.job.conn.send({"type": "tokens", "ids": toks})
+        if not ok:
+            r.finish = "cancelled"
+        elif stop is not None:
+            r.finish = "stop"
+        elif len(r.out) >= r.sp.max_new_tokens:
+            r.finish = "length"
+        return ok
+
+    def _decode_step(self, decoding):
+        now = time.perf_counter()
+        if self._last_decode is not None:
+            self.stats["stall_s_max"] = max(self.stats["stall_s_max"], now - self._last_decode)
+        if len(decoding) == 1 and decoding[0].spec_ok:
+            r = decoding[0]
+            if r.mode == "batch":
+                self._batch_to_spec(r)
+            elif r.mode is None:
+                self._start_spec(r)
+            r.stepper.step()
+            r.spec_steps += 1
+            self.stats["steps_spec"] += 1
+            if r.stepper.done and not r.finish:
+                r.finish = "stop" if r.out and r.out[-1] in r.stop_ids else "length"
+            if r.finish:
+                self._finish(r, r.finish)
+        else:
+            join = []
+            for r in decoding:
+                if r.mode == "spec":
+                    self._spec_to_pending(r)
+                if r.mode is None:
+                    join.append(r)
+            if join:
+                self.bc.apply(join=[(r, r.cache) for r in join])
+                for r in join:
+                    r.mode = "batch"
+                    r.cache = None  # the batch row holds it now
+                    r.feats, r.feat_p0 = [], self.bc.pos[self.bc.row(r)]
+            self._batch_step()
+        self._last_decode = time.perf_counter()
+
+    # ------------------------------------------------------------------ speculative mode
+    def _start_spec(self, r, first_from_batch=False):
+        import specdec
+        from lookup import Lookup
+
+        P = SS.cache_pos(r.cache)
+        assert P == r.n + len(r.out) - 1, (P, r.n, len(r.out))
+        held = r.ids + r.out[:-1]
+        r.stepper = specdec.SpecStepper(self.model, self.drafter, r.cache, r.dcache, held, r.last,
+                                        r.sp.max_new_tokens - len(r.out) + 1, self.T, r.stop_ids,
+                                        Lookup() if self.lookup else None, emit=lambda toks, r=r: self._emit(r, toks),
+                                        first=r.out[-1], **self.loop)
+        r.mode = "spec"
+
+    def _spec_to_pending(self, r):
+        """Finalize r's speculative state (the caches hold ids + out[:-1]) so it can join the batch."""
+        _, res = r.stepper.result(finalize=True)
+        assert res["P"] == r.n + len(r.out) - 1, (res["P"], r.n, len(r.out))
+        r.last = res["last_logits"]
+        r.stepper = None
+        r.mode = None
+        r.switches += 1
+
+    def _batch_to_spec(self, r):
+        """Take r's row out of the batch (B = 1 copies) and continue speculatively."""
+        r.cache = self.bc.row_cache(r)
+        self._flush_feats(r)
+        self.bc.apply(leave=[r])
+        r.switches += 1
+        self._start_spec(r)
+
+    # ------------------------------------------------------------------ batched mode
+    def _flush_feats(self, r):
+        if r.feats and r.dcache is not None:
+            self.drafter.materialize(r.dcache, mx.concatenate(r.feats, axis=0), r.feat_p0)
+            mx.eval(r.dcache.state)
+            r.feat_p0 += len(r.feats)
+            r.feats = []
+
+    def _batch_step(self):
+        import nax_hook
+
+        bc = self.bc
+        B = bc.B
+        rows = list(bc.keys)
+        want_feats = [r.dcache is not None and (r.spec_ok or (self.cache is not None and self.cache.enabled))
+                      for r in rows]
+        capl = self.drafter.capture_layers if any(want_feats) else ()
+        toks = mx.array([r.out[-1] for r in rows], dtype=mx.int32)
+        with nax_hook.min_rows(self.nax_min_batch if B < self.nax_min_batch else 2):
+            logits, feats = BT.forward(self.model, bc, toks, capture=capl)
+        greedy = mx.argmax(logits[:, : self.vv], axis=-1)
+        mx.eval(logits, greedy, [] if feats is None else feats, bc.state)  # logits first (batch.py's write order)
+        g = greedy.tolist()
+        self.stats["steps_batch"] += 1
+        self.stats["rows_batch"] += B
+        for i, r in enumerate(rows):
+            r.batch_steps += 1
+            r.batch_rows += B
+            r.last = logits[i]
+            if want_feats[i]:
+                r.feats.append(feats[i : i + 1])
+                if len(r.feats) >= FEATS_FLUSH:
+                    self._flush_feats(r)
+            t = g[i] if r.pure_greedy else r.sampler.choose(logits[i])
+            self._emit(r, [t])
+        done = [r for r in rows if r.finish]
+        for r in done:
+            self._finish(r, r.finish, leave=False)
+        if done:
+            self.bc.apply(leave=done)
+
+    # ------------------------------------------------------------------ the end of a request
+    def _finish(self, r, reason, leave=True):
+        """End r: its reply snapshot, its batch row (leave=False: the caller removes the row), the done record."""
+        if r.phase == "done":
+            return
+        r.finish = r.finish or reason
+        t_end = time.perf_counter()
+        rec = r.rec
+        if r.phase == "prefill":
+            if r.gen is not None:
+                r.gen.close()
+            rec.update(cancelled="prefill", interval_snapshots=r.n_points, prefill_s=t_end - r.t_admit)
+        else:
+            tokens = np.concatenate([r.ids_np, np.asarray(r.out[:-1], np.int32)]) if len(r.out) > 1 else None
+            t0s = time.perf_counter()
+            if r.mode == "spec":
+                _, res = r.stepper.result(finalize=True)
+                if tokens is not None:
+                    self._snap(r.session, "reply", tokens, r.cache, r.dcache, res["last_logits"])
+                r.stepper = None
+            elif r.mode == "batch":
+                if tokens is not None and self.cache is not None and self.cache.enabled and \
+                        not self.cache.has(tokens):
+                    self._flush_feats(r)
+                    self._snap_state(r.session, "reply", tokens, self.bc.capture_row(r, r.dcache, r.last))
+                if leave:
+                    self.bc.apply(leave=[r])
+            rec["snapshot_s"] = time.perf_counter() - t0s
+        r.phase = "done"
+        r.cache = r.dcache = r.gen = None
+        r.feats = []
+        if r in self.active:
+            self.active.remove(r)
+        ttft = None if r.t_first is None else r.t_first - r.t_admit
+        dec_s = None if r.t_first is None else t_end - r.t_first
+        n = len(r.out)
+        rec.update(mode=("spec" if r.batch_steps == 0 else "batch" if r.spec_steps == 0 else "mixed")
+                   if n > 1 else "none", generated=n, finish=r.finish, spec_steps=r.spec_steps,
+                   batch_steps=r.batch_steps, mean_batch=(r.batch_rows / r.batch_steps) if r.batch_steps else None,
+                   switches=r.switches, ttft_s=ttft, decode_s=dec_s,
+                   decode_tok_s=((n - 1) / dec_s) if dec_s and n > 1 else None, total_s=t_end - r.t_admit,
+                   peak_gb=mx.get_peak_memory() / 1e9, active_gb=mx.get_active_memory() / 1e9,
+                   active_requests=len(self.active))
+        if self.cache is not None:
+            rec["cache_bytes"] = self.cache.nbytes
+            rec["cache_snapshots"] = len(self.cache.snaps)
+        rec["tokens"] = r.out
+        self.on_done(r.job, r, rec)
+        if not self.active:
+            mx.clear_cache()

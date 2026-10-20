@@ -12,7 +12,9 @@
 //! * worker -> client: zero or more `{"type": "tokens", "ids": [...]}` (one frame per decode step; several ids per
 //!   step with speculative decoding), then `{"type": "done", "finish": "stop" | "length" | "cancelled", "stats":
 //!   {...}}`, or `{"type": "error", "message": str}`.
-//! * Closing the connection cancels the request (queued, prefilling or decoding). Requests run one at a time.
+//! * Closing the connection cancels the request (queued, prefilling or decoding). Every request has its own
+//!   connection, so concurrent requests reach the worker together; the worker batches them (continuous batching,
+//!   `volundr-mlx/scheduler.py`, NOTES_BATCHED_SERVE.md).
 
 use agens_server::backend::{Backend, BackendError, SessionHint, TokenStream};
 use agens_server::sampling::SamplingParams;
@@ -329,6 +331,64 @@ mod tests {
         assert!(tokio::time::timeout(Duration::from_secs(5), rx.recv()).await.unwrap().is_none());
         assert!(t.elapsed() < Duration::from_secs(1));
         worker.abort();
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// Concurrent requests are not serialised here: each `generate` has its own worker connection, so two streams
+    /// are in flight at once (the worker batches them). A fake worker that serves every connection on its own task
+    /// streams 20 steps per request; the second request's first step must arrive while the first is still streaming.
+    #[tokio::test]
+    async fn concurrent_requests_stream_together() {
+        let dir = std::env::temp_dir().join(format!("vs-conc-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("w.sock");
+        let _ = std::fs::remove_file(&path);
+        let l = tokio::net::UnixListener::bind(&path).unwrap();
+        let open = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let peak = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let (o2, p2) = (open.clone(), peak.clone());
+        let srv = tokio::spawn(async move {
+            loop {
+                let (mut s, _) = l.accept().await.unwrap();
+                let (o, p) = (o2.clone(), p2.clone());
+                tokio::spawn(async move {
+                    let m = read_frame(&mut s).await.unwrap().unwrap();
+                    if m["type"] == "info" {
+                        let _ = write_frame(&mut s, &json!({"type": "info", "protocol": PROTOCOL, "context_length": 4096})).await;
+                        return;
+                    }
+                    let now = o.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
+                    p.fetch_max(now, std::sync::atomic::Ordering::SeqCst);
+                    for i in 0..20u32 {
+                        let _ = write_frame(&mut s, &json!({"type": "tokens", "ids": [i]})).await;
+                        tokio::time::sleep(Duration::from_millis(25)).await;
+                    }
+                    let _ = write_frame(&mut s, &json!({"type": "done", "finish": "length", "stats": {}})).await;
+                    o.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                });
+            }
+        });
+        let (b, _) = MlxBackend::connect(&path, Duration::from_secs(5)).await.unwrap();
+        let t0 = Instant::now();
+        let mut a = b.generate(vec![1, 2, 3], params(20), None);
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        let mut c = b.generate(vec![1, 2, 3], params(20), None);
+        let first_c = { c.recv().await.unwrap().unwrap(); t0.elapsed() };
+        let (mut na, mut nc) = (0, 1);
+        let mut last_a = Duration::ZERO;
+        loop {
+            tokio::select! {
+                x = a.recv() => match x { Some(s) => { s.unwrap(); na += 1; last_a = t0.elapsed(); } None => break },
+                x = c.recv() => if x.is_some() { nc += 1 },
+            }
+        }
+        while c.recv().await.is_some() {
+            nc += 1;
+        }
+        assert_eq!((na, nc), (20, 20));
+        assert!(first_c < last_a, "second stream started at {first_c:?}, after the first ended at {last_a:?}");
+        assert_eq!(peak.load(std::sync::atomic::Ordering::SeqCst), 2, "both requests at the worker at once");
+        srv.abort();
         let _ = std::fs::remove_dir_all(&dir);
     }
 

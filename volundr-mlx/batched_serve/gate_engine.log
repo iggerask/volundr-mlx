@@ -1,0 +1,36 @@
+### 2026-10-20 06:44:25 /Users/ingemarrask/personal-dev/llms/.venv/bin/python batched_serve/gate.py engine --out batched_serve/gate_engine.jsonl
+load: 1.65 2.29 3.16; swap: total = 14336.00M  used = 12802.38M  free = 1533.62M  (encrypted)
+canary 24.2 TFLOP/s
+{"gate": "engine", "mode": "concurrent", "name": "c0", "generated": 32, "finish": "cancelled", "decode_mode": "batch", "mean_batch": 7.0, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 16.664061792194843, "decode_tok_s": 9.542360203787842}
+{"gate": "engine", "mode": "concurrent", "name": "f0", "generated": 96, "finish": "length", "decode_mode": "mixed", "mean_batch": 2.0, "switches": 1, "cached_tokens": 245, "snapshot": {"id": 9, "kind": "reply", "session": "s0", "same_session": true}, "ttft_s": 0.9374096249230206, "decode_tok_s": 12.446620240419152}
+{"gate": "engine", "mode": "concurrent", "name": "f1", "generated": 96, "finish": "length", "decode_mode": "mixed", "mean_batch": 2.0, "switches": 1, "cached_tokens": 495, "snapshot": {"id": 10, "kind": "reply", "session": "s1", "same_session": true}, "ttft_s": 1.1379037080332637, "decode_tok_s": 12.601072761919678}
+{"gate": "engine", "mode": "concurrent", "name": "g0", "generated": 96, "finish": "length", "decode_mode": "mixed", "mean_batch": 5.12987012987013, "switches": 1, "cached_tokens": 0, "snapshot": null, "ttft_s": 0.5608870834112167, "decode_tok_s": 4.804236223850091}
+{"gate": "engine", "mode": "concurrent", "name": "g1", "generated": 96, "finish": "length", "decode_mode": "batch", "mean_batch": 5.105263157894737, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 2.1296763750724494, "decode_tok_s": 4.6525013008215605}
+{"gate": "engine", "mode": "concurrent", "name": "g2", "generated": 96, "finish": "length", "decode_mode": "batch", "mean_batch": 5.315789473684211, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 5.243756749667227, "decode_tok_s": 5.117714182320389}
+{"gate": "engine", "mode": "concurrent", "name": "g3", "generated": 96, "finish": "length", "decode_mode": "batch", "mean_batch": 5.315789473684211, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 10.123011915944517, "decode_tok_s": 6.281146237622018}
+{"gate": "engine", "mode": "concurrent", "name": "x4", "generated": 96, "finish": "length", "decode_mode": "batch", "mean_batch": 5.231578947368421, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 11.190474292263389, "decode_tok_s": 6.566760472009393}
+{"gate": "engine", "mode": "concurrent", "name": "x5", "generated": 96, "finish": "length", "decode_mode": "batch", "mean_batch": 4.894736842105263, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 14.83500320930034, "decode_tok_s": 8.265123738835179}
+{"gate": "engine", "mode": "concurrent", "wall_s_turn1": 26.39, "wall_s_turn2": 8.7, "engine_stats": {"steps_batch": 225, "steps_spec": 7, "rows_batch": 771, "prefill_slices": 52, "stall_s_max": 0.2586612501181662}, "cache_snapshots": 18}
+{"gate": "engine", "mode": "sequential", "name": "c0", "generated": 32, "finish": "cancelled", "decode_mode": "spec", "mean_batch": null, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 1.2271121670491993, "decode_tok_s": 20.027686118282354}
+{"gate": "engine", "mode": "sequential", "name": "f0", "generated": 96, "finish": "length", "decode_mode": "spec", "mean_batch": null, "switches": 0, "cached_tokens": 245, "snapshot": {"id": 2, "kind": "reply", "session": "s0", "same_session": true}, "ttft_s": 0.1042598751373589, "decode_tok_s": 31.7755535459029}
+{"gate": "engine", "mode": "sequential", "name": "f1", "generated": 96, "finish": "length", "decode_mode": "spec", "mean_batch": null, "switches": 0, "cached_tokens": 495, "snapshot": {"id": 4, "kind": "reply", "session": "s1", "same_session": true}, "ttft_s": 0.11107866698876023, "decode_tok_s": 70.73605392395494}
+{"gate": "engine", "mode": "sequential", "name": "g0", "generated": 96, "finish": "length", "decode_mode": "spec", "mean_batch": null, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 0.5016885832883418, "decode_tok_s": 35.99294690065067}
+{"gate": "engine", "mode": "sequential", "name": "g1", "generated": 96, "finish": "length", "decode_mode": "spec", "mean_batch": null, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 1.044566583354026, "decode_tok_s": 21.676117578841804}
+{"gate": "engine", "mode": "sequential", "name": "g2", "generated": 96, "finish": "length", "decode_mode": "spec", "mean_batch": null, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 2.1699847909621894, "decode_tok_s": 25.332734912365602}
+{"gate": "engine", "mode": "sequential", "name": "g3", "generated": 96, "finish": "length", "decode_mode": "spec", "mean_batch": null, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 3.6304513327777386, "decode_tok_s": 26.904786618691507}
+{"gate": "engine", "mode": "sequential", "name": "x4", "generated": 96, "finish": "length", "decode_mode": "batch", "mean_batch": 1.0, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 0.6851327917538583, "decode_tok_s": 13.634969966330987}
+{"gate": "engine", "mode": "sequential", "name": "x5", "generated": 96, "finish": "length", "decode_mode": "batch", "mean_batch": 1.0, "switches": 0, "cached_tokens": 0, "snapshot": null, "ttft_s": 1.486061125062406, "decode_tok_s": 13.346317271310497}
+{"gate": "engine", "mode": "sequential", "wall_s_turn1": 40.94, "wall_s_turn2": 4.59, "engine_stats": {"steps_batch": 190, "steps_spec": 221, "rows_batch": 190, "prefill_slices": 18, "stall_s_max": 5.666632205247879e-06}, "cache_snapshots": 18}
+{"gate": "engine-compare", "name": "c0", "identical": true, "len": [32, 32]}
+{"gate": "engine-compare", "name": "f0", "identical": true, "len": [96, 96]}
+{"gate": "engine-compare", "name": "f1", "identical": false, "len": [96, 96], "diverge_at": 10}
+{"gate": "engine-compare", "name": "g0", "identical": true, "len": [96, 96]}
+{"gate": "engine-compare", "name": "g1", "identical": true, "len": [96, 96]}
+{"gate": "engine-compare", "name": "g2", "identical": false, "len": [96, 96], "diverge_at": 19, "logit_seq": 25.375, "logit_conc": 25.375, "top2_margin": 0.0}
+{"gate": "engine-compare", "name": "g3", "identical": true, "len": [96, 96]}
+{"gate": "engine-compare", "name": "x4", "identical": false, "len": [96, 96], "diverge_at": 77}
+{"gate": "engine-compare", "name": "x5", "identical": false, "len": [96, 96], "diverge_at": 63}
+exit 0
+canary 23.2 TFLOP/s
+load: 2.77 2.57 3.18; swap: total = 16384.00M  used = 14888.50M  free = 1495.50M  (encrypted)
+### done 2026-10-20 06:46:04

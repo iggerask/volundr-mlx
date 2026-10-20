@@ -1,0 +1,4 @@
+{"gate": "exact", "prompt_tokens": 150, "steps": 48, "logits_differ": [], "features_differ": [], "capture_row_continues": true, "ring_rows": 256}
+{"gate": "exact", "prompt_tokens": 3000, "steps": 48, "logits_differ": [], "features_differ": [], "capture_row_continues": true, "ring_rows": 4608}
+{"gate": "exact", "prompt_tokens": 4200, "steps": 48, "logits_differ": [], "features_differ": [], "capture_row_continues": true, "ring_rows": 4608}
+{"gate": "exact", "prompt_tokens": 9000, "steps": 48, "logits_differ": [], "features_differ": [], "capture_row_continues": true, "ring_rows": 4608}

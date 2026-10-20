@@ -238,30 +238,70 @@ def spec_decode(model, drafter, cache, dcache, ids, last, max_new, T=BLOCK, eos=
       returning False stops after that step (cancellation).
     - finalize: on return the caches hold exactly ids + out[:-1]: the last step's commit and drafter-context update are
       applied for the tokens kept (the loop otherwise leaves them pending). rec gets "P" (that length) and
-      "last_logits" (the logits that picked out[-1]), so the state can be snapshotted or continued."""
-    assert 2 <= T <= BLOCK and long in (0,) + tuple(range(T + 1, 17))
-    if compiled is None:
-        compiled = COMPILED
-    vv = model.args.vocab_valid
-    if t0 is None:
-        t0 = time.perf_counter()
-    bonus = mx.argmax(last[:vv]).astype(mx.int32)
-    out = [bonus.item()]
-    t1 = time.perf_counter()
-    stopped = emit is not None and emit(out[:1]) is False
-    P, acc, src = len(ids), [], []
-    t_wait = 0.0
-    seg, te = [0.0, 0.0, 0.0], time.perf_counter()  # CPU: bookkeeping + draft build, async_eval + commit build, verify
-    if lookup is not None:
-        lookup.reset(list(ids) + out)
-    pend = None  # (rec, n): the last step's target commit, built once the next draft is submitted
-    last_step = None  # (rec, cap, P, logits, len(out) before the step): the step whose commit finalize applies
-    s2 = _stream2() if stream2 else None
-    while len(out) < max_new and out[-1] not in eos and not stopped:
+      "last_logits" (the logits that picked out[-1]), so the state can be snapshotted or continued.
+    The loop runs SpecStepper one step at a time (the batched server steps it itself)."""
+    st = SpecStepper(model, drafter, cache, dcache, ids, last, max_new, T, eos, lookup, stream2, long, long_cap,
+                     long_gate, compiled, t0=t0, emit=emit)
+    while st.step():
+        pass
+    return st.result(finalize)
+
+
+class SpecStepper:
+    """spec_decode's loop, one step per step() call (the same ops in the same order). The batched server
+    (../scheduler.py) runs one step between its other work, and stops a stream in the middle of a reply to move it into
+    the decode batch (result(finalize=True) leaves the caches holding ids + out[:-1]).
+    first: resume a reply whose next token is already chosen and emitted (the caches hold ids, `first` follows them,
+    `last` the logits that chose it); otherwise the first token is the argmax of `last` and is emitted here."""
+
+    def __init__(self, model, drafter, cache, dcache, ids, last, max_new, T=BLOCK, eos=(), lookup=None, stream2=False,
+                 long=0, long_cap=False, long_gate=0, compiled=None, t0=None, emit=None, first=None):
+        assert 2 <= T <= BLOCK and long in (0,) + tuple(range(T + 1, 17))
+        if compiled is None:
+            compiled = COMPILED
+        self.model, self.drafter, self.cache, self.dcache = model, drafter, cache, dcache
+        self.ids, self.last, self.max_new, self.T, self.eos, self.lookup = ids, last, max_new, T, eos, lookup
+        self.stream2, self.long, self.long_cap, self.long_gate = stream2, long, long_cap, long_gate
+        self.compiled = compiled
+        self.emit = emit
+        self.vv = model.args.vocab_valid
+        self.t0 = time.perf_counter() if t0 is None else t0
+        if first is None:
+            self.bonus = mx.argmax(last[: self.vv]).astype(mx.int32)
+            self.out = [self.bonus.item()]
+            self.t1 = time.perf_counter()
+            self.stopped = emit is not None and emit(self.out[:1]) is False
+        else:
+            self.bonus = mx.array(int(first), dtype=mx.int32)
+            self.out = [int(first)]
+            self.t1 = time.perf_counter()
+            self.stopped = False
+        self.P, self.acc, self.src = len(ids), [], []
+        self.t_wait = 0.0
+        # CPU segments: bookkeeping + draft build, async_eval + commit build, verify build
+        self.seg, self.te = [0.0, 0.0, 0.0], time.perf_counter()
+        if lookup is not None:
+            lookup.reset(list(ids) + self.out)
+        self.pend = None  # (rec, n): the last step's target commit, built once the next draft is submitted
+        self.last_step = None  # (rec, cap, P, logits, len(out) before the step): the step whose commit finalize applies
+        self.s2 = _stream2() if stream2 else None
+        self.over = False
+
+    @property
+    def done(self):
+        return self.over or self.stopped or len(self.out) >= self.max_new or self.out[-1] in self.eos
+
+    def step(self) -> bool:
+        """One draft + verify step and its emit; False (nothing run) once the reply is over."""
+        if self.done:
+            return False
+        model, drafter, cache, dcache, lookup = self.model, self.drafter, self.cache, self.dcache, self.lookup
+        T, long, out, eos, emit, max_new = self.T, self.long, self.out, self.eos, self.emit, self.max_new
+        bonus, P = self.bonus, self.P
         hint = (lookup.propose(long - 1) if long else lookup.propose()) if lookup is not None else []
         full = len(hint) >= T - 1
         if full:  # (a long copy keeps up to long - 1 tokens)
-            hint = hint[: _long_copy(hint, lookup, T, long, long_gate)]
+            hint = hint[: _long_copy(hint, lookup, T, long, self.long_gate)]
             drafts = mx.array(hint, dtype=mx.int32)
         else:
             drafts = drafter.propose(dcache, bonus, P)
@@ -270,68 +310,76 @@ def spec_decode(model, drafter, cache, dcache, ids, last, max_new, T=BLOCK, eos=
         inp = mx.concatenate([bonus.reshape(1), drafts if len(hint) > T - 1 else drafts[: T - 1]])[None]
         ta = time.perf_counter()
         mx.async_eval(inp)
-        if pend is not None:
-            if stream2:  # on its own queue, so the GPU can run it next to the draft; the verify waits for it
-                with mx.stream(s2):
-                    VF.commit(cache, *pend)
+        if self.pend is not None:
+            if self.stream2:  # on its own queue, so the GPU can run it next to the draft; the verify waits for it
+                with mx.stream(self.s2):
+                    VF.commit(cache, *self.pend)
                     mx.async_eval([c.state for c in cache])
             else:
-                VF.commit(cache, *pend)
+                VF.commit(cache, *self.pend)
                 if full:  # no draft on the GPU: let it run the commit while the verify graph is built
                     mx.async_eval([c.state for c in cache])
-            pend = None
+            self.pend = None
         tb = time.perf_counter()
-        logits, cap, rec = VF.forward(model, inp, cache, capture=drafter.capture_layers, verify=True, compiled=compiled)
-        tok = mx.argmax(logits[:, :vv], axis=-1).astype(mx.int32)
+        logits, cap, rec = VF.forward(model, inp, cache, capture=drafter.capture_layers, verify=True,
+                                      compiled=self.compiled)
+        tok = mx.argmax(logits[:, : self.vv], axis=-1).astype(mx.int32)
         nacc = mx.cumprod((inp[0, 1:] == tok[:-1]).astype(mx.int32)).sum()
         tw = time.perf_counter()
-        seg[0] += ta - te
-        seg[1] += tb - ta
-        seg[2] += tw - tb
+        self.seg[0] += ta - self.te
+        self.seg[1] += tb - ta
+        self.seg[2] += tw - tb
         mx.eval(tok, nacc, inp, [c.state for c in cache], dcache.state)
-        te = time.perf_counter()
-        t_wait += te - tw
+        self.te = time.perf_counter()
+        self.t_wait += self.te - tw
         n = nacc.item() + 1
         emitted = inp[0, 1:n].tolist() + [tok[n - 1].item()]
-        acc.append(n)
-        src.append(len(hint))
-        last_step = (rec, cap, P, logits, len(out))
+        self.acc.append(n)
+        self.src.append(len(hint))
+        self.last_step = (rec, cap, P, logits, len(out))
         stop = next((i for i, t in enumerate(emitted) if t in eos), None)
         if stop is not None:  # an eos inside the accepted run ends the reply there
             out += emitted[: stop + 1]
             if emit is not None:
-                emit(emitted[: stop + 1][: max(0, max_new - last_step[4])])
-            break
+                emit(emitted[: stop + 1][: max(0, max_new - self.last_step[4])])
+            self.over = True
+            return True
         out += emitted
-        if emit is not None and emit(emitted[: max(0, max_new - last_step[4])]) is False:
-            stopped = True
-            break
+        if emit is not None and emit(emitted[: max(0, max_new - self.last_step[4])]) is False:
+            self.stopped = True
+            return True
         if len(out) < max_new:  # (the base loop builds these at the end too, but never runs them)
             drafter.materialize(dcache, cap[:n], P)
             mx.async_eval(dcache.state)
         if lookup is not None:
-            lookup.record(emitted, cap=T - 1 if long_cap else None)
-        pend = (rec, n)
-        bonus = tok[n - 1]
-        P += n
-    t2 = time.perf_counter()
-    out = out[:max_new]
-    res = {"prefill_s": t1 - t0, "decode_s": t2 - t1, "wait_s": t_wait, "seg_s": seg, "steps": len(acc), "acc": acc,
-           "src": src}
-    if finalize:
-        res["last_logits"] = last
-        P_end = len(ids)
-        if last_step is not None:  # its commit (and the drafter-context update) is still pending: keep its tokens in out
-            rec, cap, P0, logits, m0 = last_step
-            kept = len(out) - m0
-            VF.commit(cache, rec, kept)
-            drafter.materialize(dcache, cap[:kept], P0)
-            mx.eval([c.state for c in cache], dcache.state)
-            res["last_logits"] = logits[kept - 1]
-            P_end = P0 + kept
-        assert P_end == len(ids) + len(out) - 1, (P_end, len(ids), len(out))
-        res["P"] = P_end
-    return out, res
+            lookup.record(emitted, cap=T - 1 if self.long_cap else None)
+        self.pend = (rec, n)
+        self.bonus = tok[n - 1]
+        self.P = P + n
+        return True
+
+    def result(self, finalize=False):
+        """(out, record) as spec_decode returns them; finalize applies the pending commit (see spec_decode)."""
+        t2 = time.perf_counter()
+        out = self.out = self.out[: self.max_new]
+        res = {"prefill_s": self.t1 - self.t0, "decode_s": t2 - self.t1, "wait_s": self.t_wait, "seg_s": self.seg,
+               "steps": len(self.acc), "acc": self.acc, "src": self.src}
+        if finalize:
+            cache, dcache = self.cache, self.dcache
+            res["last_logits"] = self.last
+            P_end = len(self.ids)
+            if self.last_step is not None:  # its commit (and the drafter-context update) is still pending: keep its
+                rec, cap, P0, logits, m0 = self.last_step  # tokens in out
+                kept = len(out) - m0
+                VF.commit(cache, rec, kept)
+                self.drafter.materialize(dcache, cap[:kept], P0)
+                mx.eval([c.state for c in cache], dcache.state)
+                res["last_logits"] = logits[kept - 1]
+                P_end = P0 + kept
+            assert P_end == len(self.ids) + len(out) - 1, (P_end, len(self.ids), len(out))
+            res["P"] = P_end
+            self.last_step = self.pend = None
+        return out, res
 
 
 def warm_up(model, drafter, ids, T=BLOCK, **loop):

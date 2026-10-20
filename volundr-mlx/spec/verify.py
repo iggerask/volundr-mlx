@@ -165,6 +165,23 @@ def forward(model, ids, cache, capture=(), verify=False, all_logits=False, layer
     (MLX_MAX_OPS_PER_BUFFER=100, no MB cap) an unsynchronised 2048-token chunk lets ~10 command buffers of large
     activations stay alive at once (55-57 GB peak at 12.5K tokens); this bounds them to two layers. Same kernels and
     values; only the evaluation boundaries change."""
+    return drain(forward_iter(model, ids, cache, capture, verify, all_logits, layer_sync, compiled))
+
+
+def drain(gen):
+    """Run a generator to its end and return its return value."""
+    try:
+        while True:
+            next(gen)
+    except StopIteration as e:
+        return e.value
+
+
+def forward_iter(model, ids, cache, capture=(), verify=False, all_logits=False, layer_sync=False, compiled=False,
+                 yields=False):
+    """forward() as a generator: with layer_sync and yields, it yields after each layer's sync (the previous layer
+    done, this one submitted), so a scheduler can run other work between layers (the batched server interleaves decode
+    steps with a long prefill this way). The same ops in the same order; returns forward()'s value."""
     a, inner = model.args, model.model
     B, L = ids.shape
     assert B == 1
@@ -200,6 +217,8 @@ def forward(model, ids, cache, capture=(), verify=False, all_logits=False, layer
             if pending is not None:
                 mx.eval(pending)
             pending = done
+            if yields:
+                yield i
     h = inner.norm(H[:, :, 0])
     logits = model.lm_head(h if (verify or all_logits) else h[:, -1:])[0]
     cap = mx.concatenate(caps, axis=-1) if caps else None

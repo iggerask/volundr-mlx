@@ -342,6 +342,17 @@ def prefill(model, drafter, cache, dcache, ids, start=0, chunk=2048, points=(), 
     on_point(pos, logits) is called with the caches holding ids[:pos]. The drafter context is filled for the WINDOW
     positions before every point and before the end. specdec.spec_prefill's evaluation (layer by layer by default).
     Returns the last position's logits [vocab]. cancelled(): checked between chunks (raises Cancelled)."""
+    import verify as VF
+
+    return VF.drain(prefill_iter(model, drafter, cache, dcache, ids, start, chunk, points, on_point, cancelled,
+                                 layer_sync))
+
+
+def prefill_iter(model, drafter, cache, dcache, ids, start=0, chunk=2048, points=(), on_point=None, cancelled=None,
+                 layer_sync=None, yield_layers=False):
+    """prefill() as a generator for the batched scheduler: yields ("chunk", end) after each chunk and, with
+    yield_layers (and layer_sync), ("layer", i) after each layer of a chunk (verify.forward_iter), so decode steps can
+    run in between. The same ops in the same order; returns prefill()'s value."""
     import specdec
     import verify as VF
     from dflash import WINDOW
@@ -360,16 +371,28 @@ def prefill(model, drafter, cache, dcache, ids, start=0, chunk=2048, points=(), 
             e = min(stop, s + chunk)
             lo = max(s, stop - WINDOW)  # the rows of this chunk the drafter context needs at `stop`
             want = dcache is not None and lo < e
-            logits, cap, _ = VF.forward(model, arr[:, s:e], cache, capture=drafter.capture_layers if want else (),
-                                        layer_sync=layer_sync)
+            fwd = VF.forward_iter(model, arr[:, s:e], cache, capture=drafter.capture_layers if want else (),
+                                  layer_sync=layer_sync, yields=yield_layers)
+            logits, cap, _ = yield from _tag(fwd, "layer")
             if want:
                 drafter.materialize(dcache, cap[lo - s :], lo)
             mx.eval(logits, [c.state for c in cache], dcache.state if dcache is not None else [])
             mx.clear_cache()
             s = e
+            yield ("chunk", e)
         if stop < n and on_point is not None:
             on_point(stop, logits[-1])
     return logits[-1]
+
+
+def _tag(gen, kind):
+    """Re-yield a generator's values as (kind, value); return its return value."""
+    try:
+        while True:
+            v = next(gen)
+            yield (kind, v)
+    except StopIteration as e:
+        return e.value
 
 
 def decode_step(model, cache, tok: int, capture=()):
