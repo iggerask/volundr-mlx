@@ -1,0 +1,29 @@
+{
+ "swedish": [
+  {
+   "content": "Den snabba bruna räven hoppar över den tröga hunden, och sedan går den hem för att sova.",
+   "reasoning_content": null,
+   "finish_reason": "stop",
+   "usage": {
+    "completion_tokens": 29,
+    "prompt_tokens": 52,
+    "total_tokens": 81,
+    "prompt_tokens_details": {
+     "cached_tokens": 18
+    }
+   },
+   "timings": {
+    "cache_n": 18,
+    "prompt_n": 34,
+    "prompt_ms": 756.804,
+    "prompt_per_token_ms": 22.258941176470586,
+    "prompt_per_second": 44.9257667771312,
+    "predicted_n": 29,
+    "predicted_ms": 5285.459,
+    "predicted_per_token_ms": 182.2572068965517,
+    "predicted_per_second": 5.4867514817539975
+   },
+   "wall_s": 6.059
+  }
+ ]
+}

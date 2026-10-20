@@ -1,0 +1,98 @@
+{
+ "fib": [
+  {
+   "content": "```python\ndef fibonacci(n: int) -> int:\n    \"\"\"\n    Return the n-th Fibonacci number using an iterative approach.\n\n    The Fibonacci sequence is defined as:\n        F(0) = 0\n        F(1) = 1\n        F(n) = F(n-1) + F(n-2) for n >= 2\n\n    Parameters:\n        n (int): The index in the Fibonacci sequence (n >= 0).\n\n    Returns:\n        int: The n-th Fibonacci number.\n\n    Raises:\n        ValueError: If n is negative.\n\n    Examples:\n        >>> fibonacci(0)\n        0\n        >>> fibonacci(1)\n        1\n        >>> fibonacci(10)",
+   "reasoning_content": null,
+   "finish_reason": "length",
+   "usage": {
+    "prompt_tokens": 49,
+    "total_tokens": 209,
+    "completion_tokens": 160,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+   },
+   "timings": null,
+   "wall_s": 3.877
+  }
+ ],
+ "sky": [
+  {
+   "content": "Sunlight appears white because it contains all colors of the visible spectrum, but when it enters Earth's atmosphere, it collides with gas molecules like nitrogen and oxygen. These molecules scatter shorter wavelengths of light, such as blue and violet, much more efficiently than longer wavelengths like red and orange—a phenomenon known as Rayleigh scattering. Although violet light is scattered even more than blue, our eyes are more sensitive to blue, and some violet light is absorbed by the upper atmosphere, making the sky appear predominantly blue to us.",
+   "reasoning_content": null,
+   "finish_reason": "stop",
+   "usage": {
+    "prompt_tokens": 41,
+    "total_tokens": 145,
+    "completion_tokens": 104,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+   },
+   "timings": null,
+   "wall_s": 4.181
+  }
+ ],
+ "swedish": [
+  {
+   "content": "The user wants a Swedish translation of the English sentence: \"The quick brown fox jumps over the lazy dog, and then it goes home to sleep.\"\n\nLet's break it down:\n- \"The quick brown fox\" -> \"Den snabba bruna räv\" (or \"räven\" for definite",
+   "reasoning_content": null,
+   "finish_reason": "length",
+   "usage": {
+    "prompt_tokens": 52,
+    "total_tokens": 116,
+    "completion_tokens": 64,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+   },
+   "timings": null,
+   "wall_s": 2.91
+  }
+ ],
+ "zh": [
+  {
+   "content": "长城是中国古代为抵御北方游牧民族侵扰而修建的宏大军事防御工程，其绵延万里，见证了中华民族悠久的历史与智慧。作为世界文化遗产，它不仅是古代建筑技术的杰出代表，更是中华民族精神的重要象征。",
+   "reasoning_content": null,
+   "finish_reason": "stop",
+   "usage": {
+    "prompt_tokens": 36,
+    "total_tokens": 83,
+    "completion_tokens": 47,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+   },
+   "timings": null,
+   "wall_s": 3.411
+  }
+ ],
+ "arith": [
+  {
+   "content": "The trip is **3 hours and 35 minutes** long.\n\n**Calculation:**\n1.  **Hours:** $13 - 9 = 4$ hours\n2.  **Minutes:** $15 - 40 = -25$ minutes\n3.  **Adjustment:** Since the minutes are negative, borrow 1 hour (60 minutes) from the hours.\n    *   Hours: $4 - 1 =",
+   "reasoning_content": null,
+   "finish_reason": "length",
+   "usage": {
+    "prompt_tokens": 63,
+    "total_tokens": 159,
+    "completion_tokens": 96,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+   },
+   "timings": null,
+   "wall_s": 3.069
+  }
+ ],
+ "long19k": [
+  {
+   "content": "This file implements the core inference engine for a specific Large Language Model (Volundr) variant, focusing on high-performance, bit-exact forward passes. Here is a summary of its functions:\n\n*   **Hybrid Attention Architecture:** It implements a mixed attention mechanism combining \"KDA\" (linear attention with state-space models), \"BCSA\" (block sparse causal attention), and standard dense attention, utilizing specific kernel dispatches (`ak_kda_*`, `ak_oracle_*`) to handle different layer types defined by a pattern string (`kMixer`).\n*   **Quantized Linear Layers:** It supports mixed-precision linear projections, specifically handling W4 (4-bit) quantized weights with group-wise scaling. It includes logic to dequantize weights into bf16 scratch buffers for prefill phases or use specialized batched GEMV kernels for decode/verify phases, ensuring bit-exactness with reference implementations.\n*  ",
+   "reasoning_content": null,
+   "finish_reason": "length",
+   "usage": {
+    "prompt_tokens": 19045,
+    "total_tokens": 19237,
+    "completion_tokens": 192,
+    "prompt_tokens_details": null,
+    "reasoning_tokens": 0
+   },
+   "timings": null,
+   "wall_s": 64.957
+  }
+ ]
+}

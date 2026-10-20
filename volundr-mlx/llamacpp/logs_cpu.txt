@@ -1,0 +1,15 @@
+[waiting for the GPU to go idle]
+canary 24.7 TFLOP/s
+server up after 23s
+## fib: wall 39.026 s, usage {'completion_tokens': 160, 'prompt_tokens': 49, 'total_tokens': 209, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 13.0 tok/s, tg 4.37 tok/s
+```python | def fibonacci(n: int) -> int: |     """Return the n-th Fibonacci number (0-indexed) using an iterative approach. |  |     Args: |         n: A non-negative integer representing the index in the Fibonacci sequence. |  |     Returns: |         The n-th Fibonacci number, where F(0) = 0, F(1) = 1, F(2) = 1, etc. |  |     Raises: |         ValueError: If n is negative. |     """ |     if n < 0: |         raise ValueEr
+## sky: wall 37.166 s, usage {'completion_tokens': 75, 'prompt_tokens': 41, 'total_tokens': 116, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 1.4 tok/s, tg 3.89 tok/s
+Sunlight appears white but is actually composed of a spectrum of colors, each with a different wavelength. As this light enters Earth's atmosphere, it collides with air molecules, causing shorter blue wavelengths to scatter in all directions much more efficiently than longer red wavelengths. This scattered blue light reaches our eyes from every part of the sky, making it appear blue during the day
+## swedish: wall 26.809 s, usage {'completion_tokens': 29, 'prompt_tokens': 52, 'total_tokens': 81, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 1.9 tok/s, tg 5.07 tok/s
+Den snabba bruna rävhoppar över den tröga hunden, och sedan går den hem för att sova.
+## zh: wall 7.977 s, usage {'completion_tokens': 29, 'prompt_tokens': 36, 'total_tokens': 65, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 8.7 tok/s, tg 6.06 tok/s
+长城是中国古代伟大的军事防御工程，也是世界文化遗产之一。它横跨中国北部，绵延数千里，见证了中华民族悠久的历史与智慧。
+## arith: wall 86.419 s, usage {'completion_tokens': 90, 'prompt_tokens': 63, 'total_tokens': 153, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 14.5 tok/s, tg 1.09 tok/s
+The trip is **3 hours and 35 minutes** long. |  | **Calculation:** | 1.  From 09:40 to 12:40 is 3 hours. | 2.  From 12:40 to 13:15 is 35 minutes. | 3.  Total: 3 hours + 35 minutes = **3 hours 35 minutes**.
+canary 8.2 TFLOP/s
+exit 0

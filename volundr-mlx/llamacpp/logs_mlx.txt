@@ -1,0 +1,16 @@
+canary 24.3 TFLOP/s
+server up after 82s
+## fib: wall 3.877 s, usage {'prompt_tokens': 49, 'total_tokens': 209, 'completion_tokens': 160, 'prompt_tokens_details': None, 'reasoning_tokens': 0}, pp 0.0 tok/s, tg 0.00 tok/s
+```python | def fibonacci(n: int) -> int: |     """ |     Return the n-th Fibonacci number using an iterative approach. |  |     The Fibonacci sequence is defined as: |         F(0) = 0 |         F(1) = 1 |         F(n) = F(n-1) + F(n-2) for n >= 2 |  |     Parameters: |         n (int): The index in the Fibonacci sequence (n >= 0). |  |     Returns: |         int: The n-th Fibonacci number. |  |     Raises: |         ValueError: 
+## sky: wall 4.181 s, usage {'prompt_tokens': 41, 'total_tokens': 145, 'completion_tokens': 104, 'prompt_tokens_details': None, 'reasoning_tokens': 0}, pp 0.0 tok/s, tg 0.00 tok/s
+Sunlight appears white because it contains all colors of the visible spectrum, but when it enters Earth's atmosphere, it collides with gas molecules like nitrogen and oxygen. These molecules scatter shorter wavelengths of light, such as blue and violet, much more efficiently than longer wavelengths like red and orange—a phenomenon known as Rayleigh scattering. Although violet light is scattered ev
+## swedish: wall 2.91 s, usage {'prompt_tokens': 52, 'total_tokens': 116, 'completion_tokens': 64, 'prompt_tokens_details': None, 'reasoning_tokens': 0}, pp 0.0 tok/s, tg 0.00 tok/s
+The user wants a Swedish translation of the English sentence: "The quick brown fox jumps over the lazy dog, and then it goes home to sleep." |  | Let's break it down: | - "The quick brown fox" -> "Den snabba bruna räv" (or "räven" for definite
+## zh: wall 3.411 s, usage {'prompt_tokens': 36, 'total_tokens': 83, 'completion_tokens': 47, 'prompt_tokens_details': None, 'reasoning_tokens': 0}, pp 0.0 tok/s, tg 0.00 tok/s
+长城是中国古代为抵御北方游牧民族侵扰而修建的宏大军事防御工程，其绵延万里，见证了中华民族悠久的历史与智慧。作为世界文化遗产，它不仅是古代建筑技术的杰出代表，更是中华民族精神的重要象征。
+## arith: wall 3.069 s, usage {'prompt_tokens': 63, 'total_tokens': 159, 'completion_tokens': 96, 'prompt_tokens_details': None, 'reasoning_tokens': 0}, pp 0.0 tok/s, tg 0.00 tok/s
+The trip is **3 hours and 35 minutes** long. |  | **Calculation:** | 1.  **Hours:** $13 - 9 = 4$ hours | 2.  **Minutes:** $15 - 40 = -25$ minutes | 3.  **Adjustment:** Since the minutes are negative, borrow 1 hour (60 minutes) from the hours. |     *   Hours: $4 - 1 =
+## long19k: wall 64.957 s, usage {'prompt_tokens': 19045, 'total_tokens': 19237, 'completion_tokens': 192, 'prompt_tokens_details': None, 'reasoning_tokens': 0}, pp 0.0 tok/s, tg 0.00 tok/s
+This file implements the core inference engine for a specific Large Language Model (Volundr) variant, focusing on high-performance, bit-exact forward passes. Here is a summary of its functions: |  | *   **Hybrid Attention Architecture:** It implements a mixed attention mechanism combining "KDA" (linear attention with state-space models), "BCSA" (block sparse causal attention), and standard dense atten
+canary 25.1 TFLOP/s
+exit 0

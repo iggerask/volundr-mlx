@@ -1,0 +1,133 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling libc v0.2.191
+   Compiling serde_core v1.0.229
+   Compiling itoa v1.0.18
+   Compiling bytes v1.12.1
+   Compiling cfg-if v1.0.5
+   Compiling serde v1.0.229
+   Compiling crossbeam-utils v0.8.23
+   Compiling pin-project-lite v0.2.17
+   Compiling memchr v2.8.3
+   Compiling getrandom v0.3.4
+   Compiling futures-core v0.3.34
+   Compiling zerocopy v0.8.63
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling fnv v1.0.7
+   Compiling crossbeam-epoch v0.9.21
+   Compiling find-msvc-tools v0.1.15
+   Compiling shlex v2.0.1
+   Compiling crossbeam-deque v0.8.8
+   Compiling rayon-core v1.13.0
+   Compiling smallvec v1.16.3
+   Compiling pkg-config v0.3.34
+   Compiling cc v1.9.0
+   Compiling zmij v1.0.23
+   Compiling httparse v1.10.1
+   Compiling rustversion v1.0.23
+   Compiling http v1.5.0
+   Compiling either v1.19.0
+   Compiling tower-service v0.3.3
+   Compiling serde_json v1.0.154
+   Compiling version_check v0.9.5
+   Compiling ahash v0.8.12
+   Compiling aho-corasick v1.1.5
+   Compiling http-body v1.1.0
+   Compiling onig_sys v69.9.3
+   Compiling sync_wrapper v1.0.2
+   Compiling once_cell v1.21.4
+   Compiling minimal-lexical v0.2.1
+   Compiling paste v1.0.15
+   Compiling slab v0.4.12
+   Compiling atomic-waker v1.1.2
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling regex-syntax v0.8.11
+   Compiling getrandom v0.4.3
+   Compiling esaxx-rs v0.1.10
+   Compiling thiserror v2.0.21
+   Compiling futures-task v0.3.34
+   Compiling httpdate v1.0.3
+   Compiling tower-layer v0.3.3
+   Compiling futures-util v0.3.34
+   Compiling indexmap v2.14.2
+   Compiling regex-automata v0.4.18
+   Compiling nom v7.1.3
+   Compiling http-body-util v0.1.5
+   Compiling itertools v0.14.0
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling macro_rules_attribute-proc_macro v0.2.3
+   Compiling errno v0.3.14
+   Compiling socket2 v0.6.5
+   Compiling signal-hook-registry v1.4.8
+   Compiling mio v1.2.4
+   Compiling rand_core v0.9.5
+   Compiling bitflags v2.13.2
+   Compiling pastey v0.2.3
+   Compiling unicode-segmentation v1.13.3
+   Compiling anyhow v1.0.104
+   Compiling mime v0.3.17
+   Compiling base64 v0.13.1
+   Compiling static_assertions v1.1.0
+   Compiling ryu v1.0.23
+   Compiling memo-map v0.3.4
+   Compiling axum-core v0.5.6
+   Compiling macro_rules_attribute v0.2.3
+   Compiling serde_path_to_error v0.1.20
+   Compiling regex v1.13.1
+   Compiling rayon v1.12.0
+   Compiling unicode-normalization-alignments v0.1.12
+   Compiling log v0.4.34
+   Compiling castaway v0.2.4
+   Compiling darling_core v0.20.11
+   Compiling unicode_categories v0.1.1
+   Compiling serde_derive v1.0.229
+   Compiling tokio-macros v2.7.2
+   Compiling thiserror-impl v2.0.21
+   Compiling tokio v1.54.0
+   Compiling percent-encoding v2.3.2
+   Compiling matchit v0.8.4
+   Compiling monostate-impl v0.1.18
+   Compiling monostate v0.1.18
+   Compiling rayon-cond v0.4.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling darling_macro v0.20.11
+   Compiling rand_chacha v0.9.0
+   Compiling darling v0.20.11
+   Compiling rand v0.9.5
+   Compiling uuid v1.26.1
+   Compiling derive_builder_core v0.20.2
+   Compiling onig v6.5.3
+   Compiling derive_builder_macro v0.20.2
+   Compiling spm_precompiled v0.1.4
+   Compiling minijinja v2.24.0
+   Compiling compact_str v0.9.1
+   Compiling dary_heap v0.3.9
+   Compiling derive_builder v0.20.2
+   Compiling hyper v1.12.0
+   Compiling tower v0.5.3
+   Compiling tokenizers v0.22.2
+   Compiling hyper-util v0.1.21
+   Compiling axum v0.8.9
+   Compiling minijinja-contrib v2.24.0
+   Compiling agens-server v0.1.0 (https://github.com/BlockWayz/agens-engine?rev=b0e9a95af45be93137202111375b6e8ccc57dce9#b0e9a95a)
+   Compiling volundr-server v0.1.0 (/Users/ingemarrask/personal-dev/llms/server/volundr-server)
+    Finished `release` profile [optimized] target(s) in 28.17s
+volundr-server: waiting for the MLX worker at /var/folders/68/wl_wjdrj0tn9q986c__sycdm0000gn/T/volundr-mlx-worker.sock
+[transformers] You are using a model of type `volundr` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+[transformers] The tokenizer you are loading from '/Users/ingemarrask/personal-dev/llms/volundr-mlx/models/volundr-int4-mlx' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+worker: model loaded in 19.3 s; cache budget 12.0 GB, interval 4096
+worker: warm-up 32.1 s
+worker: listening on /var/folders/68/wl_wjdrj0tn9q986c__sycdm0000gn/T/volundr-mlx-worker.sock
+volundr-server: worker up: {"batch":{"bspec":true,"bspec_max":4,"max_active_gb":46.0,"max_batch":16,"nax_min_batch":4,"pipeline":true,"slice_ms":200.0},"cache_budget_bytes":12000000000,"context_length":262144,"interval":4096,"load_s":19.3,"model":"/Users/ingemarrask/personal-dev/llms/volundr-mlx/models/volundr-int4-mlx","protocol":1,"spec":{"T":8,"drafter_bits":4,"head_bits":4,"lookup":true,"loop":"early@cv","nax":true,"single_stream":true},"type":"info","vocab_valid":248077}
+volundr-server: serving /Users/ingemarrask/personal-dev/llms/volundr-mlx/models/volundr-int4-mlx on http://127.0.0.1:30000
+worker: length prompt 31 cached 0 (-) prefilled 31 gen 8 spec (batch 0.0) queue 0.00s ttft 0.22s dec 22.9 tok/s active 0 cache 0.36 GB (2) peak 27.4 GB
+worker: length prompt 49 cached 0 (-) prefilled 49 gen 160 spec (batch 0.0) queue 0.00s ttft 0.21s dec 43.5 tok/s active 0 cache 0.73 GB (4) peak 27.8 GB
+worker: stop prompt 41 cached 0 (-) prefilled 41 gen 104 spec (batch 0.0) queue 0.02s ttft 0.21s dec 26.0 tok/s active 0 cache 1.10 GB (6) peak 28.2 GB
+worker: length prompt 52 cached 0 (-) prefilled 52 gen 64 spec (batch 0.0) queue 0.02s ttft 0.21s dec 23.5 tok/s active 0 cache 1.47 GB (8) peak 28.6 GB
+worker: stop prompt 36 cached 0 (-) prefilled 36 gen 47 spec (batch 0.0) queue 0.02s ttft 0.20s dec 14.5 tok/s active 0 cache 1.84 GB (10) peak 28.9 GB
+worker: length prompt 63 cached 0 (-) prefilled 63 gen 96 spec (batch 0.0) queue 0.02s ttft 0.30s dec 34.6 tok/s active 0 cache 2.21 GB (12) peak 29.3 GB
+worker: length prompt 19045 cached 0 (-) prefilled 19045 gen 192 spec (batch 0.0) queue 0.00s ttft 50.79s dec 13.5 tok/s active 0 cache 7.52 GB (18) peak 34.4 GB

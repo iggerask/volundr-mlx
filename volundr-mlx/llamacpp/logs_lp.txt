@@ -1,0 +1,16 @@
+canary 25.9 TFLOP/s
+server up after 18s
+## fib: wall 40.296 s, usage {'completion_tokens': 160, 'prompt_tokens': 49, 'total_tokens': 209, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 30.6 tok/s, tg 4.09 tok/s
+```python | def fibonacci(n: int) -> int: |     """Return the n-th Fibonacci number (0-indexed) using an iterative approach. |  |     Args: |         n: A non-negative integer representing the index in the Fibonacci sequence. |  |     Returns: |         The n-th Fibonacci number, where F(0) = 0, F(1) = 1, F(2) = 1, etc. |  |     Raises: |         ValueError: If n is negative. |     """ |     if n < 0: |         raise ValueEr
+## sky: wall 20.218 s, usage {'completion_tokens': 75, 'prompt_tokens': 41, 'total_tokens': 116, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 17.2 tok/s, tg 4.71 tok/s
+Sunlight appears white but is actually composed of a spectrum of colors, each with a different wavelength. As this light enters Earth's atmosphere, it collides with air molecules, causing shorter blue wavelengths to scatter in all directions much more efficiently than longer red wavelengths. This scattered blue light reaches our eyes from every part of the sky, making it appear blue during the day
+## swedish: wall 7.857 s, usage {'completion_tokens': 29, 'prompt_tokens': 52, 'total_tokens': 81, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 41.6 tok/s, tg 4.93 tok/s
+Den snabba bruna räven hoppar över den tröga hunden, och sedan går den hem för att sova.
+## zh: wall 8.982 s, usage {'completion_tokens': 29, 'prompt_tokens': 36, 'total_tokens': 65, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 17.7 tok/s, tg 4.68 tok/s
+长城是中国古代伟大的军事防御工程，也是世界文化遗产之一。它横跨中国北部，绵延数千里，见证了中华民族悠久的历史与智慧。
+## arith: wall 29.364 s, usage {'completion_tokens': 90, 'prompt_tokens': 63, 'total_tokens': 153, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 42.3 tok/s, tg 3.25 tok/s
+The trip is **3 hours and 35 minutes** long. |  | **Calculation:** | 1.  From 09:40 to 12:40 is 3 hours. | 2.  From 12:40 to 13:15 is 35 minutes. | 3.  Total: 3 hours + 35 minutes = **3 hours 35 minutes**.
+## long19k: wall 214.899 s, usage {'completion_tokens': 192, 'prompt_tokens': 19045, 'total_tokens': 19237, 'prompt_tokens_details': {'cached_tokens': 18}}, pp 108.5 tok/s, tg 5.16 tok/s
+This file implements the core forward pass logic for a specific Large Language Model (LLM) architecture, referred to as "Volundr," optimized for NVIDIA GPUs using CUDA. It serves as the computational engine for a Rust-based host application, handling both single-request inference and batched speculative decoding. |  | Here are the five key aspects of what the file does: |  | 1.  **Hybrid Attention Archite
+canary 26.7 TFLOP/s
+exit 0

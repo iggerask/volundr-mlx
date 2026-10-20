@@ -1,0 +1,29 @@
+{
+ "long19k": [
+  {
+   "content": "This file implements the core forward pass logic for a specific Large Language Model (LLM) architecture, referred to as \"Volundr,\" optimized for NVIDIA GPUs using CUDA. It serves as the computational engine for a Rust-based host application, handling both single-request inference and batched speculative decoding.\n\nHere are the five key aspects of what the file does:\n\n1.  **Hybrid Attention Architecture Implementation**: It implements a mixed-layer attention mechanism defined by the `kMixer` string (e.g., \"kkkbkkkk...\"), where different layers use different attention types:\n    *   **'k' (KDA)**: Linear attention with state management (convolution + SSM).\n    *   **'b' (BCSA)**: Block Causal Self-Attention (likely using FlashInfer or similar optimized kernels).\n    *   **'d' (Dense)**: Standard dense attention.\n    *   It",
+   "reasoning_content": null,
+   "finish_reason": "length",
+   "usage": {
+    "completion_tokens": 192,
+    "prompt_tokens": 19045,
+    "total_tokens": 19237,
+    "prompt_tokens_details": {
+     "cached_tokens": 18
+    }
+   },
+   "timings": {
+    "cache_n": 18,
+    "prompt_n": 19027,
+    "prompt_ms": 162417.578,
+    "prompt_per_token_ms": 8.53616324170915,
+    "prompt_per_second": 117.14865000634353,
+    "predicted_n": 192,
+    "predicted_ms": 35961.853,
+    "predicted_per_token_ms": 187.30131770833336,
+    "predicted_per_second": 5.338990735544133
+   },
+   "wall_s": 198.891
+  }
+ ]
+}

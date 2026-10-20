@@ -1,0 +1,33 @@
+[waiting for the GPU to go idle]
+canary 25.0 TFLOP/s
+| model                          |       size |     params | backend    | threads | n_ubatch |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | ------: | -------: | --------------: | -------------------: |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |      512 |          pp2048 |        221.59 ± 5.49 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |      512 |            tg64 |          6.05 ± 2.49 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |      12 |      512 |          pp2048 |       207.56 ± 42.51 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |      12 |      512 |            tg64 |          6.77 ± 0.14 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |     2048 |          pp2048 |        205.06 ± 1.80 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |     2048 |            tg64 |          7.85 ± 0.54 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |      12 |     2048 |          pp2048 |       205.52 ± 12.13 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |      12 |     2048 |            tg64 |          6.47 ± 2.34 |
+build: 67e4001 (52)
+      211.00 real       865.39 user        17.27 sys
+         28016984064  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              460980  page reclaims
+             1598864  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 738  voluntary context switches
+             2514406  involuntary context switches
+      21978168317907  instructions retired
+       3708039677960  cycles elapsed
+          1992561568  peak memory footprint
+canary 22.3 TFLOP/s
+exit 0

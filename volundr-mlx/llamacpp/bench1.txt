@@ -1,0 +1,33 @@
+canary 22.5 TFLOP/s
+| model                          |       size |     params | backend    | threads |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | ------: | --------------: | -------------------: |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |           pp512 |        225.51 ± 5.57 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |          pp2048 |        225.00 ± 3.35 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |            tg64 |          8.57 ± 0.06 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |   pp512 @ d1024 |       207.63 ± 15.65 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |  pp2048 @ d1024 |        217.36 ± 3.29 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |    tg64 @ d1024 |          8.13 ± 0.05 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |   pp512 @ d8192 |        127.38 ± 3.11 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |  pp2048 @ d8192 |        120.40 ± 8.92 |
+| volundr 32B Q4_K - Medium      |  24.77 GiB |    32.23 B | MTL,BLAS   |       6 |    tg64 @ d8192 |          5.96 ± 0.19 |
+build: 67e4001 (52)
+      308.45 real       795.69 user        21.96 sys
+         25078251520  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             2396573  page reclaims
+              209257  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                1005  voluntary context switches
+             3117596  involuntary context switches
+      21051101437791  instructions retired
+       3340448589263  cycles elapsed
+          2753992160  peak memory footprint
+canary 26.3 TFLOP/s
+exit 0
