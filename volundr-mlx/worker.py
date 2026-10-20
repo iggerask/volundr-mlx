@@ -17,7 +17,7 @@ object with a "type"). One request per connection.
     {"type": "budget", "gb": float} -> {"type": "budget", "budget_bytes": n} (sets the cache budget, evicting down to
                            it; 0 disables the cache)
     {"type": "reset_peak"} -> {"type": "reset_peak", "peak_gb": float} (the MLX peak memory so far, then reset)
-    {"type": "config", "slice_ms"?, "max_batch"?, "spec"?} -> the scheduler settings (for measurements)
+    {"type": "config", "slice_ms"?, "max_batch"?, "spec"?, "pipeline"?} -> the scheduler settings (measurements)
     {"type": "cancel"}  (optional, on a generate connection; closing the connection does the same)
 
   worker -> client, for generate
@@ -172,7 +172,7 @@ class Worker:
                                             lookup=not args.no_lookup, loop=args.loop, think_ids=think,
                                             max_batch=args.max_batch, slice_ms=args.slice_ms,
                                             nax_min_batch=args.nax_min_batch, spec=not args.no_spec,
-                                            max_gb=args.max_active_gb)
+                                            max_gb=args.max_active_gb, pipeline=not args.no_pipeline)
         self.engine.on_done = self._done
         self.args = args
         self.jobs = queue.Queue()
@@ -186,7 +186,8 @@ class Worker:
                      "head_bits": args.head_bits, "nax": args.nax, "lookup": not args.no_lookup,
                      "loop": args.loop or "early@cv", "single_stream": not args.no_spec},
                      "batch": {"max_batch": args.max_batch, "slice_ms": args.slice_ms,
-                               "nax_min_batch": args.nax_min_batch, "max_active_gb": args.max_active_gb},
+                               "nax_min_batch": args.nax_min_batch, "max_active_gb": args.max_active_gb,
+                               "pipeline": not args.no_pipeline},
                      "load_s": round(self.load_s, 1)}
 
     # -- warm-up (Metal JIT for the prefill, verify and decode kernels, batched decode at 2-4 rows, far blocks)
@@ -328,7 +329,7 @@ class Worker:
             peak = mx.get_peak_memory() / 1e9
             mx.reset_peak_memory()
             conn.send({"type": "reset_peak", "peak_gb": peak})
-        elif job.kind == "config":  # scheduler settings at run time (measurements): slice_ms, max_batch, spec
+        elif job.kind == "config":  # scheduler settings at run time (for measurements)
             e = self.engine
             if msg.get("slice_ms") is not None:
                 e.slice_s = float(msg["slice_ms"]) / 1e3
@@ -336,7 +337,10 @@ class Worker:
                 e.max_batch = max(1, int(msg["max_batch"]))
             if msg.get("spec") is not None:
                 e.spec = bool(msg["spec"])
-            conn.send({"type": "config", "slice_ms": e.slice_s * 1e3, "max_batch": e.max_batch, "spec": e.spec})
+            if msg.get("pipeline") is not None:
+                e.pipeline = bool(msg["pipeline"])
+            conn.send({"type": "config", "slice_ms": e.slice_s * 1e3, "max_batch": e.max_batch, "spec": e.spec,
+                       "pipeline": e.pipeline})
 
     # -- the end of a request (engine thread): the done / error frame, the log, the connection
     def _done(self, job, req, rec):
@@ -392,6 +396,8 @@ def main():
     ap.add_argument("--nax-min-batch", type=int, default=4, help="batched decode uses the NAX matmuls from N rows")
     ap.add_argument("--no-spec", action="store_true",
                     help="a lone greedy request decodes plainly too (batched path), not speculatively")
+    ap.add_argument("--no-pipeline", action="store_true",
+                    help="batched steps one at a time (by default the next step's graph is built while one runs)")
     ap.add_argument("--max-active-gb", type=float, default=46.0,
                     help="admit no new request while MLX holds more than this (unless none is active)")
     ap.add_argument("--T", type=int, default=8)

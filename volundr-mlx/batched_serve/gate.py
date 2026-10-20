@@ -182,26 +182,42 @@ def cmd_timing(args):
     for ids in ps:
         c, _, last = prefilled(model, drafter, ids)
         caches.append((c, int(mx.argmax(last[:vv]).item())))
+    def build(bc, toks, B):
+        with nax_hook.min_rows(4 if B < 4 else 2):
+            lg, _ = BT.forward(model, bc, toks)
+        return lg, mx.argmax(lg[:, :vv], axis=-1).astype(mx.int32), bc.state
+
     for B in args.batches:
-        bc = BT.BatchCache(model)
-        bc.apply(join=[(i, S.restore(S.capture(caches[i][0]))[0]) for i in range(B)])
-        nxt = [caches[i][1] for i in range(B)]
-        times = []
-        mx.reset_peak_memory()
-        for s in range(args.warm + args.steps):
-            t0 = time.perf_counter()
-            with nax_hook.min_rows(4 if B < 4 else 2):
-                lg, _ = BT.forward(model, bc, mx.array(nxt))
-            g = mx.argmax(lg[:, :vv], axis=-1)
-            mx.eval(lg, g, bc.state)
-            nxt = g.tolist()
-            times.append(time.perf_counter() - t0)
-        ms = 1e3 * sum(times[args.warm:]) / args.steps
-        log({"gate": "timing", "B": B, "prompt_tokens": args.tokens, "ms_step": round(ms, 2),
-             "agg_tok_s": round(B * 1e3 / ms, 1), "peak_gb": round(mx.get_peak_memory() / 1e9, 2),
-             "batch_gb": round(bc.nbytes / 1e9, 3)})
-        del bc
-        mx.clear_cache()
+        for pipe in (False, True):  # the engine's step: synchronous, or the next step built while one runs
+            bc = BT.BatchCache(model)
+            bc.apply(join=[(i, S.restore(S.capture(caches[i][0]))[0]) for i in range(B)])
+            toks = mx.array([caches[i][1] for i in range(B)], dtype=mx.int32)
+            times, builds, toks_seen = [], [], []
+            mx.reset_peak_memory()
+            for s in range(args.warm + args.steps):
+                t0 = time.perf_counter()
+                pre = bc.take_prebuilt("next") if pipe else None
+                if pre is None:
+                    pre = build(bc, toks, B)
+                tb = time.perf_counter()
+                lg, g, st = pre
+                if pipe:
+                    mx.async_eval(lg, g, st)
+                    bc.prebuild("next", lambda g=g, bc=bc: build(bc, g, B))
+                mx.eval(lg, g, st)
+                del pre, st
+                toks_seen.append(g.tolist())
+                toks = g
+                times.append(time.perf_counter() - t0)
+                builds.append(tb - t0)
+            bc.rollback()
+            ms = 1e3 * sum(times[args.warm:]) / args.steps
+            log({"gate": "timing", "B": B, "pipelined": pipe, "prompt_tokens": args.tokens, "ms_step": round(ms, 2),
+                 "agg_tok_s": round(B * 1e3 / ms, 1), "build_ms": round(1e3 * sum(builds[args.warm:]) / args.steps, 2),
+                 "peak_gb": round(mx.get_peak_memory() / 1e9, 2), "batch_gb": round(bc.nbytes / 1e9, 3),
+                 "tokens": toks_seen})
+            del bc
+            mx.clear_cache()
 
 
 # ----------------------------------------------------------------------------- engine

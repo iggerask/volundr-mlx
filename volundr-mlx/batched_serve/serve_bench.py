@@ -5,6 +5,7 @@
           sending the next prompt as soon as its last one ends). Per level: aggregate tok/s (completion tokens / wall
           time from the first request sent to the last token), per-request decode tok/s, TTFT p50 / p95, the worker's
           MLX peak memory, its engine counters; the worker log's token ids (worker.py --log-tokens) per prompt.
+          The session cache is cleared before each level, so every level prefills its prompts.
   mixed   one long agent session (session cache on) and four short streams at once: the short streams decode while
           the agent's next turn prefills its new tokens from the reply snapshot; their inter-token gaps during that
           prefill are the stall. Run twice: prefill layers in slices of --slice-ms (the default), and whole chunks
@@ -204,6 +205,7 @@ def cmd_server(a):
     run_level(a.port, 1, [8], 24)
     for c in levels:
         can0 = canary() if a.canary else None
+        wq({"type": "clear"}, a.socket)  # every level prefills its prompts (the prefix cache would hold them)
         wq({"type": "reset_peak"}, a.socket)
         t_wall = time.time()
         res, t0, t1 = run_level(a.port, c, list(range(len(PROMPTS))), a.max_tokens)

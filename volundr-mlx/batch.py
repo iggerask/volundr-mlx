@@ -26,6 +26,8 @@ B = 1 runs up to bf16 rounding: greedy output differs only at near-ties (NOTES_B
 Snapshots: `capture_row` writes a row in session.State's format (the same layout a B = 1 cache at that position
 gives, compact rows), so the session cache serves batched requests exactly like bs = 1 ones.
 """
+import copy
+
 import mlx.core as mx
 from mlx_lm.models.cache import ArraysCache
 
@@ -338,6 +340,7 @@ class BatchCache:
             else:
                 self.layers.append(BatchKVCache(self.rows, a.num_key_value_heads, a.head_dim, dt))
         self.layers.append(V.EngramState(max(a.engram_orders) - 1))
+        self.pre = None  # a step built ahead of time (prebuild): (key, saved state, its outputs)
 
     @property
     def B(self):
@@ -362,9 +365,58 @@ class BatchCache:
     def row(self, key) -> int:
         return self.keys.index(key)
 
+    # -- a step built ahead (pipelining): the next step's graph is built while the current one runs on the GPU. It
+    # only becomes the next step if nothing changed (same rows, in the same order); otherwise the caches go back to
+    # the state saved before it was built (the lazy graph was never evaluated, so its inputs are intact). Any other
+    # use of the batch (membership, a row's snapshot) rolls a pending one back first.
+    def _save(self):
+        layers = []
+        for c in self.layers:
+            if isinstance(c, _Slots):  # copy.copy: the in-place writes replace the array object's contents
+                layers.append({n: None if getattr(c, n) is None else copy.copy(getattr(c, n)) for n in c.bufs})
+            elif isinstance(c, ArraysCache):  # (rebound by each step)
+                layers.append(list(c.cache))
+            else:
+                layers.append(c.prev)
+        return list(self.rows.pos), layers
+
+    def _restore_saved(self, saved):
+        pos, layers = saved
+        for c, sv in zip(self.layers, layers):
+            if isinstance(c, _Slots):
+                for n, a in sv.items():
+                    setattr(c, n, a)
+            elif isinstance(c, ArraysCache):
+                c.cache = list(sv)
+            else:
+                c.prev = sv
+        self.rows.pos = pos
+        self.rows.changed()
+
+    def prebuild(self, key, build):
+        """Build the next step now (build() runs batch.forward and returns its outputs); take_prebuilt(key) hands
+        them out if the batch is still `key` then."""
+        self.rollback()
+        saved = self._save()
+        self.pre = (key, saved, build())
+
+    def take_prebuilt(self, key):
+        if self.pre is not None and self.pre[0] == key:
+            out = self.pre[2]
+            self.pre = None  # (drops the saved references, so the step's writes reuse their buffers)
+            return out
+        self.rollback()
+        return None
+
+    def rollback(self):
+        if self.pre is not None:
+            self._restore_saved(self.pre[1])
+            self.pre = None
+
     def apply(self, leave=(), join=()):
         """Remove the rows of the keys in `leave` (swap-remove: the last row moves into the hole) and append one row
         per (key, B = 1 cache) in `join`. Returns nothing; self.keys gives the new order."""
+        self.rollback()
         old_B = self.B
         perm = list(range(old_B))  # perm[new row] = old row, for the per-row arrays (KDA, Engram)
         slots = [c for c in self.layers if isinstance(c, _Slots)]
@@ -436,6 +488,7 @@ class BatchCache:
     def capture_row(self, key, dcache=None, logits=None) -> S.State:
         """Row `key` as a session.State (own copies, the layout session.capture gives for a B = 1 cache at that
         position). dcache: the request's drafter context (B = 1), logits: the logits of its last position."""
+        self.rollback()
         b = self.keys.index(key)
         P = self.rows.pos[b]
         layers = []

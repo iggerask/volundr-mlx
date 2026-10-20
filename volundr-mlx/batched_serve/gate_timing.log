@@ -1,0 +1,29 @@
+### 2026-10-20 06:50:00 /Users/ingemarrask/personal-dev/llms/.venv/bin/python batched_serve/gate.py timing --tokens 200 --out batched_serve/gate_timing.jsonl
+load: 2.00 2.36 2.94; swap: total = 18432.00M  used = 17068.44M  free = 1363.56M  (encrypted)
+canary 26.3 TFLOP/s
+{"gate": "timing", "B": 1, "prompt_tokens": 200, "ms_step": 71.95, "agg_tok_s": 13.9, "peak_gb": 35.81, "batch_gb": 0.211}
+{"gate": "timing", "B": 2, "prompt_tokens": 200, "ms_step": 81.04, "agg_tok_s": 24.7, "peak_gb": 35.93, "batch_gb": 0.422}
+{"gate": "timing", "B": 4, "prompt_tokens": 200, "ms_step": 88.3, "agg_tok_s": 45.3, "peak_gb": 36.58, "batch_gb": 0.844}
+{"gate": "timing", "B": 8, "prompt_tokens": 200, "ms_step": 98.14, "agg_tok_s": 81.5, "peak_gb": 37.93, "batch_gb": 1.688}
+{"gate": "timing", "B": 16, "prompt_tokens": 200, "ms_step": 112.76, "agg_tok_s": 141.9, "peak_gb": 40.62, "batch_gb": 3.376}
+exit 0
+canary 23.5 TFLOP/s
+load: 2.37 2.42 2.93; swap: total = 25600.00M  used = 23773.00M  free = 1827.00M  (encrypted)
+### done 2026-10-20 06:50:43
+### 2026-10-20 06:51:02 /Users/ingemarrask/personal-dev/llms/.venv/bin/python batched_serve/gate.py timing --tokens 200 --out batched_serve/gate_timing.jsonl
+load: 2.23 2.39 2.91; swap: total = 21504.00M  used = 19766.44M  free = 1737.56M  (encrypted)
+canary 24.6 TFLOP/s
+{"gate": "timing", "B": 1, "pipelined": false, "prompt_tokens": 200, "ms_step": 73.77, "agg_tok_s": 13.6, "build_ms": 3.21, "peak_gb": 35.88, "batch_gb": 0.211}
+{"gate": "timing", "B": 1, "pipelined": true, "prompt_tokens": 200, "ms_step": 69.76, "agg_tok_s": 14.3, "build_ms": 0.08, "peak_gb": 35.91, "batch_gb": 0.211}
+{"gate": "timing", "B": 2, "pipelined": false, "prompt_tokens": 200, "ms_step": 77.57, "agg_tok_s": 25.8, "build_ms": 3.16, "peak_gb": 36.02, "batch_gb": 0.422}
+{"gate": "timing", "B": 2, "pipelined": true, "prompt_tokens": 200, "ms_step": 74.92, "agg_tok_s": 26.7, "build_ms": 0.09, "peak_gb": 36.13, "batch_gb": 0.422}
+{"gate": "timing", "B": 4, "pipelined": false, "prompt_tokens": 200, "ms_step": 90.57, "agg_tok_s": 44.2, "build_ms": 5.93, "peak_gb": 36.67, "batch_gb": 0.844}
+{"gate": "timing", "B": 4, "pipelined": true, "prompt_tokens": 200, "ms_step": 82.09, "agg_tok_s": 48.7, "build_ms": 0.1, "peak_gb": 37.02, "batch_gb": 0.844}
+{"gate": "timing", "B": 8, "pipelined": false, "prompt_tokens": 200, "ms_step": 99.17, "agg_tok_s": 80.7, "build_ms": 6.62, "peak_gb": 38.01, "batch_gb": 1.688}
+{"gate": "timing", "B": 8, "pipelined": true, "prompt_tokens": 200, "ms_step": 94.52, "agg_tok_s": 84.6, "build_ms": 0.11, "peak_gb": 38.74, "batch_gb": 1.688}
+{"gate": "timing", "B": 16, "pipelined": false, "prompt_tokens": 200, "ms_step": 112.5, "agg_tok_s": 142.2, "build_ms": 6.44, "peak_gb": 40.71, "batch_gb": 3.376}
+{"gate": "timing", "B": 16, "pipelined": true, "prompt_tokens": 200, "ms_step": 111.74, "agg_tok_s": 143.2, "build_ms": 0.11, "peak_gb": 42.19, "batch_gb": 3.376}
+exit 0
+canary 23.0 TFLOP/s
+load: 2.42 2.40 2.87; swap: total = 25600.00M  used = 24348.50M  free = 1251.50M  (encrypted)
+### done 2026-10-20 06:52:09

@@ -69,7 +69,7 @@ class Req:
 class BatchEngine:
     def __init__(self, model, drafter, cache: SS.SessionCache, T=8, chunk=2048, lookup=True, loop="",
                  think_ids=(None, None), max_batch=16, slice_ms=200.0, nax_min_batch=4, spec=True, max_gb=46.0,
-                 log=None):
+                 pipeline=True, log=None):
         import specdec
 
         self.model, self.drafter, self.cache = model, drafter, cache
@@ -80,7 +80,7 @@ class BatchEngine:
         self.think_ids = think_ids
         self.vv = model.args.vocab_valid
         self.max_batch, self.slice_s, self.nax_min_batch = max_batch, slice_ms / 1e3, nax_min_batch
-        self.spec, self.max_gb = spec, max_gb
+        self.spec, self.max_gb, self.pipeline = spec, max_gb, pipeline
         self.bc = BT.BatchCache(model)
         self.waiting = deque()
         self.active = []
@@ -336,20 +336,37 @@ class BatchEngine:
             r.feat_p0 += len(r.feats)
             r.feats = []
 
-    def _batch_step(self):
+    def _build_step(self, rows, toks):
+        """Build one batched decode step's graph (not evaluated): (logits, greedy, feats, the caches' new arrays)."""
         import nax_hook
 
         bc = self.bc
         B = bc.B
-        rows = list(bc.keys)
-        want_feats = [r.dcache is not None and (r.spec_ok or (self.cache is not None and self.cache.enabled))
-                      for r in rows]
-        capl = self.drafter.capture_layers if any(want_feats) else ()
-        toks = mx.array([r.out[-1] for r in rows], dtype=mx.int32)
+        capl = self.drafter.capture_layers if any(r.want_feats for r in rows) else ()
         with nax_hook.min_rows(self.nax_min_batch if B < self.nax_min_batch else 2):
             logits, feats = BT.forward(self.model, bc, toks, capture=capl)
-        greedy = mx.argmax(logits[:, : self.vv], axis=-1)
-        mx.eval(logits, greedy, [] if feats is None else feats, bc.state)  # logits first (batch.py's write order)
+        greedy = mx.argmax(logits[:, : self.vv], axis=-1).astype(mx.int32)
+        return logits, greedy, feats, bc.state
+
+    def _batch_step(self):
+        """One decode step of every batch row. Pipelined when every row is greedy: the next step's graph is built
+        (toks = this step's argmax, still on the GPU) while this one runs, and used if the batch is unchanged then."""
+        bc = self.bc
+        B = bc.B
+        rows = list(bc.keys)
+        for r in rows:
+            r.want_feats = r.dcache is not None and (r.spec_ok or (self.cache is not None and self.cache.enabled))
+        key = tuple(map(id, rows))
+        pre = bc.take_prebuilt(key)
+        if pre is None:
+            pre = self._build_step(rows, mx.array([r.out[-1] for r in rows], dtype=mx.int32))
+        logits, greedy, feats, state = pre
+        outs = [logits, greedy, [] if feats is None else feats, state]  # logits first (batch.py's write order)
+        if self.pipeline and all(r.pure_greedy and len(r.out) + 1 < r.sp.max_new_tokens for r in rows):
+            mx.async_eval(*outs)
+            bc.prebuild(key, lambda: self._build_step(rows, greedy))
+        mx.eval(*outs)
+        del outs, state, pre
         g = greedy.tolist()
         self.stats["steps_batch"] += 1
         self.stats["rows_batch"] += B
@@ -357,7 +374,7 @@ class BatchEngine:
             r.batch_steps += 1
             r.batch_rows += B
             r.last = logits[i]
-            if want_feats[i]:
+            if r.want_feats:
                 r.feats.append(feats[i : i + 1])
                 if len(r.feats) >= FEATS_FLUSH:
                     self._flush_feats(r)

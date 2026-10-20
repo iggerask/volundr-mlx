@@ -132,6 +132,50 @@ def test_buffer_growth():
         BT.RING_SIZES, BT.BLOCK_STEP, BT.KV_STEP = saved
 
 
+def test_prebuilt_step_and_rollback():
+    """Pipelining: the next step built ahead (prebuild) and then used gives the same logits as building it then; a
+    prebuilt step rolled back (a row leaves, a snapshot is taken) leaves the batch exactly as before it was built."""
+    m = tiny_model(5)
+    prompts = [ids_for(n, 60 + n) for n in (6, 19, 40)]
+
+    def greedy_run(pipe, steps=24, leave_at=10):
+        bc = BT.BatchCache(m)
+        bc.apply(join=[(i, prefilled(m, p)) for i, p in enumerate(prompts)])
+        toks = mx.array([1, 2, 3], dtype=mx.int32)
+        got, snaps = {0: [], 1: [], 2: []}, None
+        for t in range(steps):
+            key = tuple(bc.keys)
+            pre = bc.take_prebuilt(key) if pipe else None
+            if pre is None:
+                lg, _ = BT.forward(m, bc, toks)
+                pre = (lg, mx.argmax(lg, axis=-1).astype(mx.int32), bc.state)
+            lg, g, st = pre
+            if pipe:
+                mx.async_eval(lg, g, st)
+                bc.prebuild(key, lambda g=g: (lambda lg2: (lg2, mx.argmax(lg2, axis=-1).astype(mx.int32),
+                                                           bc.state))(BT.forward(m, bc, g)[0]))
+            mx.eval(lg, g, st)
+            for r, k in enumerate(bc.keys):
+                got[k].append(lg[r])
+            toks = g
+            if t == leave_at:  # a snapshot, then row 1 leaves (rolls a prebuilt step back first)
+                snaps = bc.capture_row(2)
+                b = bc.keys.index(1)
+                bc.apply(leave=[1])
+                toks = mx.array([int(x) for i, x in enumerate(g.tolist()) if i != b], dtype=mx.int32)
+        return got, snaps
+
+    a, sa = greedy_run(False)
+    b, sb = greedy_run(True)
+    for k in a:
+        assert len(a[k]) == len(b[k]), (k, len(a[k]), len(b[k]))
+        for s, (x, y) in enumerate(zip(a[k], b[k])):
+            same(x, y, f"row {k} step {s}")
+    for x, y in zip(S.restore(sa)[0], S.restore(sb)[0]):
+        for p, q in zip(arrays(x), arrays(y)):
+            same(p, q, "snapshot taken with a step prebuilt")
+
+
 def test_slots():
     """S doubles as rows join, swap-remove keeps every row's state, and an emptied batch frees its buffers."""
     m = tiny_model(4)
