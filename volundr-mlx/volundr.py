@@ -64,8 +64,8 @@ def lm_head_q_group() -> int:
 ENGRAM_PRIMES = (1000003, 1000033, 1000037, 1000039, 1000081)
 
 # Far-block selection of a BCSA decode step with B > 1 rows (batched decode, NOTES_BATCHED.md): "kernel" runs the B = 1
-# kernels once per row; "ops" is the ops path (same scores and blocks, but argpartition's order of them). B = 1 always
-# takes the kernels.
+# kernels once per row; "ops" is the ops path (the same scores and set of blocks, possibly in argpartition's order). B = 1
+# always takes the kernels.
 BATCH_SELECT = os.environ.get("VOLUNDR_BATCH_SELECT", "kernel")
 
 

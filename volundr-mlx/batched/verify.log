@@ -1,0 +1,38 @@
+### 2026-10-20 05:53:23 /Users/ingemarrask/personal-dev/llms/.venv/bin/python batched/bench_verify.py --tokens 200 --batches 1,2,4 --reps 10 --out spec/runs/batched-bench_verify.jsonl
+load: 10.29 7.67 5.88; swap: total = 22528.00M  used = 21089.31M  free = 1438.69M  (encrypted)
+canary 27.4 TFLOP/s
+{"kind": "verify", "name": "verify_rows B=1 nax", "B": 1, "mode": "nax", "T": 8, "rows": 8, "context": 200, "reps": 10, "ms_median": 89.33, "ms_min": 88.46, "build_ms_median": 5.81, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=1 stock", "B": 1, "mode": "stock", "T": 8, "rows": 8, "context": 200, "reps": 10, "ms_median": 143.89, "ms_min": 143.45, "build_ms_median": 3.47, "lmhead8": 64}
+{"kind": "verify", "name": "verify.forward B=1 nax", "B": 1, "mode": "nax", "T": 8, "rows": 8, "context": 200, "reps": 10, "ms_median": 86.91, "ms_min": 85.85, "build_ms_median": 3.32, "lmhead8": 64}
+{"kind": "verify", "name": "verify.forward B=1 stock", "B": 1, "mode": "stock", "T": 8, "rows": 8, "context": 200, "reps": 10, "ms_median": 142.95, "ms_min": 142.08, "build_ms_median": 2.57, "lmhead8": 64}
+{"kind": "verify", "name": "drafter B=1", "B": 1, "mode": "nax", "T": 8, "rows": 8, "context": 200, "reps": 10, "ms_median": 9.98, "ms_min": 9.46, "build_ms_median": 0.62, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=2 nax", "B": 2, "mode": "nax", "T": 8, "rows": 16, "context": 200, "reps": 10, "ms_median": 97.54, "ms_min": 96.52, "build_ms_median": 6.07, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=2 stock", "B": 2, "mode": "stock", "T": 8, "rows": 16, "context": 200, "reps": 10, "ms_median": 206.44, "ms_min": 203.75, "build_ms_median": 3.73, "lmhead8": 64}
+{"kind": "verify", "name": "drafter B=2", "B": 2, "mode": "nax", "T": 8, "rows": 16, "context": 200, "reps": 10, "ms_median": 18.59, "ms_min": 17.94, "build_ms_median": 1.02, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=4 nax", "B": 4, "mode": "nax", "T": 8, "rows": 32, "context": 200, "reps": 10, "ms_median": 214.36, "ms_min": 213.66, "build_ms_median": 4.28, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=4 split", "B": 4, "mode": "split", "T": 8, "rows": 32, "context": 200, "reps": 10, "ms_median": 170.16, "ms_min": 167.45, "build_ms_median": 9.08, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=4 stock", "B": 4, "mode": "stock", "T": 8, "rows": 32, "context": 200, "reps": 10, "ms_median": 214.53, "ms_min": 212.98, "build_ms_median": 4.27, "lmhead8": 64}
+{"kind": "verify", "name": "drafter B=4", "B": 4, "mode": "nax", "T": 8, "rows": 32, "context": 200, "reps": 10, "ms_median": 37.19, "ms_min": 36.03, "build_ms_median": 1.83, "lmhead8": 64}
+exit 0
+canary 27.2 TFLOP/s
+load: 8.52 7.44 5.85; swap: total = 18432.00M  used = 16683.19M  free = 1748.81M  (encrypted)
+### done 2026-10-20 05:53:48
+### 2026-10-20 05:54:01 /Users/ingemarrask/personal-dev/llms/.venv/bin/python batched/bench_verify.py --tokens 8192 --batches 1,2,4 --reps 10 --out spec/runs/batched-bench_verify.jsonl
+load: 7.38 7.24 5.81; swap: total = 16384.00M  used = 15515.88M  free = 868.12M  (encrypted)
+canary 27.0 TFLOP/s
+{"kind": "verify", "name": "verify_rows B=1 nax", "B": 1, "mode": "nax", "T": 8, "rows": 8, "context": 8192, "reps": 10, "ms_median": 95.6, "ms_min": 92.65, "build_ms_median": 6.12, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=1 stock", "B": 1, "mode": "stock", "T": 8, "rows": 8, "context": 8192, "reps": 10, "ms_median": 148.88, "ms_min": 147.72, "build_ms_median": 3.53, "lmhead8": 64}
+{"kind": "verify", "name": "verify.forward B=1 nax", "B": 1, "mode": "nax", "T": 8, "rows": 8, "context": 8192, "reps": 10, "ms_median": 91.87, "ms_min": 89.88, "build_ms_median": 3.69, "lmhead8": 64}
+{"kind": "verify", "name": "verify.forward B=1 stock", "B": 1, "mode": "stock", "T": 8, "rows": 8, "context": 8192, "reps": 10, "ms_median": 148.4, "ms_min": 146.82, "build_ms_median": 2.68, "lmhead8": 64}
+{"kind": "verify", "name": "drafter B=1", "B": 1, "mode": "nax", "T": 8, "rows": 8, "context": 8192, "reps": 10, "ms_median": 11.51, "ms_min": 11.04, "build_ms_median": 0.59, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=2 nax", "B": 2, "mode": "nax", "T": 8, "rows": 16, "context": 8192, "reps": 10, "ms_median": 107.47, "ms_min": 104.27, "build_ms_median": 6.56, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=2 stock", "B": 2, "mode": "stock", "T": 8, "rows": 16, "context": 8192, "reps": 10, "ms_median": 214.55, "ms_min": 211.43, "build_ms_median": 4.17, "lmhead8": 64}
+{"kind": "verify", "name": "drafter B=2", "B": 2, "mode": "nax", "T": 8, "rows": 16, "context": 8192, "reps": 10, "ms_median": 21.95, "ms_min": 20.98, "build_ms_median": 1.05, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=4 nax", "B": 4, "mode": "nax", "T": 8, "rows": 32, "context": 8192, "reps": 10, "ms_median": 230.99, "ms_min": 229.32, "build_ms_median": 4.93, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=4 split", "B": 4, "mode": "split", "T": 8, "rows": 32, "context": 8192, "reps": 10, "ms_median": 187.72, "ms_min": 184.07, "build_ms_median": 9.72, "lmhead8": 64}
+{"kind": "verify", "name": "verify_rows B=4 stock", "B": 4, "mode": "stock", "T": 8, "rows": 32, "context": 8192, "reps": 10, "ms_median": 232.06, "ms_min": 229.47, "build_ms_median": 5.03, "lmhead8": 64}
+{"kind": "verify", "name": "drafter B=4", "B": 4, "mode": "nax", "T": 8, "rows": 32, "context": 8192, "reps": 10, "ms_median": 43.6, "ms_min": 42.75, "build_ms_median": 1.85, "lmhead8": 64}
+exit 0
+canary 26.0 TFLOP/s
+load: 6.43 7.08 5.94; swap: total = 16384.00M  used = 14835.75M  free = 1548.25M  (encrypted)
+### done 2026-10-20 05:56:02
