@@ -1,0 +1,17 @@
+### 2026-10-20 04:25:21 /Users/ingemarrask/personal-dev/llms/.venv/bin/python session_gate.py --only exact,split,engine --json session_cache/gate3.json
+load: 4.04 3.88 3.86; swap: total = 12288.00M  used = 11272.12M  free = 1015.88M  (encrypted)
+canary 28.5 TFLOP/s
+exact: 6151 {"restore0_logits_identical": true, "restore0_drafts_identical": true, "restore0_final_cache_identical": true, "restore1_logits_identical": true, "restore1_drafts_identical": true, "restore1_final_cache_identical": true, "snapshot_unchanged": true, "snapshot_gb": 0.756185096, "snapshot_pos": 6151, "rows_compared": 69, "pass": true}
+exact: 1501 {"restore0_logits_identical": true, "restore0_drafts_identical": true, "restore0_final_cache_identical": true, "restore1_logits_identical": true, "restore1_drafts_identical": true, "restore1_final_cache_identical": true, "snapshot_unchanged": true, "snapshot_gb": 0.343158536, "snapshot_pos": 1501, "rows_compared": 69, "pass": true}
+[exact: 56 s, peak 30.6 GB]
+split: split_at_A {"split": 8483, "kl_vs_fresh_mean": 0.0004163403937127441, "kl_vs_fresh_max": 0.004867389798164368, "rows_identical_to_fresh": false, "model_state_identical_to_fresh": false, "rows_identical_to_resumed": true, "state_identical_to_resumed": true}
+split: split_32_aligned {"split": 8480, "kl_vs_fresh_mean": 0.00046978029422461987, "kl_vs_fresh_max": 0.004406053572893143, "rows_identical_to_fresh": false, "model_state_identical_to_fresh": false}
+split: split_16_mod_32 {"split": 8496, "kl_vs_fresh_mean": 0.0005566125619225204, "kl_vs_fresh_max": 0.002212727442383766, "rows_identical_to_fresh": false, "model_state_identical_to_fresh": false}
+split: {"len_A": 8483, "len_B": 10604, "split_at_A": {"split": 8483, "kl_vs_fresh_mean": 0.0004163403937127441, "kl_vs_fresh_max": 0.004867389798164368, "rows_identical_to_fresh": false, "model_state_identical_to_fresh": false, "rows_identical_to_resumed": true, "state_identical_to_resumed": true}, "split_32_aligned": {"split": 8480, "kl_vs_fresh_mean": 0.00046978029422461987, "kl_vs_fresh_max": 0.004406053572893143, "rows_identical_to_fresh": false, "model_state_identical_to_fresh": false}, "split_16_mod_32": {"split": 8496, "kl_vs_fresh_mean": 0.0005566125619225204, "kl_vs_fresh_max": 0.002212727442383766, "rows_identical_to_fresh": false, "model_state_identical_to_fresh": false}, "resumed_kl_vs_fresh_mean": 0.0004163403937127441, "pass": true}
+[split: 153 s, peak 31.5 GB]
+engine: {"turns": [{"prompt": 1937, "cached_tokens": 0, "prefilled_tokens": 1937, "snapshot": null, "ttft_cached_s": 4.627480708993971, "ttft_plain_s": 4.59387716697529, "first_div": null, "generated": 96, "cache_gb": 0.795569684}, {"prompt": 2060, "cached_tokens": 2032, "prefilled_tokens": 28, "snapshot": {"id": 2, "kind": "reply", "session": "gate", "same_session": true}, "ttft_cached_s": 0.24089004239067435, "ttft_plain_s": 4.982390874996781, "first_div": null, "generated": 64, "cache_gb": 1.772294016}], "pass": true}
+[engine: 31 s, peak 30.2 GB]
+exit 0
+canary 28.1 TFLOP/s
+load: 4.43 3.97 3.89; swap: total = 12288.00M  used = 11216.12M  free = 1071.88M  (encrypted)
+### done 2026-10-20 04:29:39

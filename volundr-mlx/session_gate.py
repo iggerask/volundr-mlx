@@ -12,7 +12,10 @@
 3. engine: two-turn conversation through session.Engine (what worker.py runs): the second turn resumes from the
    first turn's reply snapshot and prefills only the new tokens; its tokens equal a cache-less engine's up to ties.
 
-usage (from volundr-mlx, under ./with_gpu_lock.sh): python session_gate.py [--only exact,resume,engine] [--json out]
+4. split: where gate 2's KL comes from (gate_split's docstring).
+
+usage (from volundr-mlx, under ./with_gpu_lock.sh): python session_gate.py [--only exact,resume,engine,split]
+      [--json out]
 """
 import os
 import sys
@@ -60,6 +63,11 @@ def same(a, b):
     return a.shape == b.shape and a.dtype == b.dtype and mx.array_equal(a, b, equal_nan=True).item()
 
 
+def model_arrays(st):
+    """The target model's cache arrays of a snapshot (without the drafter ring and logits)."""
+    return SS.State(st.pos, st.layers).arrays()
+
+
 def fresh(model, drafter, ids, chunk=2048):
     cache, dcache = model.make_cache(), drafter.make_cache()
     last = SS.prefill(model, drafter, cache, dcache, ids, 0, chunk)
@@ -101,11 +109,18 @@ def first_div(a, b):
 
 # ----------------------------------------------------------------------------- gate 1
 def gate_exact(model, drafter, tok, res):
+    res["exact"] = {}
+    # 6151: not a chunk or block multiple, far blocks active (> 4096); 1501: the rings and pooled blocks compacted
+    for split in (6151, 1501):
+        _exact_at(model, drafter, tok, res, split)
+    res["exact"]["pass"] = all(v["pass"] for v in res["exact"].values())
+
+
+def _exact_at(model, drafter, tok, res, split):
     vv = model.args.vocab_valid
     rng = random.Random(7)
     text = repo_text(["volundr.py", "README.md"], 40000)
     ids = chat(tok, text, "Explain how the BCSA cache works.")[:9000]
-    split = 6151  # not a chunk or block multiple; far blocks active (> 4096)
     cache, dcache, last = fresh(model, drafter, ids[:split])
     st = SS.capture(cache, dcache, last)
     before = [np.array(a.astype(mx.float32)) if a.dtype != mx.int32 else np.array(a) for a in st.arrays()]
@@ -151,8 +166,8 @@ def gate_exact(model, drafter, tok, res):
     out["snapshot_pos"] = st.pos
     out["rows_compared"] = sum(int(np.prod(x.shape[:-1])) if x.ndim > 1 else 1 for x in a[0])
     out["pass"] = all(v for k, v in out.items() if k.endswith(("identical", "unchanged")))
-    res["exact"] = out
-    print("exact:", json.dumps(out), flush=True)
+    res["exact"][f"split{split}"] = out
+    print("exact:", split, json.dumps(out), flush=True)
 
 
 # ----------------------------------------------------------------------------- gate 2
@@ -230,6 +245,59 @@ def gate_resume(model, drafter, tok, res, new=128):
         mx.clear_cache()
 
 
+# ----------------------------------------------------------------------------- where the resume KL comes from
+def gate_split(model, drafter, tok, res):
+    """The resumed prefill is a prefill whose chunk boundaries sit at the resume point. So: (a) a fresh prefill split
+    at the same point must equal the resumed one bit for bit (the snapshot adds nothing); (b) moving the split to a
+    multiple of 32 (the BCSA prefill kernel's query block) shows how much of the KL against the 2048-chunk prefill
+    is the in-chunk tiling of the attention; (c) a split at 16 mod 32 for contrast."""
+    vv = model.args.vocab_valid
+    eos = set(tok.eos_token_ids)
+    B = chat(tok, repo_text(["kernels.py"], 30000), "Which Metal kernels does this file define, and what does each do?")
+    A = int(len(B) * 0.8)
+    A -= (A % 2048 == 0)
+
+    def rows_of(cache, last, force):
+        return forced_rows(model, cache, last, force, vv)
+
+    cF, dF, lF = fresh(model, drafter, B)
+    sF = SS.capture(cF, dF, lF)
+    del cF, dF
+    gF, _ = greedy_margins(model, SS.restore(sF)[0], lF, 48, vv, eos)
+    rF = rows_of(SS.restore(sF)[0], lF, gF[:48])
+    out = {"len_A": A, "len_B": len(B)}
+    cA, dA, lA = fresh(model, drafter, B[:A])
+    sA = SS.capture(cA, dA, lA)
+    del cA, dA
+    cR, dR = SS.restore(sA)
+    lR = SS.prefill(model, drafter, cR, dR, B, A)
+    sR = SS.capture(cR, dR, lR)
+    del cR, dR
+    rR = rows_of(SS.restore(sR)[0], lR, gF[:48])
+    for name, at in (("split_at_A", A), ("split_32_aligned", A - A % 32), ("split_16_mod_32", A - A % 32 + 16)):
+        cS, dS = model.make_cache(), drafter.make_cache()
+        lS = SS.prefill(model, drafter, cS, dS, B, 0, 2048, points=[at])
+        sS = SS.capture(cS, dS, lS)
+        del cS, dS
+        rS = rows_of(SS.restore(sS)[0], lS, gF[:48])
+        kl = kl_rows(rF, rS)
+        o = {"split": at, "kl_vs_fresh_mean": float(kl.mean()), "kl_vs_fresh_max": float(kl.max()),
+             "rows_identical_to_fresh": bool(same(rF, rS)), "model_state_identical_to_fresh": all(
+                 same(x, y) for x, y in zip(model_arrays(sF), model_arrays(sS)))}
+        if name == "split_at_A":
+            o["rows_identical_to_resumed"] = bool(same(rR, rS))
+            o["state_identical_to_resumed"] = all(same(x, y) for x, y in zip(sR.arrays(), sS.arrays()))  # + drafter
+        out[name] = o
+        print("split:", name, json.dumps(o), flush=True)
+        del sS
+        mx.clear_cache()
+    klR = kl_rows(rF, rR)
+    out["resumed_kl_vs_fresh_mean"] = float(klR.mean())
+    out["pass"] = out["split_at_A"]["rows_identical_to_resumed"] and out["split_at_A"]["state_identical_to_resumed"]
+    res["split"] = out
+    print("split:", json.dumps(out), flush=True)
+
+
 # ----------------------------------------------------------------------------- gate 3
 def gate_engine(model, drafter, tok, res):
     eos = list(tok.eos_token_ids)
@@ -272,7 +340,8 @@ def main():
     res = {}
     for g in args.only.split(","):
         t = time.perf_counter()
-        {"exact": gate_exact, "resume": gate_resume, "engine": gate_engine}[g](model, drafter, tok, res)
+        {"exact": gate_exact, "resume": gate_resume, "engine": gate_engine, "split": gate_split}[g](
+            model, drafter, tok, res)
         print(f"[{g}: {time.perf_counter() - t:.0f} s, peak {mx.get_peak_memory() / 1e9:.1f} GB]", flush=True)
     if args.json:
         Path(args.json).write_text(json.dumps(res, indent=1))

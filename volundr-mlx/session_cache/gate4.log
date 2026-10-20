@@ -1,0 +1,23 @@
+### 2026-10-20 04:31:39 /Users/ingemarrask/personal-dev/llms/.venv/bin/python session_cache/chunk_invariance.py
+load: 3.82 3.84 3.84; swap: total = 12288.00M  used = 11200.12M  free = 1087.88M  (encrypted)
+canary 28.5 TFLOP/s
+{"component": "4-bit matmul (KDA in_proj_qkv)", "identical": true, "rows_differing": 0, "rows": 1517, "max_abs": 0.0, "mean_abs": 0.0, "ref_mean_abs": 0.8852795362472534}
+{"component": "MLP (4-bit)", "identical": true, "rows_differing": 0, "rows": 1517, "max_abs": 0.0, "mean_abs": 0.0, "ref_mean_abs": 0.44755980372428894}
+{"component": "KDA mixer (projections, conv, recurrence, gated norm, out_proj)", "identical": false, "rows_differing": 18, "rows": 1517, "max_abs": 0.00390625, "mean_abs": 1.9241879201103984e-08, "ref_mean_abs": 0.37555572390556335}
+{"component": "BCSA attention (window + top-k far blocks)", "identical": false, "rows_differing": 1517, "rows": 1517, "max_abs": 0.03125, "mean_abs": 7.860504410928115e-06, "ref_mean_abs": 0.1356234848499298}
+{"component": "dense attention (SDPA)", "identical": true, "rows_differing": 0, "rows": 1517, "max_abs": 0.0, "mean_abs": 0.0, "ref_mean_abs": 0.450305312871933}
+exit 0
+canary 28.3 TFLOP/s
+load: 4.09 3.90 3.86; swap: total = 12288.00M  used = 11200.12M  free = 1087.88M  (encrypted)
+### done 2026-10-20 04:31:49
+### 2026-10-20 04:31:49 /Users/ingemarrask/personal-dev/llms/.venv/bin/python /private/tmp/claude-501/-Users-ingemarrask-personal-dev-llms/b08d8102-657c-4e37-b76d-c8780a9ddb09/scratchpad/check_spec_loop.py
+load: 4.09 3.90 3.86; swap: total = 12288.00M  used = 11200.12M  free = 1087.88M  (encrypted)
+canary 28.4 TFLOP/s
+{"file": "sampler.py", "prompt": 449, "tokens": 128, "identical": true, "steps": 49, "ms_step_old": 98.3, "ms_step_new": 98.6}
+{"file": "session.py", "prompt": 3421, "tokens": 128, "identical": true, "steps": 67, "ms_step_old": 102.0, "ms_step_new": 100.3}
+{"file": "kernels.py", "prompt": 9306, "tokens": 128, "identical": true, "steps": 66, "ms_step_old": 103.1, "ms_step_new": 102.3}
+SPEC LOOP IDENTICAL TO MAIN
+exit 0
+canary 28.1 TFLOP/s
+load: 4.40 4.12 3.95; swap: total = 12288.00M  used = 11574.31M  free = 713.69M  (encrypted)
+### done 2026-10-20 04:33:47

@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Serve Volundr MLX through agens-server: start the MLX worker (volundr-mlx/worker.py, the model + session cache) on a
-# Unix socket, then the Rust front end (server/, the upstream agens-server crate + MlxBackend) on HTTP. Ctrl-C stops
-# both. The server waits for the worker to load (~30 s) and warm up (~20 s).
+# Unix socket, then the Rust front end (server/, the upstream agens-server crate + MlxBackend) on HTTP. Ctrl-C or
+# TERM stops both. The server waits for the worker to load (~30 s) and warm up (~20 s) before it listens.
 #
 # usage: ./serve.sh [--port 30000] [--host 127.0.0.1] [--cache-gb 12] [--log FILE] [-- extra worker.py flags]
 #   env: PY (python, default .venv/bin/python), MODEL (model dir), VOLUNDR_WORKER_SOCKET, VOLUNDR_SESSION_CACHE_GB,
@@ -34,5 +34,8 @@ if [[ ! -x $BIN ]]; then
 fi
 $PY $ROOT/volundr-mlx/worker.py --socket $SOCK $wargs &
 WPID=$!
-trap 'kill $WPID 2>/dev/null; wait $WPID 2>/dev/null' EXIT INT TERM
-$BIN --model-dir $MODEL --socket $SOCK --host $HOST --port $PORT
+$BIN --model-dir $MODEL --socket $SOCK --host $HOST --port $PORT &
+SPID=$!
+trap 'kill $SPID $WPID 2>/dev/null; wait $SPID $WPID 2>/dev/null; exit 0' INT TERM
+trap 'kill $SPID $WPID 2>/dev/null' EXIT
+wait $SPID

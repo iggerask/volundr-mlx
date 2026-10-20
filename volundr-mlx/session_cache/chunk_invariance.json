@@ -1,0 +1,47 @@
+[
+ {
+  "component": "4-bit matmul (KDA in_proj_qkv)",
+  "identical": true,
+  "rows_differing": 0,
+  "rows": 1517,
+  "max_abs": 0.0,
+  "mean_abs": 0.0,
+  "ref_mean_abs": 0.8852795362472534
+ },
+ {
+  "component": "MLP (4-bit)",
+  "identical": true,
+  "rows_differing": 0,
+  "rows": 1517,
+  "max_abs": 0.0,
+  "mean_abs": 0.0,
+  "ref_mean_abs": 0.44755980372428894
+ },
+ {
+  "component": "KDA mixer (projections, conv, recurrence, gated norm, out_proj)",
+  "identical": false,
+  "rows_differing": 18,
+  "rows": 1517,
+  "max_abs": 0.00390625,
+  "mean_abs": 1.9241879201103984e-08,
+  "ref_mean_abs": 0.37555572390556335
+ },
+ {
+  "component": "BCSA attention (window + top-k far blocks)",
+  "identical": false,
+  "rows_differing": 1517,
+  "rows": 1517,
+  "max_abs": 0.03125,
+  "mean_abs": 7.860504410928115e-06,
+  "ref_mean_abs": 0.1356234848499298
+ },
+ {
+  "component": "dense attention (SDPA)",
+  "identical": true,
+  "rows_differing": 0,
+  "rows": 1517,
+  "max_abs": 0.0,
+  "mean_abs": 0.0,
+  "ref_mean_abs": 0.450305312871933
+ }
+]

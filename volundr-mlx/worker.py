@@ -264,7 +264,12 @@ class Worker:
         t_start = time.perf_counter()
         queue_s = t_start - job.t_recv
         if job.cancel.is_set():
-            conn.send({"type": "done", "finish": "cancelled", "stats": {"queue_s": queue_s, "cancelled": "queued"}})
+            rec = {"finish": "cancelled", "cancelled": "queued", "queue_s": queue_s, "generated": 0,
+                   "prompt_tokens": len(msg.get("prompt_ids") or []), "session_id": msg.get("session_id"),
+                   "t": time.time()}
+            self.recent.append(rec)
+            conn.send({"type": "done", "finish": "cancelled", "stats": rec})
+            print(f"worker: cancelled while queued ({queue_s:.1f} s)", file=sys.stderr, flush=True)
             return
         try:
             ids = [int(t) for t in msg["prompt_ids"]]
@@ -280,8 +285,11 @@ class Worker:
 
             try:
                 rec = self.engine.generate(ids, sp, session, emit=emit, cancelled=job.cancel.is_set)
-            except SS.Cancelled:
-                rec = {"prompt_tokens": len(ids), "finish": "cancelled", "cancelled": "prefill", "generated": 0}
+            except SS.Cancelled as e:
+                rec = dict(getattr(e, "rec", {}) or {"prompt_tokens": len(ids)})
+                rec.update(finish="cancelled", cancelled="prefill", generated=0, total_s=time.perf_counter() - t_start,
+                           cache_bytes=self.cache.nbytes, cache_snapshots=len(self.cache.snaps))
+                mx.clear_cache()
         except Exception as e:  # noqa: BLE001
             traceback.print_exc()
             conn.send({"type": "error", "message": f"{type(e).__name__}: {e}"})

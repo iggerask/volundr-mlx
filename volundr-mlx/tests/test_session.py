@@ -61,7 +61,7 @@ def test_restore_continues_bit_identically():
     snapshot's arrays are unchanged afterwards."""
     m = tiny_model(0)
     ids = ids_for(97, 1)
-    for split in (40, 41, 64):  # a block boundary, mid-block, a window multiple
+    for split in (5, 9, 40, 41, 64):  # inside the first window (compacted rows), a block boundary, mid-block, ...
         cache = m.make_cache()
         feed(m, cache, ids[:split], chunk=13)
         st = S.capture(cache, logits=None)

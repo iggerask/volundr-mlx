@@ -23,8 +23,11 @@ Holding references vs copying (measured with MLX 0.32.4, tests/test_session.py):
   the projections. Arrays under 4 MiB (conv states, KDA recurrent states, Engram ids, open-block keys, logits rows)
   are copied; the large ones (rings, pooled blocks, dense K/V, drafter ring) are allocated buffers, never views, and
   are referenced.
-So a snapshot costs its bytes (~1.0 GB at 20K context) plus, the first time the live cache writes each shared
-buffer, one copy of it.
+- Buffers that are at most half in use (the BCSA rings below 4096 positions, pooled blocks, the drafter ring) are
+  kept as their used leading rows (`Rows`) and re-expanded with zeros on restore; the rest of each buffer is still
+  zeros, so this is exact.
+So a snapshot costs its bytes (0.18 GB for a short prompt, ~1.1 GB at 20K context) plus, the first time the live
+cache writes each shared buffer, one copy of it.
 
 The prefix cache (`SessionCache`) keeps snapshots at the end of each request's prompt prefill, at the end of each reply
 (the cache then holds prompt + reply minus the last token) and every `interval` tokens of a long prefill (at absolute
@@ -70,6 +73,40 @@ def _keep(a):
     return None if a is None else (_own(a) if a.nbytes < SMALL else _ref(a))
 
 
+class Rows:
+    """A buffer kept as its leading `arr.shape[axis]` rows: the rest of the full `shape` is zeros (never written yet).
+    Used when at most half of a ring or pooled-block buffer is in use (short contexts): a 35-token snapshot is then
+    ~0.18 GB instead of ~0.66 GB, as the BCSA rings (4096 + 512 rows per layer), the pooled blocks (capacity in steps of
+    1024) and the drafter ring (4096) are allocated full-size."""
+
+    __slots__ = ("arr", "shape", "axis")
+
+    def __init__(self, arr, shape, axis):
+        self.arr, self.shape, self.axis = arr, tuple(shape), axis
+
+    def full(self):
+        out = mx.zeros(self.shape, self.arr.dtype)
+        idx = (slice(None),) * self.axis + (slice(0, self.arr.shape[self.axis]),)
+        out[idx] = self.arr
+        return out
+
+
+def _rows(a, n, axis):
+    """Keep a (an allocated buffer whose rows from n on along axis are still zeros) compactly if that saves half."""
+    if a is None or 2 * n > a.shape[axis]:
+        return _keep(a)
+    idx = (slice(None),) * axis + (slice(0, n),)
+    return Rows(_own(a[idx]), a.shape, axis)
+
+
+def _restore(x):
+    return x.full() if isinstance(x, Rows) else _ref(x)
+
+
+def _arr(x):
+    return x.arr if isinstance(x, Rows) else x
+
+
 # ----------------------------------------------------------------------------- snapshot / restore
 @dataclass
 class State:
@@ -80,9 +117,9 @@ class State:
     nbytes: int = 0
 
     def arrays(self):
-        out = [a for t in self.layers for a in t[1:] if isinstance(a, mx.array)]
+        out = [_arr(a) for t in self.layers for a in t[1:] if isinstance(_arr(a), mx.array)]
         if self.draft is not None:
-            out += list(self.draft[0]) + list(self.draft[1])
+            out += [_arr(a) for a in self.draft[0] + self.draft[1]]
         if self.logits is not None:
             out.append(self.logits)
         return out
@@ -105,16 +142,23 @@ def capture(cache, dcache=None, logits=None) -> State:
             assert c.left_padding is None and c.lengths is None
             layers.append(("arrays", *[_keep(a) for a in c.cache]))
         elif isinstance(c, V.BCSACache):
-            layers.append(("bcsa", c.W, c.C, c.F, c.offset, c.nb, _keep(c.k), _keep(c.v), _keep(c.pk), _keep(c.pv),
-                           _keep(c.bk), _keep(c.ik_open)))
+            # ring rows past the offset are untouched while offset < W (the far slots fill only once the ring is
+            # full); pooled rows past nb are untouched
+            ring = c.offset if c.offset < c.W else 1 << 62
+            layers.append(("bcsa", c.W, c.C, c.F, c.offset, c.nb, _rows(c.k, ring, 2), _rows(c.v, ring, 2),
+                           _rows(c.pk, c.nb, 2), _rows(c.pv, c.nb, 2), _rows(c.bk, c.nb, 1), _keep(c.ik_open)))
         elif isinstance(c, KVCache):
             layers.append(("kv", c.offset, _keep(c.keys), _keep(c.values)))
         elif isinstance(c, V.EngramState):
             layers.append(("engram", c.keep, _keep(c.prev)))
         else:
             raise TypeError(f"no snapshot for cache type {type(c).__name__}")
-    draft = None if dcache is None else ([_keep(a) for a in dcache.k], [_keep(a) for a in dcache.v])
-    st = State(cache_pos(cache), layers, draft, _own(logits))
+    pos = cache_pos(cache)
+    draft = None
+    if dcache is not None:  # ring slots written so far: positions < pos, plus a draft block's 8 (slot = position)
+        n = pos + 8 if pos + 8 < dcache.k[0].shape[2] else 1 << 62
+        draft = ([_rows(a, n, 2) for a in dcache.k], [_rows(a, n, 2) for a in dcache.v])
+    st = State(pos, layers, draft, _own(logits))
     arrs = st.arrays()
     mx.eval(arrs)
     st.nbytes = sum(a.nbytes for a in arrs)
@@ -135,7 +179,7 @@ def restore(st: State, model=None, drafter=None):
             _, W, C, F, offset, nb, k, v, pk, pv, bk, iko = t
             c = V.BCSACache(W, C, F)
             c.offset, c.nb = offset, nb
-            c.k, c.v, c.pk, c.pv, c.bk, c.ik_open = map(_ref, (k, v, pk, pv, bk, iko))
+            c.k, c.v, c.pk, c.pv, c.bk, c.ik_open = map(_restore, (k, v, pk, pv, bk, iko))
         elif kind == "kv":
             c = KVCache()
             c.offset, c.keys, c.values = t[1], _ref(t[2]), _ref(t[3])
@@ -150,7 +194,7 @@ def restore(st: State, model=None, drafter=None):
         from dflash import DraftCache
 
         dcache = DraftCache.__new__(DraftCache)  # (the constructor allocates the zero ring)
-        dcache.k, dcache.v = [_ref(a) for a in st.draft[0]], [_ref(a) for a in st.draft[1]]
+        dcache.k, dcache.v = [_restore(a) for a in st.draft[0]], [_restore(a) for a in st.draft[1]]
     return cache, dcache
 
 
@@ -312,7 +356,7 @@ def prefill(model, drafter, cache, dcache, ids, start=0, chunk=2048, points=(), 
     for stop in stops:
         while s < stop:
             if cancelled is not None and cancelled():
-                raise Cancelled
+                raise Cancelled(s)
             e = min(stop, s + chunk)
             lo = max(s, stop - WINDOW)  # the rows of this chunk the drafter context needs at `stop`
             want = dcache is not None and lo < e
@@ -465,7 +509,13 @@ class Engine:
 
         if start < n:
             pts = self.cache.points(start, n) if self.cache is not None else []
-            last = prefill(model, drafter, cache, dcache, ids, start, self.chunk, pts, on_point, cancelled)
+            try:
+                last = prefill(model, drafter, cache, dcache, ids, start, self.chunk, pts, on_point, cancelled)
+            except Cancelled as e:  # the worker reports it; the interval snapshots taken so far stay
+                rec.update(cancelled_at=e.args[0] if e.args else None, interval_snapshots=n_points[0],
+                           prefill_s=time.perf_counter() - t_restore)
+                e.rec = rec
+                raise
             self._snap(session, "prompt", ids_np, cache, dcache, last)
         t_prefill = time.perf_counter()
         rec.update(restore_s=t_restore - t0, prefill_s=t_prefill - t_restore, interval_snapshots=n_points[0])
