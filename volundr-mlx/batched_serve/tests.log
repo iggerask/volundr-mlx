@@ -1,0 +1,32 @@
+### 2026-10-20 07:26:38 /Users/ingemarrask/personal-dev/llms/.venv/bin/python tests/test_batch.py
+load: 5.32 4.35 3.83; swap: total = 16384.00M  used = 15560.94M  free = 823.06M  (encrypted)
+canary 28.5 TFLOP/s
+ok   test_batch_of_one_is_decode_step (0.8 s)
+    146 row-steps in the second schedule
+ok   test_rows_join_leave (0.6 s)
+ok   test_buffer_growth (0.2 s)
+ok   test_prebuilt_step_and_rollback (0.1 s)
+ok   test_bspec_append_rows (0.0 s)
+ok   test_slots (0.0 s)
+6/6 passed
+exit 0
+canary 28.1 TFLOP/s
+load: 5.22 4.35 3.83; swap: total = 16384.00M  used = 15536.94M  free = 847.06M  (encrypted)
+### done 2026-10-20 07:26:42
+### 2026-10-20 07:26:42 /Users/ingemarrask/personal-dev/llms/.venv/bin/python tests/test_session.py
+load: 5.22 4.35 3.83; swap: total = 16384.00M  used = 15536.94M  free = 847.06M  (encrypted)
+canary 28.3 TFLOP/s
+    cache kinds: ['ArraysCache', 'BCSACache', 'EngramState', 'KVCache']; snapshot at 64: 223240 bytes
+PASS test_restore_continues_bit_identically (1.0 s)
+PASS test_restore_from_restored (0.1 s)
+PASS test_inplace_writes_need_a_new_array_object (0.0 s)
+PASS test_conv_state_view_is_copied (0.0 s)
+PASS test_decode_step_matches_model (0.1 s)
+PASS test_lookup_prefix_session_and_logits (0.0 s)
+PASS test_lru_eviction_and_budget (0.0 s)
+PASS test_points (0.0 s)
+8/8 passed
+exit 0
+canary 27.5 TFLOP/s
+load: 5.20 4.36 3.84; swap: total = 16384.00M  used = 15528.94M  free = 855.06M  (encrypted)
+### done 2026-10-20 07:26:45

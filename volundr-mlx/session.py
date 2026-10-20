@@ -349,10 +349,11 @@ def prefill(model, drafter, cache, dcache, ids, start=0, chunk=2048, points=(), 
 
 
 def prefill_iter(model, drafter, cache, dcache, ids, start=0, chunk=2048, points=(), on_point=None, cancelled=None,
-                 layer_sync=None, yield_layers=False):
+                 layer_sync=None, yield_layers=False, clear_min=0):
     """prefill() as a generator for the batched scheduler: yields ("chunk", end) after each chunk and, with
     yield_layers (and layer_sync), ("layer", i) after each layer of a chunk (verify.forward_iter), so decode steps can
-    run in between. The same ops in the same order; returns prefill()'s value."""
+    run in between. The same ops in the same order; returns prefill()'s value. clear_min: MLX's buffer cache is
+    cleared after chunks of at least this many tokens only (a clear costs the decode steps around it fresh buffers)."""
     import specdec
     import verify as VF
     from dflash import WINDOW
@@ -377,7 +378,8 @@ def prefill_iter(model, drafter, cache, dcache, ids, start=0, chunk=2048, points
             if want:
                 drafter.materialize(dcache, cap[lo - s :], lo)
             mx.eval(logits, [c.state for c in cache], dcache.state if dcache is not None else [])
-            mx.clear_cache()
+            if e - s >= clear_min:
+                mx.clear_cache()
             s = e
             yield ("chunk", e)
         if stop < n and on_point is not None:

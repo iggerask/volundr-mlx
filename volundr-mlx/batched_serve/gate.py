@@ -290,7 +290,7 @@ def cmd_engine(args):
     reqs += [("x4", {"prompt_ids": ps[4], "sampling": smp(11)}, None),
              ("x5", {"prompt_ids": ps[5], "session_id": "s5", "sampling": smp(12)}, None),
              ("c0", {"prompt_ids": ps[2][:500], "sampling": g}, args.new // 3)]  # cancelled after a third
-    results = {}
+    results, fps = {}, {}
     for mode, mb in (("concurrent", args.max_batch), ("sequential", 1)):
         cache = S.SessionCache(budget_gb=8)
         eng = scheduler.BatchEngine(model, drafter, cache, max_batch=mb)
@@ -306,6 +306,7 @@ def cmd_engine(args):
         r2 = run_engine(eng, follow)
         t2 = time.perf_counter()
         fprompts = {name: msg["prompt_ids"] for name, msg, _ in follow}
+        fps[mode] = fprompts
         results[mode] = {**r1, **r2}
         for name, (toks, rec) in sorted({**r1, **r2}.items()):
             log({"gate": "engine", "mode": mode, "name": name, "generated": rec.get("generated"),
@@ -325,7 +326,9 @@ def cmd_engine(args):
         div = next((k for k, (x, y) in enumerate(zip(a, b)) if x != y), None)
         rec = {"gate": "engine-compare", "name": name, "identical": div is None and len(a) == len(b),
                "len": [len(a), len(b)]}
-        if div is not None and name in allp and name[0] in "gf":
+        if name[0] == "f" and fps["concurrent"][name] != fps["sequential"][name]:
+            rec["prompt_differs"] = True  # turn 1 diverged, so turn 2's prompts differ: not comparable
+        elif div is not None and name in allp and name[0] in "gf":
             la, lb, m = tie(model, drafter, allp[name], a[:div], a[div], b[div], vv)
             rec.update(diverge_at=div, logit_seq=la, logit_conc=lb, top2_margin=m)
         elif div is not None:
@@ -503,7 +506,7 @@ def cmd_prof(args):
             lg, f = BT.forward(model, bc, toks, capture=capl)
         return lg, mx.argmax(lg[:, :vv], axis=-1).astype(mx.int32), [] if f is None else f, bc.state
 
-    for name, ps in (("equal", eq), ("serve", serve_ids)):
+    for name, ps in (("equal", eq), ("serve", serve_ids)) if args.steps else ():  # --steps 0: the engine only
         caches = []
         for ids in ps:
             c, _, last = prefilled(model, drafter, ids)
@@ -534,7 +537,7 @@ def cmd_prof(args):
                 mx.clear_cache()
         del caches
     g = {"top_k": 1, "max_new_tokens": args.new, "ignore_eos": True}
-    for cache_gb in (12.0, 0.0):
+    for cache_gb in (12.0, 0.0)[: args.engines]:
         eng = scheduler.BatchEngine(model, drafter, S.SessionCache(budget_gb=cache_gb) if cache_gb else None)
         eng.step_log = []
         recs = {}
@@ -620,6 +623,7 @@ def main():
     ap.add_argument("--new", type=int, default=96)
     ap.add_argument("--max-batch", type=int, default=16)
     ap.add_argument("--T", type=int, default=8)
+    ap.add_argument("--engines", type=int, default=2)
     args = ap.parse_args()
     args.lengths = [int(x) for x in args.lengths.split(",")]
     args.batches = [int(x) for x in args.batches.split(",")]

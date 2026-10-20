@@ -1,12 +1,13 @@
 #!/bin/zsh
 # The full-model gates (batched_serve/gate.py) in one lock session, from volundr-mlx: rows, timing (short and 8K).
-# usage: ./with_gpu_lock.sh batched_serve/gates.sh [rows,timing,timing8k,exact,engine,bspec,serve,prof,bspecn,tests]
+# usage: ./with_gpu_lock.sh batched_serve/gates.sh [rows,timing,timing8k,exact,engine,bspec,serve,prof,bspecn,tests,profeng]
 WT=${0:A:h:h}
 cd $WT
 S=batched_serve/step.sh
 PY=${PY:-/Users/ingemarrask/personal-dev/llms/.venv/bin/python}
 G=${1:-rows,timing}
 [[ ,$G, == *,tests,* ]] && $S tests.log $PY tests/test_batch.py
+[[ ,$G, == *,tests,* ]] && $S tests.log $PY tests/test_session.py
 [[ ,$G, == *,exact,* ]] && $S gate_exact.log $PY batched_serve/gate.py exact --out batched_serve/gate_exact.jsonl
 [[ ,$G, == *,rows,* ]] && $S gate_rows.log $PY batched_serve/gate.py rows --lengths 120,300,800,1500,3000,4500,6000,9000 \
   --steps 96 --out batched_serve/gate_rows.jsonl
@@ -22,4 +23,6 @@ G=${1:-rows,timing}
   --out batched_serve/gate_prof.jsonl
 [[ ,$G, == *,bspecn,* ]] && $S gate_bspecn.log $PY batched_serve/gate.py bspecn --batches 2,3,4,6,8 --new 128 \
   --out batched_serve/gate_bspecn.jsonl
+[[ ,$G, == *,profeng,* ]] && $S gate_prof.log $PY batched_serve/gate.py prof --batches 16 --steps 0 --engines 1 \
+  --new 128 --out batched_serve/gate_prof.jsonl
 true

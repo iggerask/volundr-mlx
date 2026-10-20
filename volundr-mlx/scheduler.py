@@ -1,14 +1,16 @@
 """Continuous batching for the MLX worker (worker.py), after upstream agens-engine's server mode
 (crates/agens-cli/src/serve.rs): one engine thread owns the GPU, and each pass of its loop
 1. takes new requests and admits what fits (up to max_batch active requests, and a memory limit);
-2. runs prefill work for the oldest request still prefilling: one chunk when nothing is decoding, else layers of
-   its current chunk until `slice_ms` have passed (session.prefill_iter yields between layers, so a long prompt
-   never stalls the decoding streams for a whole chunk);
+2. runs prefill work: one chunk of the oldest request still prefilling when nothing is decoding, else prefill
+   layers until `slice_ms` have passed (session.prefill_iter yields between layers, so a long prompt never stalls
+   the decoding streams for a whole chunk; a short prompt done early hands the rest of the slice to the next one);
 3. runs ONE decode step for every decoding request together, and streams each request's tokens.
 
 Policy for the decode step:
 - one decoding request that is greedy (Sampling.speculative): one step of the speculative loop (specdec.SpecStepper:
   DFlash2 + prompt lookup + NAX verify, the bs = 1 path, ~28 tok/s);
+- 2..bspec_max decoding requests, all greedy: one batched speculative step (batch_spec.py: each row's draft, one
+  verify forward of B x T rows, T = bspec_rows // B, each row keeps its own accepted run);
 - otherwise every decoding request is a row of the decode batch (batch.BatchCache: per-row positions, slot buffers)
   and the step is one batched plain decode forward, NAX small-M matmuls from `nax_min_batch` rows (stock MLX is
   faster at 2-3 rows). Greedy rows take the GPU argmax, sampled rows sampler.py on their logits row.
@@ -70,7 +72,7 @@ class Req:
 class BatchEngine:
     def __init__(self, model, drafter, cache: SS.SessionCache, T=8, chunk=2048, lookup=True, loop="",
                  think_ids=(None, None), max_batch=16, slice_ms=200.0, nax_min_batch=4, spec=True, max_gb=46.0,
-                 pipeline=True, bspec=True, bspec_max=4, bspec_rows=16, log=None):
+                 pipeline=True, bspec=True, bspec_max=4, bspec_rows=16, clear_min=0, log=None):
         import specdec
 
         self.model, self.drafter, self.cache = model, drafter, cache
@@ -84,6 +86,10 @@ class BatchEngine:
         self.spec, self.max_gb, self.pipeline, self.bspec = spec, max_gb, pipeline, bspec
         # batched speculation for 2..bspec_max greedy rows, each drafting T = bspec_rows // B tokens (2 <= T <= self.T)
         self.bspec_max, self.bspec_rows = bspec_max, bspec_rows
+        # prefill chunks shorter than clear_min keep MLX's buffer cache (session.prefill_iter). 0: clear after every
+        # chunk; keeping it (1024) let the buffers of every batch size seen pile up (each join / leave changes the
+        # KDA state shapes): join steps of 0.7-1.7 s instead of ~0.2 s with swap nearly full (gate_prof)
+        self.clear_min = clear_min
         self.bc = BT.BatchCache(model)
         self.waiting = deque()
         self.active = []
@@ -164,8 +170,9 @@ class BatchEngine:
                 if self._snap(r.session, "interval", r.ids_np[:pos], r.cache, r.dcache, logits) is not None:
                     r.n_points += 1
 
+            r.n_prompt = len(ids)
             r.gen = SS.prefill_iter(self.model, self.drafter, r.cache, r.dcache, ids, start, self.chunk, pts,
-                                    on_point, yield_layers=True)
+                                    on_point, yield_layers=True, clear_min=self.clear_min)
         return r
 
     def _snap(self, session, kind, tokens, cache, dcache, logits):
@@ -189,12 +196,17 @@ class BatchEngine:
         t1 = time.perf_counter()
         self.stats["t_admit"] += t1 - t0
         decoding = [r for r in self.active if r.phase == "decode"]
-        pre = next((r for r in self.active if r.phase == "prefill"), None)
-        if pre is not None:
+        pres = [r for r in self.active if r.phase == "prefill"]
+        pre = pres[0] if pres else None
+        t_end = t1 + self.slice_s
+        for p in pres:  # the oldest first; the next one only while the slice lasts
             try:
-                self._prefill_work(pre, bool(decoding))
+                if not self._prefill_work(p, bool(decoding), t_end):
+                    break
             except Exception as e:  # noqa: BLE001
-                self._fail([pre], e)
+                self._fail([p], e)
+                break
+        if pres:
             self.stats["t_prefill"] += time.perf_counter() - t1
         decoding = [r for r in self.active if r.phase == "decode"]
         if decoding:
@@ -225,24 +237,29 @@ class BatchEngine:
                     r.mode = None
         mx.clear_cache()
 
-    def _prefill_work(self, r, others):
-        """Advance r's prefill: to the end of its current chunk when nothing is decoding, else for slice_s."""
-        t0 = time.perf_counter()
+    def _prefill_work(self, r, others, t_end):
+        """Advance r's prefill: to the end of its current chunk when nothing is decoding, else until t_end. True when
+        r's prefill ended while others decode and the slice has time left (the next request's prefill may go on)."""
         self.stats["prefill_slices"] += 1
         if r.gen is None:  # the snapshot covers the whole prompt (it carries the last logits)
-            return self._prefill_done(r, r.last)
+            self._prefill_done(r, r.last)
+            return others and time.perf_counter() < t_end
         try:
             while True:
-                kind, _ = next(r.gen)
+                kind, v = next(r.gen)
                 if r.cancelled:
-                    return self._finish(r, "cancelled")
+                    self._finish(r, "cancelled")
+                    return False
+                if kind == "chunk" and v == r.n_prompt:  # the last chunk: the generator ends at the next call
+                    continue
                 if kind == "chunk" and not others:
-                    return
-                if others and time.perf_counter() - t0 >= self.slice_s:
-                    return
+                    return False
+                if others and time.perf_counter() >= t_end:
+                    return False
         except StopIteration as e:
             r.gen = None
             self._prefill_done(r, e.value)
+            return others and time.perf_counter() < t_end
 
     def _prefill_done(self, r, last):
         r.last = last

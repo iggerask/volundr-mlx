@@ -174,7 +174,7 @@ def run_level(port, c, idx, max_tokens):
     return res, t0, time.perf_counter()
 
 
-def summarize(res, t0, t1):
+def summarize(res, t0, t1, c=0):
     toks, ttft, dec = 0, [], []
     for r in res.values():
         n = (r.get("usage") or {}).get("completion_tokens") or len(r["arrivals"])
@@ -184,7 +184,15 @@ def summarize(res, t0, t1):
             if n > 1 and r["arrivals"][-1] > r["arrivals"][0]:
                 dec.append((n - 1) / (r["arrivals"][-1] - r["arrivals"][0]))
     end = max((r["arrivals"][-1] for r in res.values() if r["arrivals"]), default=t1)
-    return {"requests": len(res), "completion_tokens": toks, "wall_s": round(end - t0, 2),
+    # the full-batch window: from the c-th first token to the first request's last token (every client streaming)
+    firsts = sorted(r["arrivals"][0] for r in res.values() if r["arrivals"])
+    lasts = sorted(r["arrivals"][-1] for r in res.values() if r["arrivals"])
+    full = None
+    if c and len(firsts) >= c and lasts[0] > firsts[c - 1]:
+        lo, hi = firsts[c - 1], lasts[0]
+        n_in = sum(1 for r in res.values() for t in r["arrivals"] if lo <= t <= hi)
+        full = round(n_in / (hi - lo), 2)
+    return {"requests": len(res), "completion_tokens": toks, "wall_s": round(end - t0, 2), "agg_full_tok_s": full,
             "agg_tok_s": round(toks / (end - t0), 2), "per_request_tok_s_mean": round(sum(dec) / len(dec), 2),
             "per_request_tok_s_p50": round(pct(dec, 50), 2), "ttft_p50_s": round(pct(ttft, 50), 3),
             "ttft_p95_s": round(pct(ttft, 95), 3), "ttft_max_s": round(max(ttft), 3),
@@ -212,7 +220,7 @@ def cmd_server(a):
         st = wq({"type": "stats"}, a.socket)
         time.sleep(0.5)
         recs = worker_records(a.worker_log, t_wall)
-        s = summarize(res, t0, t1)
+        s = summarize(res, t0, t1, c)
         modes = {}
         for r in recs:
             modes[r.get("mode")] = modes.get(r.get("mode"), 0) + 1
@@ -223,6 +231,7 @@ def cmd_server(a):
                "mean_batch": round(sum((r.get("mean_batch") or 1) * r.get("batch_steps", 0) for r in recs) /
                                    max(1, sum(r.get("batch_steps", 0) for r in recs)), 2),
                "canary_before": can0, "canary_after": canary() if a.canary else None, "t_wall": t_wall,
+               "t_end": time.time(),
                "per_prompt": per}
         log(rec)
 
@@ -234,7 +243,7 @@ def cmd_compare(a):
     allrecs = [json.loads(ln) for ln in Path(a.worker_log).read_text().splitlines() if ln.strip()]
     by_level = {}
     for i, lv in enumerate(levels):
-        t_next = levels[i + 1]["t_wall"] if i + 1 < len(levels) else 1e18
+        t_next = levels[i + 1]["t_wall"] if i + 1 < len(levels) else lv.get("t_end", 1e18)
         recs = [r for r in allrecs if lv["t_wall"] <= r.get("t", 0) < t_next and r.get("prompt_ids")]
         by_level[lv["concurrency"]] = {tuple(r["prompt_ids"]): r for r in recs}
     base = by_level.get(1)
