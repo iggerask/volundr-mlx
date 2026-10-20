@@ -27,6 +27,24 @@
   "ref_mean_abs": 0.37555572390556335
  },
  {
+  "component": "KDA conv + gates kernel (q, k, v, g, beta)",
+  "identical": true,
+  "rows_differing": 0,
+  "rows": 1517,
+  "max_abs": 0.0,
+  "mean_abs": 0.0,
+  "ref_mean_abs": 0.3047912120819092
+ },
+ {
+  "component": "KDA recurrence (gated_delta_tg)",
+  "identical": true,
+  "rows_differing": 0,
+  "rows": 1517,
+  "max_abs": 0.0,
+  "mean_abs": 0.0,
+  "ref_mean_abs": 0.0006218443159013987
+ },
+ {
   "component": "BCSA attention (window + top-k far blocks)",
   "identical": false,
   "rows_differing": 1517,

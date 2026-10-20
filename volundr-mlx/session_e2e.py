@@ -461,8 +461,10 @@ def cmd_report(a):
         if a.out:
             Path(a.out).write_text(json.dumps({"cached": [x["stats"] for x in c],
                                                "nocache": [x["stats"] for x in n if x]}, indent=1))
+    # TTFT: client side (request sent -> first streamed token, through agens-server); decode tok/s: the worker's
+    # (generated - 1) / decode time (client-side rates are skewed when the tool-call parser holds text back)
     print("| turn | prompt tokens | cached / prefilled (snapshot) | TTFT cached | TTFT no cache | speed-up | decode tok/s "
-          "cached / no cache | tokens/step | cache GB (snapshots) | peak GB | same reply |")
+          "cached / no cache | tokens/step cached | cache GB (snapshots) | peak GB | same reply |")
     print("|---|---|---|---|---|---|---|---|---|---|---|")
     for x, y in zip(c, n):
         s, u = x["stats"], (y or {}).get("stats", {})
@@ -471,8 +473,8 @@ def cmd_report(a):
         tc, tn = s.get("ttft_client_s"), u.get("ttft_client_s")
         f = lambda v, d=2: "-" if v is None else f"{v:.{d}f}"  # noqa: E731
         print(f"| {s['turn']} | {s['prompt_tokens']} | {s.get('w_cached_tokens')} / {s.get('w_prefilled_tokens')}{kind} | "
-              f"{f(tc)} s | {f(tn)} s | {f(tn / tc if tc and tn else None, 1)}x | {f(s.get('decode_tok_s_client'), 1)} / "
-              f"{f(u.get('decode_tok_s_client'), 1)} | {f(s.get('w_tokens_per_step'))} | "
+              f"{f(tc)} s | {f(tn)} s | {f(tn / tc if tc and tn else None, 1)}x | {f(s.get('w_decode_tok_s'), 1)} / "
+              f"{f(u.get('w_decode_tok_s'), 1)} | {f(s.get('w_tokens_per_step'))} | "
               f"{f((s.get('w_cache_bytes') or 0) / 1e9)} ({s.get('w_cache_snapshots')}) | {f(s.get('w_peak_gb'), 1)} | "
               f"{u.get('same_reply', '-')} |")
 

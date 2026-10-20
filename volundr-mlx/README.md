@@ -14,6 +14,7 @@ HF repo.
 | `bench_prefill.py`, `profile_prefill.py` | chunked prefill tok/s per chunk; per-component time of a chunk at any offset |
 | `dump_logits.py`, `make_prompts.py` | teacher-forced logit dumps in the engine's format; see [PARITY.md](PARITY.md) |
 | `tests/` | op-level and tiny-model tests against a NumPy fp64 port of the torch reference and `reference.rs` |
+| `session.py`, `worker.py`, `sampler.py` | session / prefix cache, the MLX worker behind agens-server (`../server/`, `../serve.sh`); see [NOTES_SESSION.md](NOTES_SESSION.md) |
 | `bench.sh`, `with_gpu_lock.sh` | runs under the shared GPU lock, with the canary before and after |
 | `ref/` | `agens-engine` at b0e9a95 and the HF repos' code and config files (read-only reference) |
 
@@ -167,8 +168,8 @@ Projected 262K-token cache, from the cache layout: dense KV 1.07 GB, BCSA pooled
 
 ## Not done yet (later phases)
 
-- Speculative decoding with DFlash2. This needs its own loop: mlx-lm refuses non-trimmable hybrid caches.
-- Serving through `agens-server`'s `Backend` trait.
+- Speculative decoding for sampled requests: the worker decodes them plainly.
+- A session cache that spills to SSD, and continuous batching (the worker serves one request at a time).
 - Prefill:
   - a W4A8 matmul path (above);
   - a chunked (tensor-core) KDA recurrence with per-channel decay, which is the engine's form too.

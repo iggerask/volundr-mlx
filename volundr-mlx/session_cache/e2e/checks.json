@@ -1,0 +1,204 @@
+{
+ "interleaved": {
+  "sequential": [
+   {
+    "session": "A",
+    "turn": 0,
+    "prompt": 1920,
+    "cached": 0,
+    "snapshot": null,
+    "ttft_s": 4.629324916750193
+   },
+   {
+    "session": "B",
+    "turn": 0,
+    "prompt": 723,
+    "cached": 0,
+    "snapshot": null,
+    "ttft_s": 1.8099641245789826
+   },
+   {
+    "session": "A",
+    "turn": 1,
+    "prompt": 1988,
+    "cached": 1967,
+    "snapshot": {
+     "id": 21,
+     "kind": "reply",
+     "session": "A",
+     "same_session": true
+    },
+    "ttft_s": 0.23883325001224875
+   },
+   {
+    "session": "B",
+    "turn": 1,
+    "prompt": 792,
+    "cached": 770,
+    "snapshot": {
+     "id": 23,
+     "kind": "reply",
+     "session": "B",
+     "same_session": true
+    },
+    "ttft_s": 0.2252278751693666
+   }
+  ],
+  "concurrent": [
+   {
+    "session": "A",
+    "prompt": 2057,
+    "cached": 2035,
+    "snapshot": {
+     "id": 25,
+     "kind": "reply",
+     "session": "A",
+     "same_session": true
+    },
+    "queue_s": 1.9832979887723923e-05,
+    "ttft_s": 0.23950483370572329
+   },
+   {
+    "session": "B",
+    "prompt": 861,
+    "cached": 839,
+    "snapshot": {
+     "id": 27,
+     "kind": "reply",
+     "session": "B",
+     "same_session": true
+    },
+    "queue_s": 0.6846418329514563,
+    "ttft_s": 0.22763608302921057
+   }
+  ],
+  "pass": true
+ },
+ "eviction": {
+  "budget_gb": 2.0,
+  "steps": [
+   {
+    "session": "C",
+    "prompt": 4198,
+    "cache_bytes": 1565128056,
+    "snapshots": 4,
+    "evicted": 28,
+    "kept": [
+     [
+      "B",
+      "reply",
+      839
+     ],
+     [
+      "B",
+      "prompt",
+      861
+     ],
+     [
+      "B",
+      "reply",
+      908
+     ],
+     [
+      "C",
+      "prompt",
+      4198
+     ]
+    ]
+   },
+   {
+    "session": "D",
+    "prompt": 3570,
+    "cache_bytes": 1416718796,
+    "snapshots": 2,
+    "evicted": 32,
+    "kept": [
+     [
+      "C",
+      "reply",
+      4221
+     ],
+     [
+      "D",
+      "prompt",
+      3570
+     ]
+    ]
+   },
+   {
+    "session": "E",
+    "prompt": 4471,
+    "cache_bytes": 1419867628,
+    "snapshots": 2,
+    "evicted": 35,
+    "kept": [
+     [
+      "E",
+      "interval",
+      4096
+     ],
+     [
+      "E",
+      "prompt",
+      4471
+     ]
+    ]
+   }
+  ],
+  "C_again": {
+   "cached": 0,
+   "prompt": 4241,
+   "snapshot": null
+  },
+  "E_again": {
+   "cached": 4494,
+   "prompt": 4514,
+   "snapshot": {
+    "id": 38,
+    "kind": "reply",
+    "session": "E",
+    "same_session": true
+   }
+  },
+  "pass": true
+ },
+ "cancellation": {
+  "mid_stream": {
+   "deltas_read": 30,
+   "F_finish": "cancelled",
+   "F_generated": 59,
+   "G_queue_s": 0.14338300004601479,
+   "G_ttft_client_s": 0.36641733394935727,
+   "pass": true
+  },
+  "mid_prefill": {
+   "H_prompt": 17218,
+   "H_finish": "cancelled",
+   "H_cancelled": "prefill",
+   "H_cancelled_at": 4096,
+   "H_total_s": 9.58260012511164,
+   "I_queue_s": 3.5907810828648508,
+   "I_ttft_after_close_s": 3.815248583443463,
+   "interval_snapshots": 1,
+   "pass": true
+  },
+  "while_queued": {
+   "J_finish": "length",
+   "J_prompt": 11530,
+   "K_finish": "cancelled",
+   "K_cancelled": "queued",
+   "K_queue_s": 26.74223362514749,
+   "K_deltas": 0,
+   "pass": true
+  }
+ },
+ "cache_after": {
+  "snapshots": 13,
+  "bytes": 6646902816,
+  "budget_bytes": 12000000000,
+  "evicted": 40,
+  "evicted_bytes": 26876916452,
+  "sessions": 6
+ },
+ "pass": true
+}

@@ -133,8 +133,8 @@ same 240 positions (`parity/mlx_chunk2048.bin`):
 | max KL | 4.7e-3 |
 
 The short prompts fit in one chunk and are identical, so the KL comes from the two long prompts. A
-change of prefill chunking alone, which moves the KDA and attention rounding, sits about 20× under
-the gate.
+change of prefill chunking alone sits about 20× under the gate. It moves the BCSA attention rounding;
+the KDA recurrence is chunk-invariant (NOTES_SESSION.md, "Where the resumed-prefill KL comes from").
 
 The prefill kernels changed the rounding again: NAX attention for BCSA, fused indexer scores, and the
 fused KDA conv, norm and recurrence. The phase-1 dump is kept as `parity/mlx_phase1.bin`. Against it,

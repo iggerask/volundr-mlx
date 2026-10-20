@@ -24,6 +24,7 @@ Unofficial; not affiliated with Blockway.
 | Prefill, exact | 374 tok/s on a 19K-token prompt |
 | Prefill, opt-in W4A8 (`VOLUNDR_W4A8=1`) | 490–509 tok/s at 20K, +25–32% |
 | Peak memory | ~25 GB short context, ~29 GB at 19K; speculative ~28 GB on a 12.5K-token prompt (was ~56 GB) |
+| Follow-up turn with the session cache, through agens-server | time to first token 9.1 s against 52.7 s at 21.7K context (3.5K new tokens), 3.1 s against 43.6 s at 18K (1.2K new) |
 
 The speculative gains come from two same-session A/Bs multiplied together; their shared baseline matched within 0.1%.
 Per-category results, methods and caveats are in the linked NOTES files: start at
@@ -50,6 +51,8 @@ Model weights aren't included. They're covered by their Hugging Face repos' lice
 ## Status
 
 Experimental:
-- Speculative decoding is greedy-only.
+- Serving goes through the upstream agens-server (OpenAI API) with an MLX worker behind it: `./serve.sh`. The
+  worker keeps a session / prefix cache, so a follow-up turn prefills only its new tokens
+  ([`NOTES_SESSION.md`](volundr-mlx/NOTES_SESSION.md)). One request at a time.
+- Speculative decoding is greedy-only; sampled requests decode plainly.
 - The CUDA-side parity run (PARITY.md section 3) hasn't been done yet.
-- Serving through agens-server isn't built.
