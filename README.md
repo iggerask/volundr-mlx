@@ -210,29 +210,41 @@ single stream here is far from compute-bound.
 
 Stock llama.cpp, mlx-lm and vLLM don't support the Volundr architecture. Blockway's
 [llama.cpp fork](https://github.com/BlockWayz/llama.cpp/tree/volundr) (branch `volundr`) is the only other engine
-that runs it on Apple silicon. This is its
-[Q4_K_M GGUF](https://huggingface.co/Blockway/Agens-Volundr-32B-v1-GGUF) on the same M5 Pro, at fork commit
-bb1c8bc, with Metal and all layers on the GPU:
+that runs it on Apple silicon. Below is its
+[Q4_K_M GGUF](https://huggingface.co/Blockway/Agens-Volundr-32B-v1-GGUF) on the same M5 Pro, with Metal and all
+layers on the GPU, at two fork commits:
 
-| | llama.cpp fork, Q4_K_M | This port, INT4 |
-|---|---|---|
-| Decode, short context | 9.8 tok/s | 13.8 plain, 27.6 speculative |
-| Decode at 8K context | 7.4 tok/s | |
-| Decode at 19K context | 7.7 tok/s | 13.6 plain |
-| Prefill, 19K-token prompt | 137 tok/s | 374 tok/s |
-| Speculative decoding | No | Yes |
-| GPU memory | 31.4 GB, with 32K of context preallocated | ~29 GB at 19K |
+- **bb1c8bc**, the updated commit and the branch tip as of 2026-10-20. Blockway added Metal kernels for the Volundr
+  ops in 3ea6ab6 and bb1c8bc.
+- **67e4001**, the commit tested first. These are the earlier measurements, kept for comparison.
 
-- In the first test, at commit 67e4001, the mHC and Engram ops had no Metal kernels and ran on the CPU in every
-  layer: 298 GPU/CPU splits per forward pass. Blockway added the kernels after that test. Now everything except the
-  token-embedding lookup runs on the GPU. Decode got 14–43% faster and short-prompt prefill 26–30% faster (17% on
-  the 19K prompt).
-- Decode takes about 102 ms per token. Reading the weights once takes about 73 ms at this bandwidth, and this port's
-  plain step is 72 ms. Where the fork's remaining ~30 ms goes hasn't been profiled.
-- Its output is coherent and matches llama.cpp's own CPU backend.
-- Greedy replies differ from this port's within the first few dozen tokens. That's expected from a different 4-bit
-  quantization: Q4_K_M keeps some layers at 8 bits, and this port uses Blockway's INT4 with a bf16 head.
-- Method, both runs and raw results are in [`NOTES_LLAMACPP.md`](volundr-mlx/NOTES_LLAMACPP.md).
+The same settings, prompts and scripts were used for both commits.
+
+| | Fork at bb1c8bc (updated) | Fork at 67e4001 (first test) | This port, INT4 |
+|---|---|---|---|
+| Decode, short context | 9.8 tok/s | 8.6 tok/s | 13.8 plain, 27.6 speculative |
+| Decode at 1K context | 9.3 tok/s | 8.1 tok/s | — |
+| Decode at 8K context | 7.4 tok/s | 6.0 tok/s | — |
+| Decode at 19K context | 7.7 tok/s | 5.3 tok/s | 13.6 plain |
+| Prefill, 512-token prompt | 294 tok/s | 226 tok/s | — |
+| Prefill, 19K-token prompt | 137 tok/s | 117 tok/s | 374 tok/s |
+| What runs on the CPU | Only the token-embedding lookup | Every mHC and Engram op: 298 GPU/CPU splits per forward pass | — |
+| Speculative decoding | No | No | Yes |
+| GPU memory | 31.4 GB, with 32K of context preallocated | 31.3 GB, the same way | ~29 GB at 19K |
+
+- **What changed between the commits.** At 67e4001, the mHC and Engram ops had no Metal kernels, so they ran on the
+  CPU in every layer. With the kernels in bb1c8bc:
+  - Decode is 14–43% faster.
+  - Short-prompt prefill is 26–30% faster, and the 19K prompt prefills 17% faster.
+  - The output is unchanged: greedy replies are byte-identical between the two commits.
+- **Where the fork's decode time goes.** At bb1c8bc, decode takes about 102 ms per token; at 67e4001 it took 117 ms.
+  Reading the weights once takes about 73 ms at this bandwidth, and this port's plain step is 72 ms. Where the fork's
+  remaining ~30 ms goes hasn't been profiled.
+- **Output quality.** At both commits, the output is coherent and matches llama.cpp's own CPU backend.
+- **Why the replies differ from this port's.** Greedy replies from the two engines diverge within the first two dozen
+  tokens. That's expected from a different 4-bit quantization: Q4_K_M keeps some layers at 8 bits, and this port uses
+  Blockway's INT4 with a bf16 head.
+- **Details.** The method, both runs and the raw results are in [`NOTES_LLAMACPP.md`](volundr-mlx/NOTES_LLAMACPP.md).
 
 ## Status
 
@@ -247,3 +259,9 @@ Experimental. Known limits:
 
 Benchmarks, the parity tools and the prompt-suite builder read upstream reference files from `volundr-mlx/ref/`,
 which isn't tracked. To recreate it, run `volundr-mlx/fetch_ref.sh`.
+
+## License
+
+The code is MIT-licensed ([`LICENSE`](LICENSE)). [`NOTICE`](NOTICE) lists the third-party work it builds on:
+agens-engine (MIT), the Volundr release code (Apache 2.0) and MLX (MIT). Model weights aren't included; they're
+covered by the licenses in their Hugging Face repos.

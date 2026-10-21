@@ -22,7 +22,7 @@ Scripts, logs and raw results are in `llamacpp/`. The two `GGML_SCHED_DEBUG=2` p
 - **On bb1c8bc, the whole graph runs on the GPU** apart from the token-embedding lookup. That is 2 graph splits in
   decode and 11 in prefill, all but one of them Metal to Metal, against 298 before.
 - **bb1c8bc is faster, but still slower than our port everywhere:**
-  - Decode: 9.8 tok/s short (+14%) and 7.6 at 19K (+43%).
+  - Decode: 9.8 tok/s short (+14%) and 7.7 at 19K (+43%).
   - Prefill: 294 tok/s short (+30%) and 137 at 19K (+17%).
   - Against our port: decode is 1.4x slower than our plain greedy and 2.8x slower than our speculative loop. At 19K
     context, prefill is 2.7x slower and decode 1.8x slower.
